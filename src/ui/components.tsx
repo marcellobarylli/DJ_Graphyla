@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { formatOverlap, formatPosition } from '../domain/position';
 import { formatTimestamp, parseTimestamp } from '../domain/time';
 import { formatBpm, formatPitch, pitchPercent } from '../domain/tempo';
@@ -61,6 +61,90 @@ export function Field({
       {children}
       {error ? <p className="field-error">{error}</p> : hint ? <div className="field-hint">{hint}</div> : null}
     </div>
+  );
+}
+
+/** Bolds the part of `text` that matches `query` at the start of a word. */
+function Highlight({ text, query }: { text: string; query: string }) {
+  const q = query.trim();
+  if (!q) return <>{text}</>;
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const m = new RegExp(`(^|[^\\p{L}\\p{N}])(${escaped})`, 'iu').exec(text);
+  if (!m) return <>{text}</>;
+  const start = m.index + m[1]!.length;
+  return (
+    <>
+      {text.slice(0, start)}
+      <strong>{text.slice(start, start + m[2]!.length)}</strong>
+      {text.slice(start + m[2]!.length)}
+    </>
+  );
+}
+
+/**
+ * Text field with type-ahead suggestions shown as tap-able chips below it
+ * (more reliable on phones than a native datalist).
+ */
+export function SuggestField(props: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  suggestions: string[];
+  onPick: (suggestion: string) => void;
+  /** The text the suggestions match (defaults to the whole value). */
+  query?: string;
+  placeholder?: string;
+  hint?: ReactNode;
+  error?: string;
+}) {
+  const id = useId();
+  const listId = `${id}-suggestions`;
+  const [focused, setFocused] = useState(false);
+  const blurTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(blurTimer.current), []);
+  const show = focused && props.suggestions.length > 0;
+  return (
+    <Field label={props.label} hint={props.hint} error={props.error} htmlFor={id}>
+      <input
+        id={id}
+        className="input"
+        value={props.value}
+        placeholder={props.placeholder}
+        autoComplete="off"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded={show}
+        aria-controls={show ? listId : undefined}
+        onChange={(e) => props.onChange(e.target.value)}
+        onFocus={() => {
+          window.clearTimeout(blurTimer.current);
+          setFocused(true);
+        }}
+        // Hide a moment later so a tap on a suggestion still lands.
+        onBlur={() => {
+          blurTimer.current = window.setTimeout(() => setFocused(false), 200);
+        }}
+      />
+      {show && (
+        <div id={listId} className="suggestions" role="listbox" aria-label={`Suggestions for ${props.label}`}>
+          {props.suggestions.map((s) => (
+            <button
+              key={s}
+              type="button"
+              role="option"
+              aria-selected={false}
+              className="suggestion"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => props.onPick(s)}
+            >
+              <span className="suggestion-text">
+                <Highlight text={s} query={props.query ?? props.value} />
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </Field>
   );
 }
 

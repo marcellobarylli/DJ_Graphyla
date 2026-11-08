@@ -4,7 +4,8 @@ import { formatBpm, parseBpm } from '../domain/tempo';
 import type { Song, SongInput } from '../domain/types';
 import { goBack, linkTo, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
-import { EmptyState, TextArea, TextField, TopBar } from './components';
+import { artistSuggestions, currentTag, keySuggestions, replaceCurrentTag, tagSuggestions } from '../domain/suggest';
+import { EmptyState, SuggestField, TextArea, TextField, TopBar } from './components';
 
 export interface SongDraft {
   title: string;
@@ -54,18 +55,41 @@ export function SongFields({
   compact?: boolean;
   autoFocus?: boolean;
 }) {
+  const { graph } = useStore();
   const set = (k: keyof SongDraft) => (v: string) => onChange({ ...draft, [k]: v });
   return (
     <>
       <TextField label="Title" value={draft.title} onChange={set('title')} error={errors.title} autoFocus={autoFocus} />
-      <TextField label="Artist" value={draft.artist} onChange={set('artist')} />
+      <SuggestField
+        label="Artist"
+        value={draft.artist}
+        onChange={set('artist')}
+        suggestions={artistSuggestions(graph, draft.artist)}
+        onPick={set('artist')}
+      />
       <div className="grid-2">
         <TextField label="Original BPM" value={draft.bpm} onChange={set('bpm')} inputMode="decimal" placeholder="e.g. 124" error={errors.bpm} />
-        <TextField label="Key" value={draft.key} onChange={set('key')} placeholder="e.g. 8A / Am" />
+        <SuggestField
+          label="Key"
+          value={draft.key}
+          onChange={set('key')}
+          suggestions={keySuggestions(graph, draft.key, 4)}
+          onPick={set('key')}
+          placeholder="e.g. 8A / Am"
+        />
       </div>
       {!compact && (
         <>
-          <TextField label="Tags" value={draft.tags} onChange={set('tags')} placeholder="house, peak time, vocal" hint="Comma separated" />
+          <SuggestField
+            label="Tags"
+            value={draft.tags}
+            onChange={set('tags')}
+            suggestions={tagSuggestions(graph, draft.tags)}
+            onPick={(tag) => onChange({ ...draft, tags: replaceCurrentTag(draft.tags, tag) })}
+            query={currentTag(draft.tags)}
+            placeholder="house, peak time, vocal"
+            hint="Comma separated · type to see your categories"
+          />
           <TextArea label="Notes" value={draft.notes} onChange={set('notes')} placeholder="Intro is 32 bars, big break at 3:10…" />
         </>
       )}
