@@ -1,31 +1,89 @@
 /**
- * Local-first persistence: the whole graph lives in one localStorage entry.
- * Small libraries (thousands of songs) fit comfortably; a sync backend
- * can replace this module later without touching the domain layer.
+ * Local-first persistence.
+ *
+ * Layout in localStorage:
+ *   dj-graphyla:crates        the crate index (names, counts, active crate)
+ *   dj-graphyla:crate:<id>    one crate's songs, transitions and sets
+ *
+ * Crates are stored separately (like vaults), so only the active one is
+ * loaded. A sync backend can replace this module later without touching
+ * the domain layer.
  */
+import { DEFAULT_CRATE_NAME, createIndex, newCrateMeta, type CrateId, type CrateIndex, type CrateMeta } from '../domain/crates';
 import { createEmptyGraph } from '../domain/graph';
 import { exportJson, parseBackup } from '../domain/serialize';
 import type { GraphData } from '../domain/types';
 
-export const STORAGE_KEY = 'dj-graphyla:graph';
+export const INDEX_KEY = 'dj-graphyla:crates';
+/** Single-library key used before crates existed (v0.1–v0.2). */
+export const LEGACY_KEY = 'dj-graphyla:graph';
+export const crateKey = (id: CrateId) => `dj-graphyla:crate:${id}`;
 
-type KeyValueStore = Pick<Storage, 'getItem' | 'setItem'>;
+export type KeyValueStore = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
-export function loadGraph(store: KeyValueStore = localStorage): GraphData {
-  const text = store.getItem(STORAGE_KEY);
+function readGraph(store: KeyValueStore, key: string): GraphData {
+  const text = store.getItem(key);
   if (!text) return createEmptyGraph();
   try {
     return parseBackup(text);
   } catch (err) {
     // Keep the unreadable payload so nothing is lost, then start fresh.
-    store.setItem(`${STORAGE_KEY}:corrupt:${Date.now()}`, text);
-    console.error('Could not read saved graph, starting empty', err);
+    store.setItem(`${key}:corrupt:${Date.now()}`, text);
+    console.error(`Could not read ${key}, starting empty`, err);
     return createEmptyGraph();
   }
 }
 
-export function saveGraph(graph: GraphData, store: KeyValueStore = localStorage): void {
-  store.setItem(STORAGE_KEY, exportJson(graph));
+function isMeta(v: unknown): v is CrateMeta {
+  const m = v as CrateMeta;
+  return !!m && typeof m.id === 'string' && typeof m.name === 'string';
+}
+
+function readIndex(store: KeyValueStore): CrateIndex | null {
+  const text = store.getItem(INDEX_KEY);
+  if (!text) return null;
+  try {
+    const raw = JSON.parse(text) as Partial<CrateIndex>;
+    const crates = Array.isArray(raw.crates) ? raw.crates.filter(isMeta) : [];
+    if (crates.length === 0) return null;
+    const activeId = crates.some((c) => c.id === raw.activeId) ? raw.activeId! : crates[0]!.id;
+    return { version: 1, activeId, crates };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Loads the crate index. On first run it creates one crate, moving the
+ * pre-crates library (if any) into it.
+ */
+export function loadIndex(store: KeyValueStore = localStorage): CrateIndex {
+  const existing = readIndex(store);
+  if (existing) return existing;
+
+  const legacy = store.getItem(LEGACY_KEY) ? readGraph(store, LEGACY_KEY) : createEmptyGraph();
+  const first = newCrateMeta(DEFAULT_CRATE_NAME, { graph: legacy });
+  saveCrate(first.id, legacy, store);
+  const index = createIndex(first);
+  saveIndex(index, store);
+  store.removeItem(LEGACY_KEY);
+  return index;
+}
+
+export function saveIndex(index: CrateIndex, store: KeyValueStore = localStorage): void {
+  store.setItem(INDEX_KEY, JSON.stringify(index));
+}
+
+export function loadCrate(id: CrateId, store: KeyValueStore = localStorage): GraphData {
+  return readGraph(store, crateKey(id));
+}
+
+export function saveCrate(id: CrateId, graph: GraphData, store: KeyValueStore = localStorage): void {
+  store.setItem(crateKey(id), exportJson(graph));
+}
+
+export function deleteCrateData(id: CrateId, store: KeyValueStore = localStorage): void {
+  store.removeItem(crateKey(id));
 }
 
 /** Asks the browser not to evict our data under storage pressure. */

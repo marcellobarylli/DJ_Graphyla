@@ -7,7 +7,7 @@ export function AddView() {
   const store = useStore();
   return (
     <>
-      <TopBar title="Add" />
+      <TopBar crate />
       <main className="page">
         <a className="card choice" {...linkTo(paths.transitionNew(), { replace: true })}>
           <span className="choice-icon choice-icon-edge" aria-hidden="true">

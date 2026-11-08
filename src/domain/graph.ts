@@ -6,6 +6,7 @@ import { GraphError, newId, type FieldErrors } from './common';
 import {
   BAR_MAX,
   BPM_MAX,
+  OVERLAP_MAX,
   BPM_MIN,
   SCHEMA_VERSION,
   type DjSet,
@@ -76,6 +77,10 @@ export function validateTransitionFields(input: Omit<TransitionInput, 'fromSongI
   if (fromBpm) errors.fromBpm = fromBpm;
   const toBpm = bpmError(input.toBpm);
   if (toBpm) errors.toBpm = toBpm;
+  const overlap = input.overlapBars;
+  if (overlap !== null && overlap !== undefined && (!Number.isInteger(overlap) || overlap < 1 || overlap > OVERLAP_MAX)) {
+    errors.overlapBars = `Overlap is a whole number of bars, 1–${OVERLAP_MAX}`;
+  }
   if (input.rating !== null && input.rating !== undefined) {
     if (!Number.isInteger(input.rating) || input.rating < 1 || input.rating > 5) errors.rating = 'Rating is 1–5';
   }
@@ -215,6 +220,7 @@ export function addTransition(
     toTime: input.toTime ?? null,
     fromBpm: input.fromBpm ?? null,
     toBpm: input.toBpm ?? null,
+    overlapBars: input.overlapBars ?? null,
     rating: input.rating ?? null,
     notes: input.notes ?? '',
     createdAt: now,
@@ -241,6 +247,7 @@ export function updateTransition(
     toTime: pick('toTime'),
     fromBpm: pick('fromBpm'),
     toBpm: pick('toBpm'),
+    overlapBars: pick('overlapBars'),
     rating: pick('rating'),
     notes: pick('notes'),
   };
@@ -255,6 +262,7 @@ export function updateTransition(
     toTime: merged.toTime ?? null,
     fromBpm: merged.fromBpm ?? null,
     toBpm: merged.toBpm ?? null,
+    overlapBars: merged.overlapBars ?? null,
     rating: merged.rating ?? null,
     notes: merged.notes ?? '',
     updatedAt: now ?? new Date().toISOString(),

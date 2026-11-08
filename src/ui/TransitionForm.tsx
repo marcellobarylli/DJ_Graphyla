@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import * as G from '../domain/graph';
-import { formatBar, parseBar } from '../domain/position';
+import { formatBar, formatOverlap, overlapSeconds, parseBar } from '../domain/position';
 import { setsUsingTransition } from '../domain/sets';
 import { formatTimestamp, parseTimestamp } from '../domain/time';
 import { formatBpm, parseBpm } from '../domain/tempo';
@@ -21,6 +21,7 @@ interface Draft {
   toTime: string;
   fromBpm: string;
   toBpm: string;
+  overlap: string;
   rating: number | null;
   notes: string;
 }
@@ -53,6 +54,7 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
           toTime: formatTimestamp(existing.toTime),
           fromBpm: formatBpm(existing.fromBpm),
           toBpm: formatBpm(existing.toBpm),
+          overlap: formatBar(existing.overlapBars),
           rating: existing.rating,
           notes: existing.notes,
         }
@@ -65,6 +67,7 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
           toTime: '',
           fromBpm: '',
           toBpm: '',
+          overlap: '',
           rating: null,
           notes: '',
         },
@@ -132,7 +135,8 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
     // Blank incoming tempo = beatmatched to the outgoing one.
     const toBpm = draft.toBpm.trim() === '' ? fromBpm : parseBpm(draft.toBpm);
 
-    const partial = { fromBar, toBar, fromTime, toTime, fromBpm, toBpm, rating: draft.rating, notes: draft.notes };
+    const overlapBars = parseBar(draft.overlap);
+    const partial = { fromBar, toBar, fromTime, toTime, fromBpm, toBpm, overlapBars, rating: draft.rating, notes: draft.notes };
     // Song ids are checked above; the domain checks times, tempos and rating.
     const numericErrors = { ...G.validateTransitionFields(partial), ...errs };
 
@@ -271,7 +275,18 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
             </div>
           )}
 
-          <div className="card">
+          <div className="card form">
+            <OverlapField
+              value={draft.overlap}
+              onChange={set('overlap')}
+              error={errors.overlapBars}
+              fromBar={parseBar(draft.fromBar)}
+              toBar={parseBar(draft.toBar)}
+              bpm={(() => {
+                const b = fromBpmNumber ?? parseBpm(draft.toBpm);
+                return b !== null && Number.isFinite(b) ? b : null;
+              })()}
+            />
             <StarRating value={draft.rating} onChange={set('rating')} />
             <TextArea
               label="Notes"
@@ -300,6 +315,73 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
         </form>
       </main>
     </>
+  );
+}
+
+const OVERLAP_PRESETS = [4, 8, 16, 32];
+
+/** How long both songs play together, in bars, with one-tap presets. */
+function OverlapField(props: {
+  value: string;
+  onChange: (v: string) => void;
+  error?: string;
+  fromBar: number | null;
+  toBar: number | null;
+  bpm: number | null;
+}) {
+  const bars = parseBar(props.value);
+  const valid = bars !== null && Number.isInteger(bars) && bars >= 1;
+  const seconds = valid ? overlapSeconds(bars, props.bpm) : null;
+  const outBy = valid && props.fromBar !== null && Number.isInteger(props.fromBar) ? props.fromBar + bars : null;
+  const inFullyBy = valid && props.toBar !== null && Number.isInteger(props.toBar) ? props.toBar + bars : null;
+  return (
+    <div className={`field${props.error ? ' has-error' : ''}`}>
+      <label className="field-label" htmlFor="overlap-input">
+        Overlap — both songs playing
+      </label>
+      <div className="overlap-row">
+        <span className="input-with-suffix">
+          <input
+            id="overlap-input"
+            className="input"
+            inputMode="numeric"
+            placeholder="—"
+            value={props.value}
+            onChange={(e) => props.onChange(e.target.value)}
+            autoComplete="off"
+          />
+          <span className="input-suffix">bars</span>
+        </span>
+        <span className="presets" role="group" aria-label="Overlap presets">
+          {OVERLAP_PRESETS.map((n) => (
+            <button
+              key={n}
+              type="button"
+              className={`chip-btn chip-btn-flush${bars === n ? ' on' : ''}`}
+              aria-pressed={bars === n}
+              onClick={() => props.onChange(bars === n ? '' : String(n))}
+            >
+              {n}
+            </button>
+          ))}
+        </span>
+      </div>
+      {props.error ? (
+        <p className="field-error">{props.error}</p>
+      ) : (
+        valid && (
+          <ul className="field-hint hint-lines">
+            {outBy !== null && <li>Outgoing song is out by bar {outBy}</li>}
+            {inFullyBy !== null && <li>Next song plays alone from bar {inFullyBy}</li>}
+            {seconds !== null && (
+              <li>
+                {formatOverlap(bars)} ≈ {seconds} s at {formatBpm(props.bpm)} BPM (4/4)
+              </li>
+            )}
+          </ul>
+        )
+      )}
+    </div>
   );
 }
 

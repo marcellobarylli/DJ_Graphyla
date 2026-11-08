@@ -275,7 +275,7 @@ export default function GraphView({ setId, focusId }: { setId?: string; focusId?
   return (
     <>
       <TopBar
-        title="Graph"
+        crate
         actions={
           <span className="topbar-stat">
             {Object.keys(graph.songs).length} songs · {Object.keys(graph.transitions).length} mixes

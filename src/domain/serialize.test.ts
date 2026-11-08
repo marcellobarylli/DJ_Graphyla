@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { addSong, addTransition, createEmptyGraph, updateSong } from './graph';
 import { appendTransition, createSet } from './sets';
-import { ImportError, exportJson, mergeGraphs, parseBackup } from './serialize';
+import { ImportError, exportJson, exportLibraryJson, mergeGraphs, parseBackup, parseBackupFile } from './serialize';
 
 const NOW = '2026-01-01T00:00:00.000Z';
 
@@ -28,10 +28,40 @@ describe('backup round trip', () => {
 
   it('writes a recognisable file header', () => {
     const file = JSON.parse(exportJson(sample(), NOW));
-    expect(file).toMatchObject({ app: 'dj-graphyla', schemaVersion: 2, exportedAt: NOW });
+    expect(file).toMatchObject({ app: 'dj-graphyla', schemaVersion: 3, exportedAt: NOW });
+    expect(file.crate).toBeUndefined();
     expect(file.songs).toHaveLength(2);
     expect(file.transitions).toHaveLength(1);
     expect(file.sets).toEqual([]);
+  });
+});
+
+describe('crate and library files', () => {
+  it('labels a crate backup with the crate name', () => {
+    const text = exportJson(sample(), NOW, { id: 'c1', name: 'Techno' });
+    expect(JSON.parse(text).crate).toEqual({ id: 'c1', name: 'Techno' });
+    expect(parseBackupFile(text, NOW)).toEqual({ kind: 'crate', crate: { id: 'c1', name: 'Techno' }, graph: sample() });
+  });
+
+  it('reads an unlabelled (older) backup as a crate backup', () => {
+    expect(parseBackupFile(exportJson(sample(), NOW), NOW)).toMatchObject({ kind: 'crate', crate: null });
+  });
+
+  it('round-trips a library backup with every crate', () => {
+    const crates = [
+      { id: 'c1', name: 'Techno', graph: sample() },
+      { id: 'c2', name: 'House', graph: createEmptyGraph() },
+    ];
+    expect(parseBackupFile(exportLibraryJson(crates, NOW), NOW)).toEqual({ kind: 'library', crates });
+  });
+
+  it('refuses a library backup where one crate is expected', () => {
+    expect(() => parseBackup(exportLibraryJson([], NOW))).toThrow(/all crates/);
+  });
+
+  it('names the crate when a library backup is broken', () => {
+    const text = JSON.stringify({ app: 'dj-graphyla', kind: 'library', schemaVersion: 3, crates: [{ id: 'x', name: 'Disco', songs: 'no' }] });
+    expect(() => parseBackupFile(text)).toThrow(/Disco/);
   });
 });
 
@@ -63,9 +93,9 @@ describe('parseBackup', () => {
       transitions: [{ id: 't', fromSongId: 'a', toSongId: 'b', fromTime: 90 }],
     });
     const g = parseBackup(text, NOW);
-    expect(g.schemaVersion).toBe(2);
+    expect(g.schemaVersion).toBe(3);
     expect(g.sets).toEqual({});
-    expect(g.transitions.t).toMatchObject({ fromBar: null, toBar: null, fromTime: 90 });
+    expect(g.transitions.t).toMatchObject({ fromBar: null, toBar: null, fromTime: 90, overlapBars: null });
   });
 
   it('repairs sets whose references no longer resolve', () => {
@@ -81,6 +111,20 @@ describe('parseBackup', () => {
     const g = parseBackup(text, NOW);
     expect(g.sets.s1).toMatchObject({ songIds: ['b', 'a'], transitionIds: [null] });
     expect(g.sets.s2).toMatchObject({ name: 'Untitled set', songIds: ['a', 'b'], transitionIds: [null] });
+  });
+
+  it('reads overlap and drops invalid values', () => {
+    const text = JSON.stringify({
+      schemaVersion: 3,
+      songs: [{ id: 'a', title: 'A' }],
+      transitions: [
+        { id: 't1', fromSongId: 'a', toSongId: 'a', overlapBars: 16 },
+        { id: 't2', fromSongId: 'a', toSongId: 'a', overlapBars: 2.5 },
+        { id: 't3', fromSongId: 'a', toSongId: 'a', overlapBars: 9999 },
+      ],
+    });
+    const g = parseBackup(text, NOW);
+    expect([g.transitions.t1!.overlapBars, g.transitions.t2!.overlapBars, g.transitions.t3!.overlapBars]).toEqual([16, null, null]);
   });
 
   it('fills defaults for missing optional fields and drops invalid ratings', () => {

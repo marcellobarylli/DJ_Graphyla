@@ -1,36 +1,79 @@
 /**
- * Backup file format (JSON) and import/merge logic.
+ * Backup file formats (JSON) and import/merge logic.
  * Arrays instead of id-maps keep files readable and diff-friendly.
+ *
+ * Two kinds of file:
+ *  - a crate backup: one crate's songs, transitions and sets (+ the crate's name)
+ *  - a library backup (`kind: "library"`): every crate, each with its own data
  */
 import { createEmptyGraph, removeSetSongAt } from './graph';
-import { SCHEMA_VERSION, type DjSet, type GraphData, type Song, type Transition } from './types';
+import { OVERLAP_MAX, SCHEMA_VERSION, type DjSet, type GraphData, type Song, type Transition } from './types';
 
 export const FILE_APP_ID = 'dj-graphyla';
 
-export interface BackupFile {
-  app: typeof FILE_APP_ID;
-  schemaVersion: number;
-  exportedAt: string;
+export interface CrateLabel {
+  id: string;
+  name: string;
+}
+
+interface GraphPayload {
   songs: Song[];
   transitions: Transition[];
   sets: DjSet[];
 }
 
+export interface BackupFile extends GraphPayload {
+  app: typeof FILE_APP_ID;
+  schemaVersion: number;
+  exportedAt: string;
+  crate?: CrateLabel;
+}
+
+export interface LibraryBackupFile {
+  app: typeof FILE_APP_ID;
+  kind: 'library';
+  schemaVersion: number;
+  exportedAt: string;
+  crates: (CrateLabel & GraphPayload)[];
+}
+
+export interface CrateData extends CrateLabel {
+  graph: GraphData;
+}
+
+export type ParsedBackup = { kind: 'crate'; crate: CrateLabel | null; graph: GraphData } | { kind: 'library'; crates: CrateData[] };
+
 export class ImportError extends Error {}
 
-export function toBackup(graph: GraphData, now = new Date().toISOString()): BackupFile {
+const payload = (graph: GraphData): GraphPayload => ({
+  songs: Object.values(graph.songs),
+  transitions: Object.values(graph.transitions),
+  sets: Object.values(graph.sets),
+});
+
+export function toBackup(graph: GraphData, now = new Date().toISOString(), crate?: CrateLabel): BackupFile {
   return {
     app: FILE_APP_ID,
     schemaVersion: SCHEMA_VERSION,
     exportedAt: now,
-    songs: Object.values(graph.songs),
-    transitions: Object.values(graph.transitions),
-    sets: Object.values(graph.sets),
+    ...(crate ? { crate: { id: crate.id, name: crate.name } } : {}),
+    ...payload(graph),
   };
 }
 
-export function exportJson(graph: GraphData, now?: string): string {
-  return JSON.stringify(toBackup(graph, now), null, 2);
+export function exportJson(graph: GraphData, now?: string, crate?: CrateLabel): string {
+  return JSON.stringify(toBackup(graph, now, crate), null, 2);
+}
+
+export function exportLibraryJson(crates: CrateData[], now = new Date().toISOString()): string {
+  const file: LibraryBackupFile = {
+    app: FILE_APP_ID,
+    kind: 'library',
+    schemaVersion: SCHEMA_VERSION,
+    exportedAt: now,
+    crates: crates.map((c) => ({ id: c.id, name: c.name, ...payload(c.graph) })),
+  };
+  return JSON.stringify(file, null, 2);
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -79,6 +122,10 @@ function readTransition(raw: unknown, i: number, now: string): Transition {
     toTime: num(raw.toTime),
     fromBpm: num(raw.fromBpm),
     toBpm: num(raw.toBpm),
+    overlapBars: (() => {
+      const o = bar(raw.overlapBars);
+      return o !== null && o <= OVERLAP_MAX ? o : null;
+    })(),
     rating: rating !== null && Number.isInteger(rating) && rating >= 1 && rating <= 5 ? rating : null,
     notes: str(raw.notes),
     createdAt: str(raw.createdAt, now),
@@ -118,10 +165,10 @@ function readSet(raw: unknown, i: number, graph: GraphData, now: string): DjSet 
 }
 
 /**
- * Parses a backup file (or the raw localStorage payload) into GraphData.
- * Throws ImportError with a human-readable message on bad input.
+ * Parses either kind of backup file. Throws ImportError with a
+ * human-readable message on bad input.
  */
-export function parseBackup(text: string, now = new Date().toISOString()): GraphData {
+export function parseBackupFile(text: string, now = new Date().toISOString()): ParsedBackup {
   let raw: unknown;
   try {
     raw = JSON.parse(text);
@@ -136,6 +183,31 @@ export function parseBackup(text: string, now = new Date().toISOString()): Graph
     throw new ImportError(`Backup is from a newer app version (schema ${version}); update the app first`);
   }
 
+  if (raw.kind === 'library') {
+    if (!Array.isArray(raw.crates)) throw new ImportError('Library backup has no crates');
+    const crates = raw.crates.map((c, i): CrateData => {
+      if (!isObj(c) || !str(c.id)) throw new ImportError(`crates[${i}] has no id`);
+      try {
+        return { id: str(c.id), name: str(c.name).trim() || 'Imported crate', graph: readGraph(c, now) };
+      } catch (err) {
+        throw new ImportError(`Crate “${str(c.name) || i + 1}”: ${(err as Error).message}`);
+      }
+    });
+    return { kind: 'library', crates };
+  }
+
+  const crate = isObj(raw.crate) && str(raw.crate.id) ? { id: str(raw.crate.id), name: str(raw.crate.name).trim() || 'Imported crate' } : null;
+  return { kind: 'crate', crate, graph: readGraph(raw, now) };
+}
+
+/** Parses a single-crate backup (or a crate's stored payload) into GraphData. */
+export function parseBackup(text: string, now = new Date().toISOString()): GraphData {
+  const parsed = parseBackupFile(text, now);
+  if (parsed.kind === 'library') throw new ImportError('This is a backup of all crates, not of one crate');
+  return parsed.graph;
+}
+
+function readGraph(raw: Record<string, unknown>, now: string): GraphData {
   // Accept both array form (backup files) and id-map form. Schema 1 had no sets.
   const songList = list(raw.songs);
   const transitionList = list(raw.transitions);

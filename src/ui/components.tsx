@@ -1,11 +1,16 @@
 import { useId, useState, type ReactNode } from 'react';
-import { formatPosition } from '../domain/position';
+import { formatOverlap, formatPosition } from '../domain/position';
 import { formatTimestamp, parseTimestamp } from '../domain/time';
 import { formatBpm, formatPitch, pitchPercent } from '../domain/tempo';
 import { RATING_LABELS, type Song, type Transition } from '../domain/types';
-import { goBack, linkTo } from '../state/router';
+import { goBack, linkTo, paths } from '../state/router';
+import { useStore } from '../state/store';
 
-export function TopBar({ title, back, actions }: { title: ReactNode; back?: string; actions?: ReactNode }) {
+/**
+ * Screen header. Top-level tabs pass `crate` instead of a title: the header then
+ * shows the active crate as a switcher (the tab bar already names the screen).
+ */
+export function TopBar({ title, back, actions, crate }: { title?: ReactNode; back?: string; actions?: ReactNode; crate?: boolean }) {
   return (
     <header className="topbar">
       {back !== undefined ? (
@@ -17,9 +22,21 @@ export function TopBar({ title, back, actions }: { title: ReactNode; back?: stri
       ) : (
         <span className="topbar-logo" aria-hidden="true" />
       )}
-      <h1 className="topbar-title">{title}</h1>
+      <h1 className="topbar-title">{crate ? <CratePill /> : title}</h1>
       <div className="topbar-actions">{actions}</div>
     </header>
+  );
+}
+
+function CratePill() {
+  const { activeCrate } = useStore();
+  return (
+    <a className="crate-pill" {...linkTo(paths.crates())} aria-label={`Crate: ${activeCrate.name}. Switch crate`}>
+      <span className="crate-pill-name">{activeCrate.name}</span>
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </a>
   );
 }
 
@@ -276,6 +293,11 @@ function VariantBody({ transition, fromSong, toSong }: { transition: Transition;
         </span>
       </span>
       <span className="variant-meta">
+        {transition.overlapBars !== null && (
+          <span className="badge badge-overlap" title="Both songs play together for this long">
+            ⇄ {formatOverlap(transition.overlapBars)}
+          </span>
+        )}
         <Stars rating={transition.rating} />
         {transition.notes && <span className="variant-notes">{transition.notes}</span>}
       </span>

@@ -510,6 +510,53 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 }
 .sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 
+/* ── crates ──────────────────────────────────────────────── */
+.crate-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  padding: 4px 6px 4px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.crate-pill:active { background: var(--surface-2); }
+.crate-pill-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crate-pill svg { flex: none; color: var(--muted); }
+.crate-row { display: flex; align-items: center; gap: 8px; padding-right: 12px; }
+.crate-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  min-height: 60px;
+  padding: 10px 14px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.crate-open:active { background: var(--surface-2); }
+.crate-open .song-title { display: inline-flex; align-items: center; gap: 8px; }
+.badge-active { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+.crate-editor { padding: 12px 14px; }
+.segmented-3 { grid-template-columns: repeat(3, 1fr); }
+
+/* ── overlap ─────────────────────────────────────────────── */
+.overlap-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.input-with-suffix { position: relative; display: inline-flex; width: 120px; }
+.input-with-suffix .input { padding-right: 46px; }
+.input-suffix { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: var(--muted); pointer-events: none; }
+.presets { display: inline-flex; gap: 6px; }
+.presets .chip-btn { min-height: 36px; min-width: 40px; justify-content: center; }
+.chip-btn.on { background: var(--accent); border-color: var(--accent); color: white; }
+.badge-overlap { color: var(--text); }
+.hint-lines { flex-direction: column; align-items: flex-start; gap: 2px; }
+
 @media (min-width: 720px) {
   .page { padding-top: 20px; }
 }

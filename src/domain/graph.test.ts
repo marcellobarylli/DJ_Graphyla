@@ -96,8 +96,19 @@ describe('transitions', () => {
 
   it('validates bars, times, BPMs and ratings', () => {
     const g = fixture();
-    const errors = validateTransitionInput(g, { fromSongId: 'a', toSongId: 'b', fromBar: 0, toBar: 2.5, fromTime: -1, toBpm: 900, rating: 7 });
-    expect(Object.keys(errors).sort()).toEqual(['fromBar', 'fromTime', 'rating', 'toBar', 'toBpm']);
+    const errors = validateTransitionInput(g, {
+      fromSongId: 'a', toSongId: 'b', fromBar: 0, toBar: 2.5, fromTime: -1, toBpm: 900, rating: 7, overlapBars: 0,
+    });
+    expect(Object.keys(errors).sort()).toEqual(['fromBar', 'fromTime', 'overlapBars', 'rating', 'toBar', 'toBpm']);
+  });
+
+  it('stores and edits the overlap length', () => {
+    let g = addTransition(fixture(), { fromSongId: 'a', toSongId: 'c', fromBar: 97, overlapBars: 16 }, { id: 'ac', now: NOW }).graph;
+    expect(g.transitions.ac!.overlapBars).toBe(16);
+    g = updateTransition(g, 'ac', { overlapBars: 32 });
+    expect(g.transitions.ac!.overlapBars).toBe(32);
+    expect(updateTransition(g, 'ac', { overlapBars: null }).transitions.ac!.overlapBars).toBeNull();
+    expect(g.transitions.ab1!.overlapBars).toBeNull();
   });
 
   it('stores bars and sorts variants by mix-out bar first', () => {

@@ -16,6 +16,7 @@ describe('parseRoute', () => {
     ['#/graph', { name: 'graph', set: undefined, focus: undefined }],
     ['#/graph?set=s1&focus=a', { name: 'graph', set: 's1', focus: 'a' }],
     ['#/sets', { name: 'sets' }],
+    ['#/crates', { name: 'crates' }],
     ['#/set/s1', { name: 'set', id: 's1' }],
     ['#/nope/x/y', { name: 'not-found' }],
   ])('%s', (hash, expected) => {
