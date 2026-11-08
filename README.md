@@ -34,7 +34,11 @@ and works offline.
 2. **iPhone:** Safari → Share → *Add to Home Screen*. **Android:** Chrome → ⋮ → *Install app*.
 3. Data is stored **on the device**. Use *Data → Share/Download backup* regularly, and
    *Import* to move the library to another device. Sync is planned for chunk 3.
-4. Want to look around first? *Crates → Add sample crate* adds made-up songs, transitions and
+4. **Updates** arrive by themselves: whenever the phone is online, opening the app loads the
+   latest version. If the app was left open in the background during a deploy, a
+   *New version available · Reload* banner appears when you return to it. The version you're
+   running is shown at the bottom of the *Data* tab.
+5. Want to look around first? *Crates → Add sample crate* adds made-up songs, transitions and
    two sets without touching your own crates.
 
 ## Share a crate

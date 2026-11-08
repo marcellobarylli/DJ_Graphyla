@@ -189,6 +189,8 @@ export function DataView() {
             Empty this crate
           </button>
         </div>
+
+        <p className="app-version small muted">DJ Graphyla v{__APP_VERSION__}</p>
       </main>
     </>
   );

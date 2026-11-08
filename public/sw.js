@@ -1,7 +1,11 @@
 /* DJ Graphyla service worker: makes the app work offline after the first visit.
- * - Page navigations: network first, cached copy when offline.
- * - Other same-origin GET requests (hashed JS/CSS, icons): cache first.
- * Bump CACHE when the caching strategy changes; built assets are content-hashed. */
+ * - Page navigations: network first, always revalidated with the server
+ *   (cache: 'no-cache'), so an installed app loads the newest deploy whenever
+ *   it is online. The cached copy is only used offline.
+ * - Other same-origin GET requests (content-hashed JS/CSS, icons): cache first.
+ * The cache name stays the same across deploys on purpose: renaming it would
+ * drop the cached assets, and the app could fail to open offline right after
+ * an update. */
 const CACHE = 'dj-graphyla-v1';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
@@ -21,13 +25,19 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  // The deployed version must always come from the network (the app compares it with its own).
+  if (new URL(req.url).pathname.endsWith('/version.json')) return;
 
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req)
+      // 'no-cache' = use the network copy, but let the server answer 304 if unchanged.
+      fetch(req, { cache: 'no-cache' })
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put('./index.html', copy));
+          // Only a real page may replace the offline copy (not an error or redirect).
+          if (res.ok && res.type === 'basic') {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put('./index.html', copy));
+          }
           return res;
         })
         .catch(() => caches.match('./index.html').then((r) => r || caches.match('./'))),
