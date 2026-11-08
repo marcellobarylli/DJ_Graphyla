@@ -619,6 +619,27 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 .suggestion strong { color: var(--text); font-weight: 700; }
 .suggestion:active { background: var(--accent); color: white; }
 
+.app-version { text-align: center; }
+.update-banner {
+  position: fixed;
+  top: calc(var(--safe-top) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 6px 6px 6px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--accent);
+  background: var(--surface-2);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 @media (min-width: 720px) {
   .page { padding-top: 20px; }
 }

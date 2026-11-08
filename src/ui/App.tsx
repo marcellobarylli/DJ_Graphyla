@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { UPDATE_EVENT } from '../updates';
 import { linkTo, paths, useRoute, type Route } from '../state/router';
 import { AddView } from './AddView';
 import { CratesView } from './CratesView';
@@ -63,6 +64,28 @@ function Screen({ route }: { route: Route }) {
 const isForm = (r: Route) =>
   r.name === 'song-new' || r.name === 'song-edit' || r.name === 'transition-new' || r.name === 'transition-edit' || r.name === 'set-play';
 
+/** Shown when a newer version was deployed while the app was open. Reloads only on tap. */
+function UpdateBanner() {
+  const [available, setAvailable] = useState(false);
+  useEffect(() => {
+    const show = () => setAvailable(true);
+    window.addEventListener(UPDATE_EVENT, show);
+    return () => window.removeEventListener(UPDATE_EVENT, show);
+  }, []);
+  if (!available) return null;
+  return (
+    <div className="update-banner" role="status">
+      <span>New version available</span>
+      <button type="button" className="btn btn-small btn-primary" onClick={() => location.reload()}>
+        Reload
+      </button>
+      <button type="button" className="icon-btn icon-btn-small" aria-label="Later" onClick={() => setAvailable(false)}>
+        ✕
+      </button>
+    </div>
+  );
+}
+
 export function App() {
   const route = useRoute();
   const tab =
@@ -74,6 +97,7 @@ export function App() {
   return (
     <div className={`app${isForm(route) ? ' is-form' : ''}${route.name === 'graph' ? ' is-graph' : ''}`}>
       <Screen route={route} />
+      <UpdateBanner />
       {!isForm(route) && (
         <nav className="tabbar" aria-label="Main">
           <a className={`tab${tab === 'library' ? ' on' : ''}`} aria-current={tab === 'library' ? 'page' : undefined} {...linkTo(paths.library())}>
