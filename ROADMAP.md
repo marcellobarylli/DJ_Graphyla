@@ -58,7 +58,7 @@ Goal: explore the graph and build sets from it.
 - [x] Sets included in backups (schema v2; v1 backups still import)
 - [ ] More filters: BPM range, tags, key
 
-## ✅ Chunk 2.5: Crates & overlap (this release)
+## ✅ Chunk 2.5: Crates & overlap
 
 - [x] **Overlap length** per transition: how many bars both songs play together, with one-tap
       4 / 8 / 16 / 32 presets. The card shows when the outgoing song is out ("out by bar 145"),
@@ -73,6 +73,23 @@ Goal: explore the graph and build sets from it.
 - [x] Sample crate with made-up songs, transitions and sets (*Crates → Add sample crate*)
 - [x] Graph turns its layout to match the screen's shape (fills tall phone screens)
 - [ ] Copy or move songs (with their transitions) between crates
+
+## ✅ Chunk 2.6: Play mode (this release)
+
+A live companion screen while DJing a set (the app plays no audio; the songs play on the decks).
+
+- [x] **▶ Play this set** opens a full-screen view: the song that is on (big), its playing tempo and
+      key, and **up next** with the planned transition: mix-out/in bar, BPM, overlap, rating, notes
+- [x] **Mix in next ▶** / **◀ Back** step through the walk; the tab bar is hidden
+- [x] **Bar clock**: estimates the current bar from the tempo (4/4). It restarts at the next song's
+      mix-in bar when you mix in, counts down to the planned mix-out ("in 1:20"), warns 8 bars ahead,
+      says "Mix now" once past it, and shows "both playing" during the overlap. ±1 bar nudges
+- [x] **Walk off-script**: "Other ways out" lists every other transition from the current song,
+      best rated first, marking the ones that lead back into the set ("back to set · song 6")
+- [x] Save what was actually played as a new set; the original set is never changed
+- [x] Screen stays on (where the browser supports it); progress survives a reload ("Resume play mode")
+- [ ] Highlight the live position on the graph
+- [ ] Play mode without a set: start at any song and walk the graph freely
 
 ## Chunk 3: Sync & multiple devices
 
