@@ -13,6 +13,10 @@ describe('parseRoute', () => {
     ['#/transition/new', { name: 'transition-new', from: undefined, to: undefined }],
     ['#/transition/new?from=a&to=b', { name: 'transition-new', from: 'a', to: 'b' }],
     ['#/transition/t1/edit', { name: 'transition-edit', id: 't1' }],
+    ['#/graph', { name: 'graph', set: undefined, focus: undefined }],
+    ['#/graph?set=s1&focus=a', { name: 'graph', set: 's1', focus: 'a' }],
+    ['#/sets', { name: 'sets' }],
+    ['#/set/s1', { name: 'set', id: 's1' }],
     ['#/nope/x/y', { name: 'not-found' }],
   ])('%s', (hash, expected) => {
     expect(parseRoute(hash)).toEqual(expected);
@@ -21,5 +25,7 @@ describe('parseRoute', () => {
   it('round-trips the path builders', () => {
     expect(parseRoute(`#${paths.song('a b/c')}`)).toEqual({ name: 'song', id: 'a b/c' });
     expect(parseRoute(`#${paths.transitionNew({ to: 'x' })}`)).toEqual({ name: 'transition-new', from: undefined, to: 'x' });
+    expect(parseRoute(`#${paths.graph({ focus: 'a b' })}`)).toEqual({ name: 'graph', set: undefined, focus: 'a b' });
+    expect(paths.graph()).toBe('/graph');
   });
 });

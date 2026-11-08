@@ -1,11 +1,17 @@
+import { lazy, Suspense } from 'react';
 import { linkTo, paths, useRoute, type Route } from '../state/router';
 import { AddView } from './AddView';
 import { DataView } from './DataView';
 import { LibraryView } from './LibraryView';
+import { SetView } from './SetView';
+import { SetsView } from './SetsView';
 import { SongForm } from './SongForm';
 import { SongView } from './SongView';
 import { TransitionForm } from './TransitionForm';
 import { EmptyState, TopBar } from './components';
+
+// Cytoscape is only downloaded when the Graph tab is opened.
+const GraphView = lazy(() => import('./GraphView'));
 
 function Screen({ route }: { route: Route }) {
   switch (route.name) {
@@ -15,6 +21,16 @@ function Screen({ route }: { route: Route }) {
       return <AddView />;
     case 'data':
       return <DataView />;
+    case 'graph':
+      return (
+        <Suspense fallback={<TopBar title="Graph" />}>
+          <GraphView key={route.focus ?? ''} setId={route.set} focusId={route.focus} />
+        </Suspense>
+      );
+    case 'sets':
+      return <SetsView />;
+    case 'set':
+      return <SetView key={route.id} id={route.id} />;
     case 'song':
       return <SongView key={route.id} id={route.id} />;
     case 'song-new':
@@ -41,9 +57,14 @@ const isForm = (r: Route) => r.name === 'song-new' || r.name === 'song-edit' || 
 
 export function App() {
   const route = useRoute();
-  const tab = route.name === 'add' ? 'add' : route.name === 'data' ? 'data' : 'library';
+  const tab =
+    route.name === 'add' ? 'add'
+    : route.name === 'data' ? 'data'
+    : route.name === 'graph' ? 'graph'
+    : route.name === 'sets' || route.name === 'set' ? 'sets'
+    : 'library';
   return (
-    <div className={`app${isForm(route) ? ' is-form' : ''}`}>
+    <div className={`app${isForm(route) ? ' is-form' : ''}${route.name === 'graph' ? ' is-graph' : ''}`}>
       <Screen route={route} />
       {!isForm(route) && (
         <nav className="tabbar" aria-label="Main">
@@ -56,12 +77,32 @@ export function App() {
             </svg>
             Library
           </a>
+          <a className={`tab${tab === 'graph' ? ' on' : ''}`} {...linkTo(paths.graph())}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="5" cy="6" r="2.2" />
+              <circle cx="19" cy="5" r="2.2" />
+              <circle cx="12" cy="13" r="2.2" />
+              <circle cx="6" cy="19" r="2.2" />
+              <circle cx="18" cy="18" r="2.2" />
+              <path d="M7 7.3l3.4 4M17.2 6.4l-3.6 5M10.6 14.6l-3.2 2.8M13.7 14.4l2.8 2.2" />
+            </svg>
+            Graph
+          </a>
           <a className={`tab tab-add${tab === 'add' ? ' on' : ''}`} {...linkTo(paths.add())} aria-label="Add">
             <span className="tab-add-btn">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 5v14M5 12h14" />
               </svg>
             </span>
+          </a>
+          <a className={`tab${tab === 'sets' ? ' on' : ''}`} {...linkTo(paths.sets())}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="4.5" cy="12" r="2" />
+              <circle cx="12" cy="12" r="2" />
+              <circle cx="19.5" cy="12" r="2" />
+              <path d="M6.5 12h3.5M14 12h3.5M3 5h18M3 19h18" />
+            </svg>
+            Sets
           </a>
           <a className={`tab${tab === 'data' ? ' on' : ''}`} {...linkTo(paths.data())}>
             <svg viewBox="0 0 24 24" aria-hidden="true">

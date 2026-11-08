@@ -12,7 +12,7 @@ several edges (A 3:00 → B 0:32, A 5:10 → B 1:04, …), one per mix variant t
 
 ---
 
-## ✅ Chunk 1: Capture (this release)
+## ✅ Chunk 1: Capture
 
 Goal: enter and remember transitions quickly on a phone.
 
@@ -32,19 +32,31 @@ Goal: enter and remember transitions quickly on a phone.
 - [x] Installable PWA (Add to Home Screen), works offline
 - [x] CI (typecheck, tests, build) and GitHub Pages deployment
 
-## Chunk 2: See & walk
+## ✅ Chunk 2: See & walk (this release)
 
 Goal: explore the graph and build sets from it.
 
-- [ ] Graph view (e.g. Cytoscape.js): songs as nodes, parallel edges drawn as separate curves,
-      edge colour by rating, tap a node to open it
-- [ ] Neighbourhood view: the current song plus 1–2 hops in both directions
-- [ ] **Set builder (walk)**: pick any start song, choose the next edge from the ranked outgoing
-      options, repeat. The first song plus the first edge set the starting tempo
-- [ ] Tempo track along the walk: show where the incoming tempo of one edge differs from the
-      outgoing tempo of the next, so you know to ride the pitch fader during that song
-- [ ] Save walks as named sets; replay a set as a cue sheet (time + BPM per step); export a setlist
-- [ ] Filters: rating ≥ n, BPM range, tags
+- [x] **Bars as the mix-point unit** ("mix out at bar 97 → in at bar 1"); an optional m:ss timestamp
+      is still available per side
+- [x] Graph view (Cytoscape.js, loaded only when opened): songs as nodes, parallel edges drawn
+      as separate curves. Edge colour and width show the rating; "doesn't work" is red and dashed
+- [x] Neighbourhood focus: tap a song (or *Show in graph* on its page) to highlight it and its
+      direct neighbours. An info sheet has *Open*, *+ Mix into…* and *Start set here*
+- [x] Tap an edge to see and edit that transition
+- [x] Rating filter (all / ★3+ / ★4+)
+- [x] **Sets as an overlay**: a set is a separate saved walk of any length on top of the graph.
+      The graph holds the knowledge; sets only point at it
+- [x] Set builder: start at any song, then pick from the ranked outgoing transitions, step by step.
+      Songs already in the set are marked. Revisiting a song is allowed (it's a walk)
+- [x] Switch which variant a step uses (multigraph)
+- [x] Gaps: "Jump to any song" adds a step with no transition yet. Deleting a transition or a song
+      from the graph also leaves a visible gap in a set instead of silently breaking it
+- [x] Tempo track: the first song plus the first edge set the start tempo. Each song shows its
+      in/out tempo and the BPM to "ride" while it plays. A tempo chart covers the whole set
+- [x] Set on graph: highlight the walk, numbered step by step
+- [x] Cue sheet and plain-text setlist sharing
+- [x] Sets included in backups (schema v2; v1 backups still import)
+- [ ] More filters: BPM range, tags, key
 
 ## Chunk 3: Sync & multiple devices
 
@@ -52,8 +64,8 @@ Goal: the same library on phone, laptop and a friend's phone.
 
 - [ ] Choose a backend. Candidates: Supabase (Postgres + auth), Firebase, CouchDB/PouchDB (offline sync built in)
 - [ ] Accounts and login
-- [ ] Two-way sync. The merge already exists (newer `updatedAt` wins); add soft-deletes (tombstones)
-      so deletions also sync
+- [ ] Two-way sync. The merge already exists for songs, transitions and sets (newer `updatedAt` wins);
+      add soft-deletes (tombstones) so deletions also sync
 - [ ] Shared or collaborative graphs (b2b partners)
 - [ ] Undo / change history
 
@@ -81,10 +93,12 @@ Goal: let the graph tell you things you haven't tried.
 
 ## Open questions
 
-1. **Mix-point unit.** Timestamps are stored in seconds now. Should we also support bars/beats
-   (e.g. "bar 97"), which DJs often think in?
-2. **Mix length.** Should a transition also store how long both tracks play together
-   (e.g. 16 bars), or the technique (EQ swap, echo out, cut)?
+1. ~~**Mix-point unit.**~~ Decided: bars. Possible follow-ups: beat precision ("bar 97, beat 3"),
+   and a per-song first-downbeat offset so bars and timestamps can be converted into each other.
+2. **Mix length (overlap).** Should a transition also store how long both tracks play together,
+   e.g. "16 bars"? Example: B comes in at bar 1 while A is at bar 97, both run for 16 bars, and A is
+   gone by bar 113. This is about one transition, not the length of a set. With bars in place it
+   would be one optional field. A technique tag (EQ swap, echo out, cut) could sit next to it.
 3. **True hyperedges.** Several variants between two songs fit the multigraph already.
    A *hyperedge* would join more than two songs at once, for example a three-deck mix
    (A + B → C). Is that a use case?

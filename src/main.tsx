@@ -16,5 +16,7 @@ createRoot(document.getElementById('root')!).render(
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('Service worker registration failed', err));
+    // Warm the lazily loaded graph view so the service worker caches it for offline use.
+    setTimeout(() => void import('./ui/GraphView'), 4000);
   });
 }

@@ -57,14 +57,14 @@ export function DataView() {
       const incoming = parseBackup(await f.text());
       const n = stats(incoming);
       if (mode === 'replace') {
-        if (!confirm(`Replace your ${s.songs} songs and ${s.transitions} transitions with the ${n.songs} songs and ${n.transitions} transitions from the file?`)) return;
+        if (!confirm(`Replace your ${s.songs} songs, ${s.transitions} transitions and ${s.sets} sets with the ${n.songs} songs, ${n.transitions} transitions and ${n.sets} sets from the file?`)) return;
         store.replaceAll(incoming);
-        setMessage({ kind: 'ok', text: `Replaced: ${n.songs} songs, ${n.transitions} transitions loaded.` });
+        setMessage({ kind: 'ok', text: `Replaced: ${n.songs} songs, ${n.transitions} transitions, ${n.sets} sets loaded.` });
       } else {
         const r = store.mergeIn(incoming);
         setMessage({
           kind: 'ok',
-          text: `Merged: ${r.added.songs} new songs, ${r.added.transitions} new transitions, ${r.updated.songs + r.updated.transitions} updated.`,
+          text: `Merged: ${r.added.songs} new songs, ${r.added.transitions} new transitions, ${r.added.sets} new sets, ${r.updated.songs + r.updated.transitions + r.updated.sets} updated.`,
         });
       }
     } catch (err) {
@@ -73,7 +73,7 @@ export function DataView() {
   };
 
   const clearAll = () => {
-    if (!confirm('Delete ALL songs and transitions on this device? Export a backup first if unsure.')) return;
+    if (!confirm('Delete ALL songs, transitions and sets on this device? Export a backup first if unsure.')) return;
     store.replaceAll(createEmptyGraph());
     setMessage({ kind: 'ok', text: 'Library cleared.' });
   };
@@ -86,7 +86,7 @@ export function DataView() {
           <div className="stats">
             <div><strong>{s.songs}</strong><span>songs</span></div>
             <div><strong>{s.transitions}</strong><span>transitions</span></div>
-            <div><strong>{s.pairs}</strong><span>song pairs</span></div>
+            <div><strong>{s.sets}</strong><span>sets</span></div>
           </div>
           <p className="small muted">
             Everything is stored on this device only.{' '}

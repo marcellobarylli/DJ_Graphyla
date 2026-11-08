@@ -1,7 +1,10 @@
 import { linkTo, paths } from '../state/router';
+import { useStore } from '../state/store';
 import { TopBar } from './components';
+import { createAndOpenSet } from './SetsView';
 
 export function AddView() {
+  const store = useStore();
   return (
     <>
       <TopBar title="Add" />
@@ -34,6 +37,22 @@ export function AddView() {
             <span className="choice-text">Just add a track to the library — connect it later.</span>
           </span>
         </a>
+        <button type="button" className="card choice" onClick={() => createAndOpenSet(store, undefined, { replace: true })}>
+          <span className="choice-icon choice-icon-set" aria-hidden="true">
+            <svg viewBox="0 0 48 24" width="48" height="24">
+              <circle cx="5" cy="12" r="3.5" />
+              <path d="M9 12h8" />
+              <circle cx="21" cy="12" r="3.5" />
+              <path d="M25 12h8" />
+              <circle cx="37" cy="12" r="3.5" />
+              <path d="M41 12h4" />
+            </svg>
+          </span>
+          <span>
+            <span className="choice-title">Set</span>
+            <span className="choice-text">Walk through the graph: start at any song and follow transitions you know work.</span>
+          </span>
+        </button>
       </main>
     </>
   );

@@ -9,10 +9,13 @@
  *    (different mix points / tempos = different variants).
  *
  * A DJ set is a walk through this graph: song → transition → song → …
+ * Sets are stored separately as an overlay: they reference songs and
+ * transitions but never own them.
  */
 
 export type SongId = string;
 export type TransitionId = string;
+export type SetId = string;
 
 export interface Song {
   id: SongId;
@@ -34,9 +37,13 @@ export interface Transition {
   fromSongId: SongId;
   /** The song that gets mixed in. */
   toSongId: SongId;
-  /** Seconds into the outgoing song where the mix starts. */
+  /** Bar of the outgoing song where the mix starts (1 = first bar). */
+  fromBar: number | null;
+  /** Bar of the incoming song where it enters. */
+  toBar: number | null;
+  /** Optional timestamp (seconds) of the mix-out point, for tracks without a beat grid. */
   fromTime: number | null;
-  /** Seconds into the incoming song where it enters. */
+  /** Optional timestamp (seconds) of the mix-in point. */
   toTime: number | null;
   /** Tempo the outgoing song runs at during the mix. */
   fromBpm: number | null;
@@ -49,12 +56,31 @@ export interface Transition {
   updatedAt: string;
 }
 
-export const SCHEMA_VERSION = 1 as const;
+/**
+ * A saved DJ set: a walk of any length through the graph.
+ * `songIds[i]` is followed by `songIds[i + 1]` via `transitionIds[i]`
+ * (so `transitionIds.length === max(0, songIds.length - 1)`).
+ * A `null` transition is a gap: no known transition between those two songs
+ * (yet). Gaps appear when a transition is deleted from the graph, or when you
+ * plan a jump you haven't worked out.
+ */
+export interface DjSet {
+  id: SetId;
+  name: string;
+  notes: string;
+  songIds: SongId[];
+  transitionIds: (TransitionId | null)[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const SCHEMA_VERSION = 2 as const;
 
 export interface GraphData {
   schemaVersion: typeof SCHEMA_VERSION;
   songs: Record<SongId, Song>;
   transitions: Record<TransitionId, Transition>;
+  sets: Record<SetId, DjSet>;
 }
 
 /** Fields a user supplies when creating or editing a song. */
@@ -62,8 +88,9 @@ export type SongInput = Pick<Song, 'title'> & Partial<Pick<Song, 'artist' | 'bpm
 
 /** Fields a user supplies when creating or editing a transition. */
 export type TransitionInput = Pick<Transition, 'fromSongId' | 'toSongId'> &
-  Partial<Pick<Transition, 'fromTime' | 'toTime' | 'fromBpm' | 'toBpm' | 'rating' | 'notes'>>;
+  Partial<Pick<Transition, 'fromBar' | 'toBar' | 'fromTime' | 'toTime' | 'fromBpm' | 'toBpm' | 'rating' | 'notes'>>;
 
+export const BAR_MAX = 9999;
 export const BPM_MIN = 20;
 export const BPM_MAX = 400;
 export const RATING_LABELS: Record<number, string> = {

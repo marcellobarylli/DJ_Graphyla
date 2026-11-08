@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addSong, addTransition, createEmptyGraph, updateSong } from './graph';
+import { appendTransition, createSet } from './sets';
 import { ImportError, exportJson, mergeGraphs, parseBackup } from './serialize';
 
 const NOW = '2026-01-01T00:00:00.000Z';
@@ -18,11 +19,19 @@ describe('backup round trip', () => {
     expect(parseBackup(exportJson(g, NOW))).toEqual(g);
   });
 
+  it('round-trips sets', () => {
+    let g = sample();
+    g = createSet(g, { name: 'Warmup', startSongId: 'a' }, { id: 's', now: NOW }).graph;
+    g = appendTransition(g, 's', 't', NOW);
+    expect(parseBackup(exportJson(g, NOW))).toEqual(g);
+  });
+
   it('writes a recognisable file header', () => {
     const file = JSON.parse(exportJson(sample(), NOW));
-    expect(file).toMatchObject({ app: 'dj-graphyla', schemaVersion: 1, exportedAt: NOW });
+    expect(file).toMatchObject({ app: 'dj-graphyla', schemaVersion: 2, exportedAt: NOW });
     expect(file.songs).toHaveLength(2);
     expect(file.transitions).toHaveLength(1);
+    expect(file.sets).toEqual([]);
   });
 });
 
@@ -46,6 +55,34 @@ describe('parseBackup', () => {
     expect(() => parseBackup(text)).toThrow(/not in the file/);
   });
 
+  it('reads schema 1 files (no bars, no sets)', () => {
+    const text = JSON.stringify({
+      app: 'dj-graphyla',
+      schemaVersion: 1,
+      songs: [{ id: 'a', title: 'A' }, { id: 'b', title: 'B' }],
+      transitions: [{ id: 't', fromSongId: 'a', toSongId: 'b', fromTime: 90 }],
+    });
+    const g = parseBackup(text, NOW);
+    expect(g.schemaVersion).toBe(2);
+    expect(g.sets).toEqual({});
+    expect(g.transitions.t).toMatchObject({ fromBar: null, toBar: null, fromTime: 90 });
+  });
+
+  it('repairs sets whose references no longer resolve', () => {
+    const text = JSON.stringify({
+      schemaVersion: 2,
+      songs: [{ id: 'a', title: 'A' }, { id: 'b', title: 'B' }],
+      transitions: [{ id: 't', fromSongId: 'a', toSongId: 'b' }],
+      sets: [
+        { id: 's1', name: 'Broken link', songIds: ['b', 'a'], transitionIds: ['t'] },
+        { id: 's2', name: '', songIds: ['a', 'ghost', 'b'], transitionIds: ['t', null] },
+      ],
+    });
+    const g = parseBackup(text, NOW);
+    expect(g.sets.s1).toMatchObject({ songIds: ['b', 'a'], transitionIds: [null] });
+    expect(g.sets.s2).toMatchObject({ name: 'Untitled set', songIds: ['a', 'b'], transitionIds: [null] });
+  });
+
   it('fills defaults for missing optional fields and drops invalid ratings', () => {
     const text = JSON.stringify({
       schemaVersion: 1,
@@ -64,8 +101,8 @@ describe('mergeGraphs', () => {
     let other = updateSong(sample(), 'a', { bpm: 125 }, '2026-03-01T00:00:00.000Z');
     other = addSong(other, { title: 'Charlie' }, { id: 'c', now: NOW }).graph;
     const { graph, added, updated } = mergeGraphs(base, other);
-    expect(added).toEqual({ songs: 1, transitions: 0 });
-    expect(updated).toEqual({ songs: 1, transitions: 0 });
+    expect(added).toEqual({ songs: 1, transitions: 0, sets: 0 });
+    expect(updated).toEqual({ songs: 1, transitions: 0, sets: 0 });
     expect(graph.songs.a!.bpm).toBe(125);
     expect(graph.songs.c).toBeDefined();
     expect(base.songs.c).toBeUndefined();

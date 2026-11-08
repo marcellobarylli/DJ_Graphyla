@@ -94,10 +94,17 @@ describe('transitions', () => {
     expect(validateTransitionInput(g, { fromSongId: 'nope', toSongId: 'a' })).toHaveProperty('fromSongId');
   });
 
-  it('validates times, BPMs and ratings', () => {
+  it('validates bars, times, BPMs and ratings', () => {
     const g = fixture();
-    const errors = validateTransitionInput(g, { fromSongId: 'a', toSongId: 'b', fromTime: -1, toBpm: 900, rating: 7 });
-    expect(Object.keys(errors).sort()).toEqual(['fromTime', 'rating', 'toBpm']);
+    const errors = validateTransitionInput(g, { fromSongId: 'a', toSongId: 'b', fromBar: 0, toBar: 2.5, fromTime: -1, toBpm: 900, rating: 7 });
+    expect(Object.keys(errors).sort()).toEqual(['fromBar', 'fromTime', 'rating', 'toBar', 'toBpm']);
+  });
+
+  it('stores bars and sorts variants by mix-out bar first', () => {
+    let g = fixture();
+    g = addTransition(g, { fromSongId: 'a', toSongId: 'b', fromBar: 33, toBar: 1 }, { id: 'ab3', now: NOW }).graph;
+    expect(g.transitions.ab3).toMatchObject({ fromBar: 33, toBar: 1, fromTime: null });
+    expect(transitionsBetween(g, 'a', 'b').map((t) => t.id)).toEqual(['ab3', 'ab2', 'ab1']);
   });
 
   it('updates a transition, including re-pointing it', () => {
@@ -153,6 +160,6 @@ describe('queries', () => {
   });
 
   it('counts songs, transitions and connected pairs', () => {
-    expect(stats(fixture())).toEqual({ songs: 3, transitions: 4, pairs: 3 });
+    expect(stats(fixture())).toEqual({ songs: 3, transitions: 4, pairs: 3, sets: 0 });
   });
 });

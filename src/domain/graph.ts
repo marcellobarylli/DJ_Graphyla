@@ -2,11 +2,15 @@
  * Pure, immutable operations on the song graph.
  * Every mutating function returns a new GraphData and never touches its input.
  */
+import { GraphError, newId, type FieldErrors } from './common';
 import {
+  BAR_MAX,
   BPM_MAX,
   BPM_MIN,
   SCHEMA_VERSION,
+  type DjSet,
   type GraphData,
+  type SetId,
   type Song,
   type SongId,
   type SongInput,
@@ -15,19 +19,10 @@ import {
   type TransitionInput,
 } from './types';
 
-export class GraphError extends Error {}
-
-export type FieldErrors = Partial<Record<string, string>>;
+export { GraphError, newId, type FieldErrors };
 
 export function createEmptyGraph(): GraphData {
-  return { schemaVersion: SCHEMA_VERSION, songs: {}, transitions: {} };
-}
-
-export function newId(): string {
-  const c = globalThis.crypto;
-  // randomUUID only exists in secure contexts (https / localhost); fall back for LAN dev access.
-  if (c && typeof c.randomUUID === 'function') return c.randomUUID();
-  return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  return { schemaVersion: SCHEMA_VERSION, songs: {}, transitions: {}, sets: {} };
 }
 
 /* ───────────────────────────── validation ───────────────────────────── */
@@ -36,6 +31,12 @@ function bpmError(bpm: number | null | undefined): string | undefined {
   if (bpm === null || bpm === undefined) return undefined;
   if (!Number.isFinite(bpm)) return 'Enter a number, e.g. 124 or 124.5';
   if (bpm < BPM_MIN || bpm > BPM_MAX) return `BPM must be between ${BPM_MIN} and ${BPM_MAX}`;
+  return undefined;
+}
+
+function barError(bar: number | null | undefined): string | undefined {
+  if (bar === null || bar === undefined) return undefined;
+  if (!Number.isInteger(bar) || bar < 1 || bar > BAR_MAX) return 'Bar is a whole number, starting at 1';
   return undefined;
 }
 
@@ -63,6 +64,10 @@ export function validateTransitionInput(graph: GraphData, input: TransitionInput
 /** Checks mix points, tempos and rating (everything except the two song ids). */
 export function validateTransitionFields(input: Omit<TransitionInput, 'fromSongId' | 'toSongId'>): FieldErrors {
   const errors: FieldErrors = {};
+  const fromBar = barError(input.fromBar);
+  if (fromBar) errors.fromBar = fromBar;
+  const toBar = barError(input.toBar);
+  if (toBar) errors.toBar = toBar;
   const fromTime = timeError(input.fromTime);
   if (fromTime) errors.fromTime = fromTime;
   const toTime = timeError(input.toTime);
@@ -146,15 +151,47 @@ export function updateSong(graph: GraphData, id: SongId, patch: Partial<SongInpu
   return { ...graph, songs: { ...graph.songs, [id]: song } };
 }
 
-/** Removes the song and every transition that starts or ends at it. */
-export function deleteSong(graph: GraphData, id: SongId): GraphData {
+/**
+ * Removes the song and every transition that starts or ends at it.
+ * Sets keep their other songs; where the song was, its neighbours are joined by a gap.
+ */
+export function deleteSong(graph: GraphData, id: SongId, now?: string): GraphData {
   if (!graph.songs[id]) throw new GraphError(`Song ${id} not found`);
   const { [id]: _removed, ...songs } = graph.songs;
   const transitions: Record<TransitionId, Transition> = {};
   for (const t of Object.values(graph.transitions)) {
     if (t.fromSongId !== id && t.toSongId !== id) transitions[t.id] = t;
   }
-  return { ...graph, songs, transitions };
+  const stamp = now ?? new Date().toISOString();
+  const sets = mapSets(graph.sets, (set) => {
+    if (!set.songIds.includes(id)) return set;
+    let next = set;
+    for (let i = next.songIds.length - 1; i >= 0; i--) {
+      if (next.songIds[i] === id) next = removeSetSongAt(next, i);
+    }
+    return { ...next, updatedAt: stamp };
+  });
+  return { ...graph, songs, transitions, sets };
+}
+
+/**
+ * Removes the song at `index` from a set's walk. Removing an inner song joins
+ * its neighbours with a gap (no transition), since no edge between them is implied.
+ */
+export function removeSetSongAt(set: DjSet, index: number): DjSet {
+  if (index < 0 || index >= set.songIds.length) throw new GraphError(`No song at position ${index + 1}`);
+  const songIds = set.songIds.filter((_, i) => i !== index);
+  const transitionIds = [...set.transitionIds];
+  if (index === 0) transitionIds.splice(0, 1);
+  else if (index === set.songIds.length - 1) transitionIds.splice(index - 1, 1);
+  else transitionIds.splice(index - 1, 2, null);
+  return { ...set, songIds, transitionIds };
+}
+
+function mapSets(sets: Record<SetId, DjSet>, fn: (s: DjSet) => DjSet): Record<SetId, DjSet> {
+  const out: Record<SetId, DjSet> = {};
+  for (const s of Object.values(sets)) out[s.id] = fn(s);
+  return out;
 }
 
 /* ──────────────────────────── transitions ──────────────────────────── */
@@ -172,6 +209,8 @@ export function addTransition(
     id,
     fromSongId: input.fromSongId,
     toSongId: input.toSongId,
+    fromBar: input.fromBar ?? null,
+    toBar: input.toBar ?? null,
     fromTime: input.fromTime ?? null,
     toTime: input.toTime ?? null,
     fromBpm: input.fromBpm ?? null,
@@ -196,6 +235,8 @@ export function updateTransition(
   const merged: TransitionInput = {
     fromSongId: pick('fromSongId')!,
     toSongId: pick('toSongId')!,
+    fromBar: pick('fromBar'),
+    toBar: pick('toBar'),
     fromTime: pick('fromTime'),
     toTime: pick('toTime'),
     fromBpm: pick('fromBpm'),
@@ -204,9 +245,12 @@ export function updateTransition(
     notes: pick('notes'),
   };
   assertValid(validateTransitionInput(graph, merged));
+  const endpointsChanged = merged.fromSongId !== existing.fromSongId || merged.toSongId !== existing.toSongId;
   const transition: Transition = {
     ...existing,
     ...merged,
+    fromBar: merged.fromBar ?? null,
+    toBar: merged.toBar ?? null,
     fromTime: merged.fromTime ?? null,
     toTime: merged.toTime ?? null,
     fromBpm: merged.fromBpm ?? null,
@@ -215,19 +259,32 @@ export function updateTransition(
     notes: merged.notes ?? '',
     updatedAt: now ?? new Date().toISOString(),
   };
-  return { ...graph, transitions: { ...graph.transitions, [id]: transition } };
+  // Re-pointing an edge would break the walks that use it, so those steps become gaps.
+  const sets = endpointsChanged ? detachTransition(graph.sets, id, transition.updatedAt) : graph.sets;
+  return { ...graph, transitions: { ...graph.transitions, [id]: transition }, sets };
 }
 
-export function deleteTransition(graph: GraphData, id: TransitionId): GraphData {
+/** Deletes the edge. Sets that used it keep both songs, joined by a gap. */
+export function deleteTransition(graph: GraphData, id: TransitionId, now?: string): GraphData {
   if (!graph.transitions[id]) throw new GraphError(`Transition ${id} not found`);
   const { [id]: _removed, ...transitions } = graph.transitions;
-  return { ...graph, transitions };
+  return { ...graph, transitions, sets: detachTransition(graph.sets, id, now ?? new Date().toISOString()) };
+}
+
+function detachTransition(sets: Record<SetId, DjSet>, id: TransitionId, now: string): Record<SetId, DjSet> {
+  return mapSets(sets, (set) =>
+    set.transitionIds.includes(id)
+      ? { ...set, transitionIds: set.transitionIds.map((t) => (t === id ? null : t)), updatedAt: now }
+      : set,
+  );
 }
 
 /* ────────────────────────────── queries ────────────────────────────── */
 
 const byMixPoint = (a: Transition, b: Transition) =>
-  (a.fromTime ?? Infinity) - (b.fromTime ?? Infinity) || a.createdAt.localeCompare(b.createdAt);
+  (a.fromBar ?? Infinity) - (b.fromBar ?? Infinity) ||
+  (a.fromTime ?? Infinity) - (b.fromTime ?? Infinity) ||
+  a.createdAt.localeCompare(b.createdAt);
 
 /** Edges leaving `songId`: where can I go from here? */
 export function outgoing(graph: GraphData, songId: SongId): Transition[] {
@@ -325,5 +382,5 @@ export function stats(graph: GraphData) {
   const songs = Object.keys(graph.songs).length;
   const transitions = Object.values(graph.transitions);
   const pairs = new Set(transitions.map((t) => `${t.fromSongId}>${t.toSongId}`)).size;
-  return { songs, transitions: transitions.length, pairs };
+  return { songs, transitions: transitions.length, pairs, sets: Object.keys(graph.sets).length };
 }

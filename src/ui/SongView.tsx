@@ -1,8 +1,10 @@
 import { groupByNeighbor, incoming, outgoing } from '../domain/graph';
+import { setsUsingSong } from '../domain/sets';
 import type { GraphData, Song, Transition } from '../domain/types';
 import { goBack, linkTo, paths } from '../state/router';
 import { useStore } from '../state/store';
 import { BpmBadge, EmptyState, KeyBadge, TopBar, VariantRow } from './components';
+import { createAndOpenSet } from './SetsView';
 
 export function SongView({ id }: { id: string }) {
   const store = useStore();
@@ -22,12 +24,14 @@ export function SongView({ id }: { id: string }) {
 
   const out = outgoing(graph, id);
   const inn = incoming(graph, id);
+  const inSets = setsUsingSong(graph, id);
 
   const onDelete = () => {
     const edges = new Set([...out, ...inn].map((t) => t.id)).size;
-    const msg = edges
+    let msg = edges
       ? `Delete “${song.title}” and its ${edges} transition${edges === 1 ? '' : 's'}?`
       : `Delete “${song.title}”?`;
+    if (inSets.length) msg += ` It is also removed from ${inSets.length} set${inSets.length === 1 ? '' : 's'}.`;
     if (!confirm(msg)) return;
     store.deleteSong(id);
     goBack(paths.library());
@@ -58,6 +62,24 @@ export function SongView({ id }: { id: string }) {
             ))}
           </div>
           {song.notes && <p className="song-card-notes">{song.notes}</p>}
+          <div className="row">
+            <button type="button" className="btn btn-small" onClick={() => createAndOpenSet(store, song.id)}>
+              Start a set here
+            </button>
+            <a className="btn btn-small" {...linkTo(paths.graph({ focus: song.id }))}>
+              Show in graph
+            </a>
+          </div>
+          {inSets.length > 0 && (
+            <p className="small muted row tight">
+              In sets:
+              {inSets.map((s) => (
+                <a key={s.id} className="badge" {...linkTo(paths.set(s.id))}>
+                  {s.name}
+                </a>
+              ))}
+            </p>
+          )}
         </section>
 
         <TransitionSection

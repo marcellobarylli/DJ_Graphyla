@@ -19,6 +19,8 @@ export interface GraphStore {
   deleteTransition(id: TransitionId): void;
   /** Runs several mutations as one state update (e.g. create song + edge). */
   batch<T>(fn: (graph: GraphData) => { graph: GraphData; result: T }): T;
+  /** Applies one pure domain operation, e.g. `apply(g => appendTransition(g, setId, tId))`. */
+  apply(fn: (graph: GraphData) => GraphData): void;
   replaceAll(graph: GraphData): void;
   mergeIn(graph: GraphData): MergeResult;
 }
@@ -73,6 +75,9 @@ export function GraphProvider({ children, initial }: { children: ReactNode; init
         const { graph: next, result } = fn(ref.current);
         commit(next);
         return result;
+      },
+      apply(fn) {
+        commit(fn(ref.current));
       },
       replaceAll(next) {
         commit(next);

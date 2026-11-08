@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from 'react';
 import * as G from '../domain/graph';
+import { formatBar, parseBar } from '../domain/position';
+import { setsUsingTransition } from '../domain/sets';
 import { formatTimestamp, parseTimestamp } from '../domain/time';
 import { formatBpm, parseBpm } from '../domain/tempo';
 import type { GraphData, SongId, TransitionInput } from '../domain/types';
 import { goBack, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
-import { BpmBadge, BpmField, EmptyState, KeyBadge, StarRating, TextArea, TimeField, TopBar, VariantRow } from './components';
+import { BarField, BpmBadge, BpmField, EmptyState, KeyBadge, StarRating, TextArea, TimeField, TopBar, VariantRow } from './components';
 import { SongFields, draftToSongInput, emptySongDraft, type SongDraft } from './SongForm';
 
 type SongChoice = { kind: 'none' } | { kind: 'existing'; songId: SongId } | { kind: 'new'; draft: SongDraft };
@@ -13,6 +15,8 @@ type SongChoice = { kind: 'none' } | { kind: 'existing'; songId: SongId } | { ki
 interface Draft {
   from: SongChoice;
   to: SongChoice;
+  fromBar: string;
+  toBar: string;
   fromTime: string;
   toTime: string;
   fromBpm: string;
@@ -43,6 +47,8 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
       ? {
           from: choiceFor(graph, existing.fromSongId),
           to: choiceFor(graph, existing.toSongId),
+          fromBar: formatBar(existing.fromBar),
+          toBar: formatBar(existing.toBar),
           fromTime: formatTimestamp(existing.fromTime),
           toTime: formatTimestamp(existing.toTime),
           fromBpm: formatBpm(existing.fromBpm),
@@ -53,6 +59,8 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
       : {
           from: choiceFor(graph, props.from),
           to: choiceFor(graph, props.to),
+          fromBar: '',
+          toBar: '',
           fromTime: '',
           toTime: '',
           fromBpm: '',
@@ -83,6 +91,8 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
       ...d,
       from: d.to,
       to: d.from,
+      fromBar: d.toBar,
+      toBar: d.fromBar,
       fromTime: d.toTime,
       toTime: d.fromTime,
       fromBpm: d.toBpm,
@@ -114,13 +124,15 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
       if (raw.trim() && t === null) errs[key] = 'Use m:ss, or digits only (132 → 1:32)';
       return t;
     };
+    const fromBar = parseBar(draft.fromBar);
+    const toBar = parseBar(draft.toBar);
     const fromTime = parseTime(draft.fromTime, 'fromTime');
     const toTime = parseTime(draft.toTime, 'toTime');
     const fromBpm = parseBpm(draft.fromBpm);
     // Blank incoming tempo = beatmatched to the outgoing one.
     const toBpm = draft.toBpm.trim() === '' ? fromBpm : parseBpm(draft.toBpm);
 
-    const partial = { fromTime, toTime, fromBpm, toBpm, rating: draft.rating, notes: draft.notes };
+    const partial = { fromBar, toBar, fromTime, toTime, fromBpm, toBpm, rating: draft.rating, notes: draft.notes };
     // Song ids are checked above; the domain checks times, tempos and rating.
     const numericErrors = { ...G.validateTransitionFields(partial), ...errs };
 
@@ -167,7 +179,12 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
   };
 
   const onDelete = () => {
-    if (!existing || !confirm('Delete this transition?')) return;
+    if (!existing) return;
+    const inSets = setsUsingTransition(graph, existing.id).length;
+    const warning = inSets
+      ? `Delete this transition? It is used in ${inSets} set${inSets === 1 ? '' : 's'}; there it becomes a gap you can fill later.`
+      : 'Delete this transition?';
+    if (!confirm(warning)) return;
     store.deleteTransition(existing.id);
     goBack(paths.song(existing.fromSongId));
   };
@@ -193,7 +210,7 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
               newSongErrors={newSongErrors.from}
             />
             <div className="grid-2">
-              <TimeField label="Mix out at" value={draft.fromTime} onChange={set('fromTime')} error={errors.fromTime} />
+              <BarField label="Mix out at bar" value={draft.fromBar} onChange={set('fromBar')} error={errors.fromBar} />
               <BpmField
                 label="Out BPM"
                 value={draft.fromBpm}
@@ -202,6 +219,7 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
                 originalBpm={choiceBpm(graph, draft.from)}
               />
             </div>
+            <OptionalTime label="Mix out at (time)" value={draft.fromTime} onChange={set('fromTime')} error={errors.fromTime} />
           </fieldset>
 
           <div className="flow">
@@ -218,7 +236,7 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
             </legend>
             <SongPicker choice={draft.to} onChange={set('to')} error={errors.toSongId} newSongErrors={newSongErrors.to} />
             <div className="grid-2">
-              <TimeField label="Mix in at" value={draft.toTime} onChange={set('toTime')} error={errors.toTime} />
+              <BarField label="Mix in at bar" value={draft.toBar} onChange={set('toBar')} error={errors.toBar} />
               <BpmField
                 label="In BPM"
                 value={draft.toBpm}
@@ -232,6 +250,7 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
                 }
               />
             </div>
+            <OptionalTime label="Mix in at (time)" value={draft.toTime} onChange={set('toTime')} error={errors.toTime} />
           </fieldset>
 
           {siblings.length > 0 && (
@@ -282,6 +301,21 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
       </main>
     </>
   );
+}
+
+/** Timestamp field, hidden behind a chip until needed (bars are the main unit). */
+function OptionalTime(props: { label: string; value: string; onChange: (v: string) => void; error?: string }) {
+  const [open, setOpen] = useState(() => props.value !== '' || !!props.error);
+  if (!open && !props.error) {
+    return (
+      <div>
+        <button type="button" className="chip-btn chip-btn-flush" onClick={() => setOpen(true)}>
+          + add timestamp (m:ss)
+        </button>
+      </div>
+    );
+  }
+  return <TimeField label={props.label} value={props.value} onChange={props.onChange} error={props.error} />;
 }
 
 /** Pick an existing song, or type a new name and fill in a mini song card. */

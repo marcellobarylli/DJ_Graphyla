@@ -1,4 +1,5 @@
 import { useId, useState, type ReactNode } from 'react';
+import { formatPosition } from '../domain/position';
 import { formatTimestamp, parseTimestamp } from '../domain/time';
 import { formatBpm, formatPitch, pitchPercent } from '../domain/tempo';
 import { RATING_LABELS, type Song, type Transition } from '../domain/types';
@@ -90,6 +91,21 @@ export function TimeField(props: { label: string; value: string; onChange: (v: s
         const t = parseTimestamp(props.value);
         if (t !== null) props.onChange(formatTimestamp(t));
       }}
+    />
+  );
+}
+
+/** Bar number of the mix point (1 = first bar). */
+export function BarField(props: { label: string; value: string; onChange: (v: string) => void; error?: string; hint?: ReactNode }) {
+  return (
+    <TextField
+      label={props.label}
+      value={props.value}
+      onChange={props.onChange}
+      inputMode="numeric"
+      placeholder="bar"
+      error={props.error}
+      hint={props.hint}
     />
   );
 }
@@ -196,12 +212,12 @@ export function KeyBadge({ songKey }: { songKey: string }) {
   return <span className="badge badge-key">{songKey}</span>;
 }
 
-/** One side of a mix: "3:00 @ 124". */
-function MixPoint({ time, bpm, song }: { time: number | null; bpm: number | null; song: Song | undefined }) {
+/** One side of a mix: "bar 97 @ 124". */
+function MixPoint({ bar, time, bpm, song }: { bar: number | null; time: number | null; bpm: number | null; song: Song | undefined }) {
   const pitch = pitchPercent(song?.bpm ?? null, bpm);
   return (
     <span className="mixpoint">
-      <span className="mixpoint-time">{time !== null ? formatTimestamp(time) : '–:––'}</span>
+      <span className="mixpoint-time">{formatPosition(bar, time) || '—'}</span>
       {bpm !== null && (
         <span className="mixpoint-bpm">
           @ {formatBpm(bpm)}
@@ -218,30 +234,52 @@ export function VariantRow({
   fromSong,
   toSong,
   editPath,
+  onSelect,
+  selected,
 }: {
   transition: Transition;
   fromSong: Song | undefined;
   toSong: Song | undefined;
-  editPath: string;
+  /** Link to the edit card … */
+  editPath?: string;
+  /** … or a button action instead. */
+  onSelect?: () => void;
+  selected?: boolean;
 }) {
+  const body = <VariantBody transition={transition} fromSong={fromSong} toSong={toSong} />;
+  if (onSelect) {
+    return (
+      <button type="button" className={`variant variant-btn${selected ? ' selected' : ''}`} aria-pressed={selected} onClick={onSelect}>
+        {body}
+      </button>
+    );
+  }
   return (
-    <a className="variant" {...linkTo(editPath)}>
+    <a className="variant" {...linkTo(editPath ?? '/')}>
+      {body}
+    </a>
+  );
+}
+
+function VariantBody({ transition, fromSong, toSong }: { transition: Transition; fromSong: Song | undefined; toSong: Song | undefined }) {
+  return (
+    <>
       <span className="variant-points">
         <span className="side side-out">
           <span className="side-label">out</span>
-          <MixPoint time={transition.fromTime} bpm={transition.fromBpm} song={fromSong} />
+          <MixPoint bar={transition.fromBar} time={transition.fromTime} bpm={transition.fromBpm} song={fromSong} />
         </span>
         <span className="variant-arrow" aria-hidden="true">→</span>
         <span className="side side-in">
           <span className="side-label">in</span>
-          <MixPoint time={transition.toTime} bpm={transition.toBpm} song={toSong} />
+          <MixPoint bar={transition.toBar} time={transition.toTime} bpm={transition.toBpm} song={toSong} />
         </span>
       </span>
       <span className="variant-meta">
         <Stars rating={transition.rating} />
         {transition.notes && <span className="variant-notes">{transition.notes}</span>}
       </span>
-    </a>
+    </>
   );
 }
 

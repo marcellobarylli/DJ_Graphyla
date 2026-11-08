@@ -12,6 +12,7 @@
   --star: #ffc83d;
   --danger: #ff5c6c;
   --ok: #4ade80;
+  --set: #c98500;
   --radius: 14px;
   --tabbar-h: 64px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -101,7 +102,7 @@ fieldset { margin: 0; min-width: 0; }
   bottom: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(5, 1fr);
   height: calc(var(--tabbar-h) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
   background: color-mix(in srgb, var(--surface) 94%, transparent);
@@ -387,6 +388,127 @@ fieldset { margin: 0; min-width: 0; }
 .stats strong { font-size: 1.4rem; font-variant-numeric: tabular-nums; }
 .stats span { font-size: 0.75rem; color: var(--muted); }
 .card > .section-title { margin-bottom: 10px; }
+
+/* ── shared additions ────────────────────────────────────── */
+button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
+.choice-icon-set svg { stroke: var(--set); }
+.choice-icon-set circle { fill: var(--set); stroke: none; }
+.icon-btn-small { width: 32px; height: 32px; font-size: 0.85rem; color: var(--muted); }
+.chip-btn-flush { margin-left: 0; }
+.gap-count { color: var(--star); }
+.variant-btn { width: 100%; text-align: left; cursor: pointer; font: inherit; }
+.variant.selected { border-color: var(--set); box-shadow: 0 0 0 1px var(--set); }
+.segmented-inline { margin: 0; flex: none; grid-template-columns: repeat(3, auto); }
+.segmented-inline button { min-height: 30px; padding: 0 10px; font-size: 0.82rem; }
+.select-small { min-height: 38px; padding: 6px 8px; font-size: 14px; max-width: 42vw; }
+
+/* ── sets ────────────────────────────────────────────────── */
+.cue { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.cue-item { display: flex; flex-direction: column; }
+.cue-song {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.cue-num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.cue-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.cue-main a.song-title { color: var(--text); }
+.cue-side { display: flex; align-items: center; gap: 4px; flex: none; }
+.tempo-line { display: flex; flex-wrap: wrap; gap: 6px; font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cue-link {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-left: 25px;
+  padding: 8px 0 8px 18px;
+  border-left: 2px solid var(--set);
+}
+.cue-link.is-gap { border-left-style: dashed; border-left-color: var(--star); }
+.gap {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px dashed color-mix(in srgb, var(--star) 50%, transparent);
+  background: rgb(255 200 61 / 0.06);
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+.gap strong { color: var(--star); }
+.cue-choices { display: flex; flex-direction: column; gap: 6px; }
+.next { display: flex; flex-direction: column; gap: 10px; }
+.group-flat { padding: 10px; background: var(--bg); }
+.option { display: flex; flex-direction: column; gap: 2px; }
+.option-hint { font-size: 0.75rem; color: var(--star); padding-left: 4px; }
+
+/* ── tempo chart ─────────────────────────────────────────── */
+.tempo-chart { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.chart-title { font-weight: 700; font-size: 0.95rem; }
+.chart-wrap { position: relative; }
+.chart-wrap svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart-grid { stroke: var(--border); stroke-width: 1; }
+.chart-tick { fill: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+.chart-label { fill: var(--text); font-size: 11px; font-weight: 600; }
+.chart-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart-dot { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.chart-crosshair { stroke: var(--muted); stroke-width: 1; }
+.chart-hit { fill: transparent; outline: none; cursor: pointer; }
+.chart-hit:focus-visible { fill: rgb(255 255 255 / 0.04); }
+.chart-tooltip {
+  position: absolute;
+  top: -6px;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 220px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--muted);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.chart-tooltip strong { color: var(--text); font-size: 0.9rem; }
+.chart-axis-note { margin-top: -4px; font-size: 0.7rem; color: var(--muted); text-align: center; }
+
+/* ── graph ───────────────────────────────────────────────── */
+.app.is-graph { height: 100dvh; display: flex; flex-direction: column; padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom)); }
+.graph-page { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.graph-filters { display: flex; align-items: center; gap: 8px; padding: 10px 16px 6px; overflow-x: auto; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 2px 16px 8px; font-size: 0.72rem; color: var(--muted); }
+.legend li { display: inline-flex; align-items: center; gap: 4px; }
+.graph-canvas-wrap { position: relative; flex: 1; min-height: 240px; border-top: 1px solid var(--border); background: var(--bg); }
+.graph-canvas { position: absolute; inset: 0; }
+.graph-controls { position: absolute; top: 10px; right: 10px; z-index: 4; display: flex; flex-direction: column; gap: 6px; }
+.graph-controls .btn { min-width: 44px; padding: 0 10px; background: color-mix(in srgb, var(--surface-2) 92%, transparent); }
+.sheet {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 
 @media (min-width: 720px) {
   .page { padding-top: 20px; }
