@@ -4,6 +4,7 @@ import type { Song } from '../domain/types';
 import { linkTo, paths } from '../state/router';
 import { useStore } from '../state/store';
 import { BpmBadge, EmptyState, KeyBadge, TopBar } from './components';
+import { openSampleCrate } from './CratesView';
 
 type SortKey = 'title' | 'bpm' | 'connected' | 'recent';
 
@@ -20,7 +21,8 @@ function readSort(): SortKey {
 }
 
 export function LibraryView() {
-  const { graph } = useStore();
+  const store = useStore();
+  const { graph } = store;
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<SortKey>(readSort);
   const total = stats(graph);
@@ -63,6 +65,9 @@ export function LibraryView() {
               <a className="btn btn-primary" {...linkTo(paths.songNew())}>Add a song</a>
               <a className="btn" {...linkTo(paths.transitionNew())}>Add a transition</a>
             </div>
+            <button type="button" className="link-btn" onClick={() => openSampleCrate(store)}>
+              Or look around in a sample crate
+            </button>
           </EmptyState>
         ) : (
           <>

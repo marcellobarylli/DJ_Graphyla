@@ -45,6 +45,30 @@ const LAYOUT = {
   nodeDimensionsIncludeLabels: true,
 } as const;
 
+/**
+ * Force layouts don't know the screen's shape. If the graph came out wide on a
+ * tall phone screen (or the other way round), turn it 90° so it fills the
+ * screen and can be shown larger. Distances and structure stay the same.
+ */
+function orientToCanvas(cy: Core): void {
+  const bb = cy.nodes().boundingBox({});
+  const w = cy.width();
+  const h = cy.height();
+  const mismatch = (h > w * 1.15 && bb.w > bb.h * 1.15) || (w > h * 1.15 && bb.h > bb.w * 1.15);
+  if (!mismatch) return;
+  const cx = bb.x1 + bb.w / 2;
+  const cyy = bb.y1 + bb.h / 2;
+  cy.nodes().positions((n) => {
+    const p = n.position();
+    return { x: cx + (p.y - cyy), y: cyy - (p.x - cx) };
+  });
+}
+
+function afterLayout(cy: Core): void {
+  orientToCanvas(cy);
+  cy.nodes().forEach((n) => void positionCache.set(n.id(), { ...n.position() }));
+}
+
 function frame(cy: Core, eles?: cytoscape.CollectionArgument): void {
   cy.fit(eles, 48);
   if (cy.zoom() > MAX_FIT_ZOOM) {
@@ -84,7 +108,7 @@ const style: StylesheetJson = [
       height: 'data(size)',
       label: 'data(label)',
       color: C.text,
-      'font-size': 11,
+      'font-size': 13,
       'font-family': 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
       'text-valign': 'bottom',
       'text-margin-y': 5,
@@ -194,7 +218,7 @@ export default function GraphView({ setId, focusId }: { setId?: string; focusId?
     const unplaced = cy.nodes().filter((n) => !positionCache.has(n.id()));
     if (unplaced.length > 0) {
       const layout = cy.layout({ ...LAYOUT, randomize: unplaced.length === cy.nodes().length });
-      layout.one('layoutstop', () => cy.nodes().forEach((n) => void positionCache.set(n.id(), { ...n.position() })));
+      layout.one('layoutstop', () => afterLayout(cy));
       layout.run();
     }
     frame(cy);
@@ -262,7 +286,7 @@ export default function GraphView({ setId, focusId }: { setId?: string; focusId?
     const cy = cyRef.current;
     if (!cy) return;
     const layout = cy.layout({ ...LAYOUT, randomize: true });
-    layout.one('layoutstop', () => cy.nodes().forEach((n) => void positionCache.set(n.id(), { ...n.position() })));
+    layout.one('layoutstop', () => afterLayout(cy));
     layout.run();
     frame(cy);
   };

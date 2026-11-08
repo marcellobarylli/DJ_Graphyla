@@ -70,6 +70,8 @@ Goal: explore the graph and build sets from it.
 - [x] An existing library moves into the first crate ("My crate") automatically
 - [x] Backups per crate or for all crates in one file; import into the current crate (merge or
       replace), as a new crate, or restore all crates at once
+- [x] Sample crate with made-up songs, transitions and sets (*Crates → Add sample crate*)
+- [x] Graph turns its layout to match the screen's shape (fills tall phone screens)
 - [ ] Copy or move songs (with their transitions) between crates
 
 ## Chunk 3: Sync & multiple devices

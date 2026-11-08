@@ -29,6 +29,18 @@ and works offline.
 2. **iPhone:** Safari → Share → *Add to Home Screen*. **Android:** Chrome → ⋮ → *Install app*.
 3. Data is stored **on the device**. Use *Data → Share/Download backup* regularly, and
    *Import* to move the library to another device. Sync is planned for chunk 3.
+4. Want to look around first? *Crates → Add sample crate* adds made-up songs, transitions and
+   two sets without touching your own crates.
+
+## Share a crate
+
+1. Open the crate, then *Data → Share “…” backup* (or *Download*). That sends a `.json` file through
+   AirDrop, Messages, WhatsApp, Mail, or *Save to Files* (iCloud Drive / Google Drive).
+2. The other person opens the app link, then *Data → Import → New crate* and picks the file.
+
+They get their own copy: later changes on either side don't sync. Live shared crates need the
+sync backend planned for chunk 3. Saving backups to iCloud Drive or Google Drive also keeps a
+copy outside the phone's browser storage.
 
 ## Data model
 
