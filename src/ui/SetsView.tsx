@@ -26,7 +26,7 @@ export function SetsView() {
   return (
     <>
       <TopBar
-        title="Sets"
+        crate
         actions={
           sets.length > 0 && (
             <button type="button" className="btn btn-small" onClick={() => createAndOpenSet(store)}>

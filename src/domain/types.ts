@@ -49,6 +49,8 @@ export interface Transition {
   fromBpm: number | null;
   /** Tempo the incoming song runs at during the mix. */
   toBpm: number | null;
+  /** How many bars both songs play together (e.g. 16). */
+  overlapBars: number | null;
   /** 1 = doesn't work … 5 = banger. null = not rated yet. */
   rating: number | null;
   notes: string;
@@ -74,7 +76,7 @@ export interface DjSet {
   updatedAt: string;
 }
 
-export const SCHEMA_VERSION = 2 as const;
+export const SCHEMA_VERSION = 3 as const;
 
 export interface GraphData {
   schemaVersion: typeof SCHEMA_VERSION;
@@ -88,9 +90,12 @@ export type SongInput = Pick<Song, 'title'> & Partial<Pick<Song, 'artist' | 'bpm
 
 /** Fields a user supplies when creating or editing a transition. */
 export type TransitionInput = Pick<Transition, 'fromSongId' | 'toSongId'> &
-  Partial<Pick<Transition, 'fromBar' | 'toBar' | 'fromTime' | 'toTime' | 'fromBpm' | 'toBpm' | 'rating' | 'notes'>>;
+  Partial<
+    Pick<Transition, 'fromBar' | 'toBar' | 'fromTime' | 'toTime' | 'fromBpm' | 'toBpm' | 'overlapBars' | 'rating' | 'notes'>
+  >;
 
 export const BAR_MAX = 9999;
+export const OVERLAP_MAX = 256;
 export const BPM_MIN = 20;
 export const BPM_MAX = 400;
 export const RATING_LABELS: Record<number, string> = {

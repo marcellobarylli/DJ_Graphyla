@@ -20,3 +20,15 @@ export function formatPosition(bar: number | null, time: number | null): string 
   if (time !== null) parts.push(formatTimestamp(time));
   return parts.join(' · ');
 }
+
+/** 16 → "16 bars", 1 → "1 bar". */
+export function formatOverlap(bars: number | null): string {
+  if (bars === null) return '';
+  return `${bars} bar${bars === 1 ? '' : 's'}`;
+}
+
+/** Duration of an overlap in seconds, assuming 4/4 (16 bars at 128 BPM = 30 s). */
+export function overlapSeconds(bars: number | null, bpm: number | null, beatsPerBar = 4): number | null {
+  if (bars === null || bpm === null || bpm <= 0) return null;
+  return Math.round(((bars * beatsPerBar * 60) / bpm) * 10) / 10;
+}

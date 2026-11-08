@@ -15,6 +15,9 @@ The graph holds what you know works. **Sets** are saved on top of it: pick any s
 walk along transitions, and see the tempo across the whole set. The **Graph** tab draws
 everything and can highlight a set's walk.
 
+**Crates** keep libraries apart, like Obsidian vaults: one per genre or label, each with its
+own songs, transitions and sets. Switch crates from the header.
+
 See [ROADMAP.md](ROADMAP.md) for what's built and what's next.
 
 ## Use it on your phone
@@ -41,6 +44,7 @@ tags[]                       fromTime     optional m:ss of the mix-out point cre
 notes                        toTime       optional m:ss of the mix-in point
 createdAt / updatedAt        fromBpm      tempo `from` runs at during the mix
                              toBpm        tempo `to` runs at during the mix
+                             overlapBars  how many bars both songs play together
                              rating       1 (doesn't work) … 5 (banger)
                              notes, createdAt / updatedAt
 ```
@@ -53,8 +57,14 @@ createdAt / updatedAt        fromBpm      tempo `from` runs at during the mix
 - A set's start tempo comes from its first song and first edge. Each later song enters at the
   previous edge's *In BPM* and leaves at the next edge's *Out BPM*; the difference is the tempo
   you ride while it plays.
-- Backup files are plain JSON (`{ app, schemaVersion: 2, songs[], transitions[], sets[] }`);
-  schema-1 backups still import.
+- Overlap hints assume 4/4: 16 bars at 128 BPM ≈ 30 s.
+- **Crates** are separate: each crate is its own `songs / transitions / sets` document, stored
+  under its own key next to a small index (names, counts, the open crate). Nothing is shared
+  between crates.
+- Backup files are plain JSON. A crate backup is
+  `{ app, schemaVersion: 3, crate: { id, name }, songs[], transitions[], sets[] }`; a backup of
+  all crates is `{ app, kind: "library", schemaVersion: 3, crates: [{ id, name, songs[], … }] }`.
+  Older backups (schema 1–2) still import.
 
 ## Development
 
@@ -73,8 +83,8 @@ Code layout:
 
 ```text
 src/
-  domain/    pure, tested logic: graph (songs/transitions), sets (walks, tempo track), positions, tempo, backup format
-  storage/   localStorage persistence (swappable for a sync backend later)
+  domain/    pure, tested logic: graph (songs/transitions), sets (walks, tempo track), crates, positions, tempo, backup format
+  storage/   localStorage persistence, one entry per crate (swappable for a sync backend later)
   state/     React store + tiny hash router
   ui/        screens: library, song page, song/transition cards, graph (Cytoscape, lazy-loaded), sets, data
 public/      PWA manifest, service worker, icons

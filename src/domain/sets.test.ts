@@ -28,7 +28,7 @@ function fixture(): GraphData {
   g = addSong(g, { title: 'Charlie', bpm: 122 }, { id: 'c', now: NOW }).graph;
   g = addTransition(g, { fromSongId: 'a', toSongId: 'b', fromBar: 97, toBar: 1, fromBpm: 124, toBpm: 124, rating: 4 }, { id: 'ab1', now: NOW }).graph;
   g = addTransition(g, { fromSongId: 'a', toSongId: 'b', fromBar: 65, toBar: 17, fromBpm: 125, toBpm: 125, rating: 5 }, { id: 'ab2', now: NOW }).graph;
-  g = addTransition(g, { fromSongId: 'b', toSongId: 'c', fromBar: 129, toBar: 1, fromBpm: 126, toBpm: 126, notes: 'echo out' }, { id: 'bc', now: NOW }).graph;
+  g = addTransition(g, { fromSongId: 'b', toSongId: 'c', fromBar: 129, toBar: 1, fromBpm: 126, toBpm: 126, overlapBars: 16, notes: 'echo out' }, { id: 'bc', now: NOW }).graph;
   g = addTransition(g, { fromSongId: 'c', toSongId: 'a', fromBpm: 126, toBpm: 126 }, { id: 'ca', now: NOW }).graph;
   return g;
 }
@@ -157,7 +157,7 @@ describe('reading a set', () => {
         '1. Alpha',
         '   ↳ out bar 97 @ 124 → in bar 1 @ 124  ★★★★',
         '2. Bravo',
-        '   ↳ out bar 129 @ 126 → in bar 1 @ 126  (echo out)',
+        '   ↳ out bar 129 @ 126 → in bar 1 @ 126 · 16 bars  (echo out)',
         '3. Charlie',
         '   ↳ gap: no transition yet',
         '4. Alpha',

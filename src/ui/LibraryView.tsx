@@ -48,7 +48,7 @@ export function LibraryView() {
   return (
     <>
       <TopBar
-        title="DJ Graphyla"
+        crate
         actions={
           <span className="topbar-stat">
             {total.songs} songs · {total.transitions} mixes

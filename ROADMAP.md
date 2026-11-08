@@ -32,7 +32,7 @@ Goal: enter and remember transitions quickly on a phone.
 - [x] Installable PWA (Add to Home Screen), works offline
 - [x] CI (typecheck, tests, build) and GitHub Pages deployment
 
-## ✅ Chunk 2: See & walk (this release)
+## ✅ Chunk 2: See & walk
 
 Goal: explore the graph and build sets from it.
 
@@ -58,14 +58,29 @@ Goal: explore the graph and build sets from it.
 - [x] Sets included in backups (schema v2; v1 backups still import)
 - [ ] More filters: BPM range, tags, key
 
+## ✅ Chunk 2.5: Crates & overlap (this release)
+
+- [x] **Overlap length** per transition: how many bars both songs play together, with one-tap
+      4 / 8 / 16 / 32 presets. The card shows when the outgoing song is out ("out by bar 145"),
+      when the next song plays alone, and the length in seconds at the mix tempo (4/4).
+      Variants, cue sheets and setlists show "⇄ 16 bars"
+- [x] **Crates**: separate libraries, like Obsidian vaults, e.g. one per genre or label. Each crate
+      has its own songs, transitions and sets; nothing is shared. Switch from the header on
+      every main screen. Create, rename and delete crates (the last one can't be deleted)
+- [x] An existing library moves into the first crate ("My crate") automatically
+- [x] Backups per crate or for all crates in one file; import into the current crate (merge or
+      replace), as a new crate, or restore all crates at once
+- [ ] Copy or move songs (with their transitions) between crates
+
 ## Chunk 3: Sync & multiple devices
 
 Goal: the same library on phone, laptop and a friend's phone.
 
 - [ ] Choose a backend. Candidates: Supabase (Postgres + auth), Firebase, CouchDB/PouchDB (offline sync built in)
 - [ ] Accounts and login
-- [ ] Two-way sync. The merge already exists for songs, transitions and sets (newer `updatedAt` wins);
-      add soft-deletes (tombstones) so deletions also sync
+- [ ] Two-way sync, per crate. The merge already exists for songs, transitions and sets (newer
+      `updatedAt` wins); add soft-deletes (tombstones) so deletions also sync
+- [ ] Move storage from localStorage (about 5 MB for all crates together) to IndexedDB for big libraries
 - [ ] Shared or collaborative graphs (b2b partners)
 - [ ] Undo / change history
 
@@ -95,10 +110,8 @@ Goal: let the graph tell you things you haven't tried.
 
 1. ~~**Mix-point unit.**~~ Decided: bars. Possible follow-ups: beat precision ("bar 97, beat 3"),
    and a per-song first-downbeat offset so bars and timestamps can be converted into each other.
-2. **Mix length (overlap).** Should a transition also store how long both tracks play together,
-   e.g. "16 bars"? Example: B comes in at bar 1 while A is at bar 97, both run for 16 bars, and A is
-   gone by bar 113. This is about one transition, not the length of a set. With bars in place it
-   would be one optional field. A technique tag (EQ swap, echo out, cut) could sit next to it.
+2. ~~**Mix length (overlap).**~~ Decided and built: overlap in bars. Possible follow-up: a technique
+   tag (EQ swap, echo out, cut).
 3. **True hyperedges.** Several variants between two songs fit the multigraph already.
    A *hyperedge* would join more than two songs at once, for example a three-deck mix
    (A + B → C). Is that a use case?

@@ -1,15 +1,18 @@
 /**
- * App state: the graph lives in React state, every change is persisted to
- * localStorage. Components call the action functions; the domain layer does
- * the actual work (and throws GraphError on invalid input).
+ * App state: the active crate's graph plus the crate index live in React
+ * state. Every change is written to localStorage right away. Components call
+ * the action functions; the domain layer does the actual work (and throws
+ * GraphError on invalid input).
  */
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
+import * as C from '../domain/crates';
 import * as G from '../domain/graph';
-import { mergeGraphs, type MergeResult } from '../domain/serialize';
+import { mergeGraphs, type CrateData, type MergeResult } from '../domain/serialize';
 import type { GraphData, Song, SongId, SongInput, Transition, TransitionId, TransitionInput } from '../domain/types';
-import { loadGraph, saveGraph } from '../storage/localStore';
+import * as storage from '../storage/localStore';
 
 export interface GraphStore {
+  /** The active crate's songs, transitions and sets. */
   graph: GraphData;
   addSong(input: SongInput): Song;
   updateSong(id: SongId, patch: Partial<SongInput>): void;
@@ -23,73 +26,177 @@ export interface GraphStore {
   apply(fn: (graph: GraphData) => GraphData): void;
   replaceAll(graph: GraphData): void;
   mergeIn(graph: GraphData): MergeResult;
+
+  /* crates */
+  crates: C.CrateMeta[];
+  activeCrate: C.CrateMeta;
+  switchCrate(id: C.CrateId): void;
+  createCrate(name: string, opts?: { graph?: GraphData; activate?: boolean }): C.CrateMeta;
+  renameCrate(id: C.CrateId, name: string): void;
+  deleteCrate(id: C.CrateId): void;
+  /** Every crate with its data, for a full library backup. */
+  allCrateData(): CrateData[];
+  /** Restores a library backup: crates with a known id are merged, others are added. */
+  restoreCrates(crates: CrateData[]): { added: number; merged: number };
+}
+
+interface State {
+  index: C.CrateIndex;
+  graph: GraphData;
 }
 
 const StoreContext = createContext<GraphStore | null>(null);
 
-export function GraphProvider({ children, initial }: { children: ReactNode; initial?: GraphData }) {
-  const [graph, setGraph] = useState<GraphData>(() => initial ?? loadGraph());
-  // Ref holds the latest graph so actions can compute synchronously and return results.
-  const ref = useRef(graph);
+function persist(write: () => void): void {
+  try {
+    write();
+  } catch (err) {
+    console.error('Saving failed', err);
+    alert('Could not save to this device (storage full or blocked). Export a backup from the Data tab.');
+  }
+}
 
-  const commit = useCallback((next: GraphData) => {
+export function GraphProvider({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<State>(() => {
+    const index = storage.loadIndex();
+    return { index, graph: storage.loadCrate(index.activeId) };
+  });
+  // Ref holds the latest state so actions can compute synchronously and return results.
+  const ref = useRef(state);
+
+  const set = useCallback((next: State) => {
     ref.current = next;
-    setGraph(next);
+    setState(next);
   }, []);
 
-  useEffect(() => {
-    try {
-      saveGraph(graph);
-    } catch (err) {
-      console.error('Saving failed', err);
-      alert('Could not save to this device (storage full or blocked). Export a backup from the Data tab.');
-    }
-  }, [graph]);
+  const saveIndex = useCallback((index: C.CrateIndex) => persist(() => storage.saveIndex(index)), []);
 
-  const store = useMemo<GraphStore>(
-    () => ({
+  /** Writes a new graph for the active crate. */
+  const commit = useCallback(
+    (graph: GraphData) => {
+      const { index } = ref.current;
+      const nextIndex = C.touchCrate(index, index.activeId, graph);
+      persist(() => {
+        storage.saveCrate(index.activeId, graph);
+        storage.saveIndex(nextIndex);
+      });
+      set({ index: nextIndex, graph });
+    },
+    [set],
+  );
+
+  const store = useMemo<GraphStore>(() => {
+    const { index, graph } = state;
+    return {
       graph,
       addSong(input) {
-        const { graph: next, song } = G.addSong(ref.current, input);
+        const { graph: next, song } = G.addSong(ref.current.graph, input);
         commit(next);
         return song;
       },
       updateSong(id, patch) {
-        commit(G.updateSong(ref.current, id, patch));
+        commit(G.updateSong(ref.current.graph, id, patch));
       },
       deleteSong(id) {
-        commit(G.deleteSong(ref.current, id));
+        commit(G.deleteSong(ref.current.graph, id));
       },
       addTransition(input) {
-        const { graph: next, transition } = G.addTransition(ref.current, input);
+        const { graph: next, transition } = G.addTransition(ref.current.graph, input);
         commit(next);
         return transition;
       },
       updateTransition(id, patch) {
-        commit(G.updateTransition(ref.current, id, patch));
+        commit(G.updateTransition(ref.current.graph, id, patch));
       },
       deleteTransition(id) {
-        commit(G.deleteTransition(ref.current, id));
+        commit(G.deleteTransition(ref.current.graph, id));
       },
       batch(fn) {
-        const { graph: next, result } = fn(ref.current);
+        const { graph: next, result } = fn(ref.current.graph);
         commit(next);
         return result;
       },
       apply(fn) {
-        commit(fn(ref.current));
+        commit(fn(ref.current.graph));
       },
       replaceAll(next) {
         commit(next);
       },
       mergeIn(incoming) {
-        const result = mergeGraphs(ref.current, incoming);
+        const result = mergeGraphs(ref.current.graph, incoming);
         commit(result.graph);
         return result;
       },
-    }),
-    [graph, commit],
-  );
+
+      crates: C.sortedCrates(index),
+      activeCrate: C.activeCrate(index),
+      switchCrate(id) {
+        if (id === ref.current.index.activeId) return;
+        const nextIndex = C.setActiveCrate(ref.current.index, id);
+        saveIndex(nextIndex);
+        set({ index: nextIndex, graph: storage.loadCrate(id) });
+      },
+      createCrate(name, opts = {}) {
+        const data = opts.graph ?? G.createEmptyGraph();
+        const meta = C.newCrateMeta(name, { graph: data });
+        const nextIndex = C.addCrate(ref.current.index, meta, { activate: opts.activate ?? true });
+        persist(() => {
+          storage.saveCrate(meta.id, data);
+          storage.saveIndex(nextIndex);
+        });
+        set({ index: nextIndex, graph: nextIndex.activeId === meta.id ? data : ref.current.graph });
+        return meta;
+      },
+      renameCrate(id, name) {
+        const nextIndex = C.renameCrate(ref.current.index, id, name);
+        saveIndex(nextIndex);
+        set({ ...ref.current, index: nextIndex });
+      },
+      deleteCrate(id) {
+        const before = ref.current.index;
+        const nextIndex = C.removeCrate(before, id);
+        persist(() => {
+          storage.saveIndex(nextIndex);
+          storage.deleteCrateData(id);
+        });
+        const graph = nextIndex.activeId === before.activeId ? ref.current.graph : storage.loadCrate(nextIndex.activeId);
+        set({ index: nextIndex, graph });
+      },
+      allCrateData() {
+        const { index: idx, graph: active } = ref.current;
+        return C.sortedCrates(idx).map((c) => ({
+          id: c.id,
+          name: c.name,
+          graph: c.id === idx.activeId ? active : storage.loadCrate(c.id),
+        }));
+      },
+      restoreCrates(incoming) {
+        let idx = ref.current.index;
+        let active = ref.current.graph;
+        let added = 0;
+        let merged = 0;
+        persist(() => {
+          for (const crate of incoming) {
+            const known = idx.crates.some((c) => c.id === crate.id);
+            const base = !known ? null : crate.id === idx.activeId ? active : storage.loadCrate(crate.id);
+            const data = base ? mergeGraphs(base, crate.graph).graph : crate.graph;
+            storage.saveCrate(crate.id, data);
+            if (known) {
+              idx = C.touchCrate(idx, crate.id, data);
+              merged++;
+            } else {
+              idx = C.addCrate(idx, C.newCrateMeta(crate.name, { id: crate.id, graph: data }));
+              added++;
+            }
+            if (crate.id === idx.activeId) active = data;
+          }
+          storage.saveIndex(idx);
+        });
+        set({ index: idx, graph: active });
+        return { added, merged };
+      },
+    };
+  }, [state, commit, saveIndex, set]);
 
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 }
