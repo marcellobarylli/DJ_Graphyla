@@ -597,6 +597,28 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 .play-actions .btn { min-height: 56px; font-size: 1.05rem; }
 .btn:disabled { opacity: 0.45; cursor: default; }
 
+/* ── type-ahead suggestions ───────────────────────────────── */
+.suggestions { display: flex; flex-wrap: wrap; gap: 6px; }
+.suggestion {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  max-width: 100%;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.suggestion-text { overflow: hidden; text-overflow: ellipsis; white-space: pre; }
+.suggestion strong { color: var(--text); font-weight: 700; }
+.suggestion:active { background: var(--accent); color: white; }
+
 @media (min-width: 720px) {
   .page { padding-top: 20px; }
 }

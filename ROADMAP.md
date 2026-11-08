@@ -88,6 +88,8 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       best rated first, marking the ones that lead back into the set ("back to set · song 6")
 - [x] Save what was actually played as a new set; the original set is never changed
 - [x] Screen stays on (where the browser supports it); progress survives a reload ("Resume play mode")
+- [x] Type-ahead suggestions in the song card (also inside the transition card): artists, tags
+      (categories) and keys already used in the crate. Tap a chip to fill it in
 - [ ] Highlight the live position on the graph
 - [ ] Play mode without a set: start at any song and walk the graph freely
 
