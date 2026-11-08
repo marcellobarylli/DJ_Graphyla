@@ -253,17 +253,20 @@ export function VariantRow({
   editPath,
   onSelect,
   selected,
+  hideNotes,
 }: {
   transition: Transition;
   fromSong: Song | undefined;
   toSong: Song | undefined;
   /** Link to the edit card … */
   editPath?: string;
-  /** … or a button action instead. */
+  /** … or a button action instead (neither: display only). */
   onSelect?: () => void;
   selected?: boolean;
+  /** When the notes are shown in full elsewhere. */
+  hideNotes?: boolean;
 }) {
-  const body = <VariantBody transition={transition} fromSong={fromSong} toSong={toSong} />;
+  const body = <VariantBody transition={transition} fromSong={fromSong} toSong={toSong} hideNotes={hideNotes} />;
   if (onSelect) {
     return (
       <button type="button" className={`variant variant-btn${selected ? ' selected' : ''}`} aria-pressed={selected} onClick={onSelect}>
@@ -271,14 +274,25 @@ export function VariantRow({
       </button>
     );
   }
+  if (!editPath) return <div className="variant">{body}</div>;
   return (
-    <a className="variant" {...linkTo(editPath ?? '/')}>
+    <a className="variant" {...linkTo(editPath)}>
       {body}
     </a>
   );
 }
 
-function VariantBody({ transition, fromSong, toSong }: { transition: Transition; fromSong: Song | undefined; toSong: Song | undefined }) {
+function VariantBody({
+  transition,
+  fromSong,
+  toSong,
+  hideNotes,
+}: {
+  transition: Transition;
+  fromSong: Song | undefined;
+  toSong: Song | undefined;
+  hideNotes?: boolean;
+}) {
   return (
     <>
       <span className="variant-points">
@@ -299,7 +313,7 @@ function VariantBody({ transition, fromSong, toSong }: { transition: Transition;
           </span>
         )}
         <Stars rating={transition.rating} />
-        {transition.notes && <span className="variant-notes">{transition.notes}</span>}
+        {transition.notes && !hideNotes && <span className="variant-notes">{transition.notes}</span>}
       </span>
     </>
   );

@@ -6,6 +6,7 @@ import type { DjSet, GraphData, Song, SongId } from '../domain/types';
 import { goBack, linkTo, paths } from '../state/router';
 import { useStore } from '../state/store';
 import { BpmBadge, EmptyState, TextArea, TextField, TopBar, VariantRow } from './components';
+import { liveProgress } from './PlayView';
 import { TempoChart } from './TempoChart';
 
 export function SetView({ id }: { id: string }) {
@@ -84,6 +85,14 @@ export function SetView({ id }: { id: string }) {
               </span>
             )}
           </p>
+          {set.songIds.length > 0 && (
+            <a className="btn btn-primary btn-block" {...linkTo(paths.setPlay(set.id))}>
+              {(() => {
+                const progress = liveProgress(graph, set);
+                return progress ? `▶ Resume play mode (${progress})` : '▶ Play this set';
+              })()}
+            </a>
+          )}
         </section>
 
         {hasTempo && <TempoChart points={track} />}
