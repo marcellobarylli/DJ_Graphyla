@@ -1,11 +1,18 @@
 import { useState, type FormEvent } from 'react';
 import { GraphError } from '../domain/common';
 import type { CrateMeta } from '../domain/crates';
+import { buildSampleGraph, sampleCrateName } from '../domain/sample';
 import { navigate, paths } from '../state/router';
-import { useStore } from '../state/store';
+import { useStore, type GraphStore } from '../state/store';
 import { TextField, TopBar } from './components';
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+/** Adds a crate of made-up songs, transitions and sets, and opens it. */
+export function openSampleCrate(store: GraphStore): void {
+  store.createCrate(sampleCrateName(store.crates.map((c) => c.name)), { graph: buildSampleGraph() });
+  navigate(paths.library(), { replace: true });
+}
 
 export function CratesView() {
   const store = useStore();
@@ -82,6 +89,17 @@ export function CratesView() {
             Create and open
           </button>
         </form>
+
+        <section className="card form">
+          <h3 className="section-title">Sample crate</h3>
+          <p className="small muted">
+            Look around with made-up songs, transitions and two sets, without touching your own crates. Delete it whenever
+            you like.
+          </p>
+          <button type="button" className="btn btn-block" onClick={() => openSampleCrate(store)}>
+            Add sample crate
+          </button>
+        </section>
       </main>
     </>
   );
