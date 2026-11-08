@@ -1,0 +1,105 @@
+# Roadmap
+
+DJ Graphyla stores what works between songs as a graph, then lets you
+recombine it. Every **song is a node**. Every **transition is a directed edge**
+from the song that is playing to the song that gets mixed in. Each edge records
+where you mix out, where you mix in, and the tempo of both tracks. A **set is a
+walk** through the graph, the way a genome is a walk through an assembly graph.
+You can start the walk at any song.
+
+The graph is a **directed multigraph**: the same two songs can be linked by
+several edges (A 3:00 → B 0:32, A 5:10 → B 1:04, …), one per mix variant that works.
+
+---
+
+## ✅ Chunk 1: Capture
+
+Goal: enter and remember transitions quickly on a phone.
+
+- [x] Data model: Song (title, artist, original BPM, key, tags, notes) and
+      Transition (from/to song, mix-out time, mix-in time, out BPM, in BPM, 1–5 rating, notes)
+- [x] Multiple variants per song pair, with direction (A → B ≠ B → A)
+- [x] Add / edit / delete songs
+- [x] Add / edit / delete transitions
+- [x] Transition card can create new songs inline ("I just found this track, here's where it fits")
+- [x] "Save & continue from next song": enter a whole set as a walk, edge by edge
+- [x] Song page: *Mixes into →* and *← Comes from*, grouped by neighbouring song with all variants
+- [x] Pitch-change hints (e.g. 124 → 125 BPM = +0.8%); a blank in-BPM means beatmatched to the out-BPM
+- [x] Phone-friendly time entry: type `132` for 1:32 on the numeric keypad
+- [x] Search (title, artist, key, tags) and sort (A–Z, BPM, most mixed, recent)
+- [x] Duplicate-song warning
+- [x] Local-first storage on the device, JSON backup export/share, import (merge or replace)
+- [x] Installable PWA (Add to Home Screen), works offline
+- [x] CI (typecheck, tests, build) and GitHub Pages deployment
+
+## ✅ Chunk 2: See & walk (this release)
+
+Goal: explore the graph and build sets from it.
+
+- [x] **Bars as the mix-point unit** ("mix out at bar 97 → in at bar 1"); an optional m:ss timestamp
+      is still available per side
+- [x] Graph view (Cytoscape.js, loaded only when opened): songs as nodes, parallel edges drawn
+      as separate curves. Edge colour and width show the rating; "doesn't work" is red and dashed
+- [x] Neighbourhood focus: tap a song (or *Show in graph* on its page) to highlight it and its
+      direct neighbours. An info sheet has *Open*, *+ Mix into…* and *Start set here*
+- [x] Tap an edge to see and edit that transition
+- [x] Rating filter (all / ★3+ / ★4+)
+- [x] **Sets as an overlay**: a set is a separate saved walk of any length on top of the graph.
+      The graph holds the knowledge; sets only point at it
+- [x] Set builder: start at any song, then pick from the ranked outgoing transitions, step by step.
+      Songs already in the set are marked. Revisiting a song is allowed (it's a walk)
+- [x] Switch which variant a step uses (multigraph)
+- [x] Gaps: "Jump to any song" adds a step with no transition yet. Deleting a transition or a song
+      from the graph also leaves a visible gap in a set instead of silently breaking it
+- [x] Tempo track: the first song plus the first edge set the start tempo. Each song shows its
+      in/out tempo and the BPM to "ride" while it plays. A tempo chart covers the whole set
+- [x] Set on graph: highlight the walk, numbered step by step
+- [x] Cue sheet and plain-text setlist sharing
+- [x] Sets included in backups (schema v2; v1 backups still import)
+- [ ] More filters: BPM range, tags, key
+
+## Chunk 3: Sync & multiple devices
+
+Goal: the same library on phone, laptop and a friend's phone.
+
+- [ ] Choose a backend. Candidates: Supabase (Postgres + auth), Firebase, CouchDB/PouchDB (offline sync built in)
+- [ ] Accounts and login
+- [ ] Two-way sync. The merge already exists for songs, transitions and sets (newer `updatedAt` wins);
+      add soft-deletes (tombstones) so deletions also sync
+- [ ] Shared or collaborative graphs (b2b partners)
+- [ ] Undo / change history
+
+## Chunk 4: Smart suggestions
+
+Goal: let the graph tell you things you haven't tried.
+
+- [ ] Route finder: best path from song A to song B (by rating, fewest steps, smallest tempo jumps)
+- [ ] Key compatibility hints (Camelot wheel) for pairs that have no edge yet
+- [ ] "Try next" suggestions: compatible BPM/key, not yet linked
+- [ ] Graph health: dead ends (no way out), orphans, hubs, the most reliable chains
+- [ ] Track the edges marked "doesn't work" (rating 1) so you avoid them
+
+## Chunk 5: Integrations
+
+- [ ] Import a library or playlists with cue points from DJ software (e.g. Rekordbox XML export)
+- [ ] Metadata lookup (BPM, key, artwork). Check which services' APIs currently allow this before building
+- [ ] Links or previews to the track on a streaming store
+
+## Optional: native app wrapper
+
+- [ ] Wrap the PWA with Capacitor for App Store / Play Store distribution, if home-screen install is not enough
+
+---
+
+## Open questions
+
+1. ~~**Mix-point unit.**~~ Decided: bars. Possible follow-ups: beat precision ("bar 97, beat 3"),
+   and a per-song first-downbeat offset so bars and timestamps can be converted into each other.
+2. **Mix length (overlap).** Should a transition also store how long both tracks play together,
+   e.g. "16 bars"? Example: B comes in at bar 1 while A is at bar 97, both run for 16 bars, and A is
+   gone by bar 113. This is about one transition, not the length of a set. With bars in place it
+   would be one optional field. A technique tag (EQ swap, echo out, cut) could sit next to it.
+3. **True hyperedges.** Several variants between two songs fit the multigraph already.
+   A *hyperedge* would join more than two songs at once, for example a three-deck mix
+   (A + B → C). Is that a use case?
+4. **Sync backend.** Which one, and is a login acceptable?
