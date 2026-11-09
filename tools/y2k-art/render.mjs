@@ -8,7 +8,7 @@
  * Needs Playwright with Chromium on the machine (it is not a project
  * dependency): `npm i -g playwright && npx playwright install chromium`.
  */
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -62,6 +62,13 @@ try {
     const bytes = Buffer.from(art.dataUrl.split(',')[1], 'base64');
     await writeFile(join(outDir, `${scene}.webp`), bytes);
     console.log(`${scene}.webp  ${(bytes.length / 1024).toFixed(1)} KB`);
+    if (art.anchors) {
+      // Points on the figures (in picture pixels) for the page's lightning.
+      const file = join(outDir, 'figures.json');
+      const all = JSON.parse(await readFile(file, 'utf8').catch(() => '{}'));
+      all[scene] = { width: art.width, height: art.height, ...art.anchors };
+      await writeFile(file, JSON.stringify(all, null, 2) + '\n');
+    }
     await page.close();
   }
 } finally {

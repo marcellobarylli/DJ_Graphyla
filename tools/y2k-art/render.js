@@ -253,6 +253,7 @@ async function figureScene(name, cfg) {
   // Headphones in the head's own frame: x right, y up, z forward.
   const { center, size, axes } = meta.head;
   const phones = new THREE.Group();
+  const caps = [];
   const halfW = size[0] / 2;
   const cupR = size[1] * 0.2;
   const cupX = halfW + cupR * 0.3;
@@ -270,6 +271,7 @@ async function figureScene(name, cfg) {
     pad.scale.set(1, 1, 0.75);
     pad.position.set(side * (cupX - cupR * 0.36), cupY, cupZ);
     phones.add(cup, cap, pad);
+    caps.push(cap);
   }
   // Band: a half ellipse from the top of one cup over the skull to the other.
   const baseY = cupY + cupR * 0.4;
@@ -304,6 +306,21 @@ async function figureScene(name, cfg) {
   camera.lookAt(0, h * 0.49, 0);
 
   renderer.render(scene, camera);
+
+  // Where the headphones, the band's top, the hands and the feet land in the
+  // output picture, for the lightning drawn over it in the page.
+  scene.updateMatrixWorld(true);
+  const toPx = (v) => {
+    v.project(camera);
+    return [Math.round(((v.x + 1) / 2) * cfg.width), Math.round(((1 - v.y) / 2) * cfg.height)];
+  };
+  const anchors = {
+    cupL: toPx(caps[0].getWorldPosition(new THREE.Vector3())),
+    cupR: toPx(caps[1].getWorldPosition(new THREE.Vector3())),
+    crown: toPx(phones.localToWorld(new THREE.Vector3(0, topY + size[1] * 0.04, cupZ))),
+  };
+  for (const [key, p] of Object.entries(meta.anchors)) anchors[key] = toPx(figure.localToWorld(new THREE.Vector3(...p)));
+
   const out = document.createElement('canvas');
   out.width = cfg.width;
   out.height = cfg.height;
@@ -312,7 +329,7 @@ async function figureScene(name, cfg) {
   g.drawImage(renderer.domElement, 0, 0, cfg.width, cfg.height);
   document.body.appendChild(out);
   renderer.domElement.remove();
-  return out.toDataURL('image/webp', 0.9);
+  return { dataUrl: out.toDataURL('image/webp', 0.9), width: cfg.width, height: cfg.height, anchors };
 }
 
 async function render() {
@@ -320,7 +337,7 @@ async function render() {
   const cfg = SCENES[name];
   if (!cfg) throw new Error(`Unknown scene ${name}`);
   if (cfg.kind === 'figure') {
-    window.__art = { name, dataUrl: await figureScene(name, cfg) };
+    window.__art = { name, ...(await figureScene(name, cfg)) };
     document.getElementById('status').textContent = `${name}: done`;
     return;
   }

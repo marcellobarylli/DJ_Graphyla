@@ -1,5 +1,6 @@
 import { stats } from '../domain/graph';
 import { useStore } from '../state/store';
+import { Y2KLightning } from './Y2KLightning';
 
 /** Four-point "sparkle" star in chrome. */
 function Sparkle({ className }: { className: string }) {
@@ -14,7 +15,7 @@ function Sparkle({ className }: { className: string }) {
  * Side decorations of the Y2K Futurism look: rendered chrome objects at the
  * screen edges, sparkles, flavour text running up the page margins, and on
  * wide screens two full-body chrome DJs (a man and a woman, one in each
- * margin) and a HUD readout. The readout is bare glowing text, not a panel,
+ * margin, with lightning crackling around them) and a HUD readout. The readout is bare glowing text, not a panel,
  * so it doesn't look like a button. Purely decorative: it sits behind the
  * page, takes no taps, and is hidden from screen readers.
  */
@@ -35,8 +36,12 @@ export function Y2KDecor() {
       </svg>
       <span className="y2k-chrome y2k-chrome-blob" />
       <span className="y2k-chrome y2k-chrome-torus" />
-      <span className="y2k-chrome y2k-chrome-dj y2k-chrome-man" />
-      <span className="y2k-chrome y2k-chrome-dj y2k-chrome-woman" />
+      <span className="y2k-chrome y2k-chrome-dj y2k-chrome-man">
+        <Y2KLightning figure="man" />
+      </span>
+      <span className="y2k-chrome y2k-chrome-dj y2k-chrome-woman">
+        <Y2KLightning figure="woman" />
+      </span>
       <Sparkle className="y2k-sparkle y2k-sparkle-1" />
       <Sparkle className="y2k-sparkle y2k-sparkle-2" />
       <Sparkle className="y2k-sparkle y2k-sparkle-3" />
