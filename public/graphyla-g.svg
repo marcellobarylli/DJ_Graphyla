@@ -3,29 +3,19 @@
     <radialGradient id="bg" cx="0.45" cy="0.35" r="0.9">
       <stop offset="0" stop-color="#0d1020"/><stop offset="1" stop-color="#040508"/>
     </radialGradient>
-    <mask id="cut-bowl" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
-      <rect width="512" height="512" fill="#fff"/><circle cx="274" cy="199" r="88" fill="#000"/>
-    </mask>
-    <mask id="cut-hook" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
-      <rect width="512" height="512" fill="#fff"/><circle cx="247" cy="299" r="98" fill="#000"/>
-    </mask>
-    <filter id="haze" filterUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
+    <filter id="haze" filterUnits="userSpaceOnUse" x="-512" y="-512" width="1536" height="1536">
       <feGaussianBlur stdDeviation="9"/>
     </filter>
   </defs>
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <g transform="translate(256 256) scale(1) translate(-250 -274)">
-    <g fill="#8fd8ff" opacity="0.45" filter="url(#haze)">
-      <circle cx="250" cy="206" r="96" mask="url(#cut-bowl)"/>
-      <circle cx="250" cy="326" r="104" mask="url(#cut-hook)"/>
-      <rect x="337.5" y="150" width="6" height="202" rx="3"/>
-      <circle cx="340.5" cy="128" r="10"/>
+  <g transform="translate(256 256) scale(1) translate(0 -60)" fill="none" stroke-width="32" stroke-linecap="round">
+    <g stroke="#8fd8ff" stroke-opacity="0.45" filter="url(#haze)">
+      <circle cx="0" cy="0" r="78"/>
+      <path d="M78 -78V120A78 78 0 0 1 -67.5 159"/>
     </g>
-    <g fill="#e9eef8">
-      <circle cx="250" cy="206" r="96" mask="url(#cut-bowl)"/>
-      <circle cx="250" cy="326" r="104" mask="url(#cut-hook)"/>
-      <rect x="337.5" y="150" width="6" height="202" rx="3"/>
-      <circle cx="340.5" cy="128" r="10"/>
+    <g stroke="#e9eef8">
+      <circle cx="0" cy="0" r="78"/>
+      <path d="M78 -78V120A78 78 0 0 1 -67.5 159"/>
     </g>
   </g>
 </svg>

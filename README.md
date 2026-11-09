@@ -58,7 +58,7 @@ and works offline.
    running is shown at the bottom of the *Data* tab.
 5. Want to look around first? *Crates → Add sample crate* adds made-up songs, transitions and
    two sets without touching your own crates.
-6. **New icon (v0.8):** the app icon is now an abstract “g” made of two crescents and a hairline. An iPhone keeps the
+6. **New icon (v0.8):** the app icon is now a “g” built from circles and a straight stem. An iPhone keeps the
    icon it saved when the app was added, so to see the new one, remove the app from the home
    screen and *Add to Home Screen* again (your data stays: it belongs to the website, not the icon).
 

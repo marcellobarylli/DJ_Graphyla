@@ -148,11 +148,11 @@ A public crate collection in the GitHub repo, before real accounts and sync (chu
 
 ## ✅ Chunk 2.9: App icon & DJ profiles (this release)
 
-- [x] **App icon**: an abstract, alien, minimal lowercase “g” in the spirit of Paul Nicholson's Xylem
-      lettering, which is built from circles (an original drawing, not the font): two crescents,
-      each a circle with an offset circle cut out, joined by a hairline that ends in one node, in
-      silver on black with a faint glow. Home screen, Android (maskable) and browser sizes, made by
-      `npm run icons`
+- [x] **App icon**: a minimal lowercase “g” built the way Paul Nicholson drew his Xylem lettering,
+      with circle templates and a ruler (an original drawing, not the font or the Aphex Twin logo):
+      a circular bowl, a straight stem tangent to it and a hook that is an arc of an equal circle,
+      one even stroke with rounded ends, silver on black with a faint glow. Home screen, Android
+      (maskable) and browser sizes, made by `npm run icons`
 - [x] **DJ profiles** in the record shop: a DJ name and profile picture per GitHub account
       (`record-shop/<login>/profile.json`), created on connect, editable, shown with every crate
       and in a row of DJs at the top of the shop (tap to filter)
