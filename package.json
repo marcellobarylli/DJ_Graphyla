@@ -1,7 +1,7 @@
 {
   "name": "dj-graphyla",
   "private": true,
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "A DJ transition graph: songs are nodes, mixes are directed edges, a set is a walk.",
   "type": "module",
   "scripts": {

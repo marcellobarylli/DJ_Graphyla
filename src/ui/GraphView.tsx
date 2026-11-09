@@ -410,6 +410,9 @@ function SelectionSheet({ selection, graph, onClose }: { selection: Selection; g
           <button type="button" className="btn btn-small" onClick={() => createAndOpenSet(store, song.id)}>
             Start set here
           </button>
+          <a className="btn btn-small" {...linkTo(paths.freePlay({ start: song.id }))}>
+            ▶ Free walk
+          </a>
         </div>
       </div>
     );

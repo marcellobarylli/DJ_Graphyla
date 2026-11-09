@@ -4,12 +4,15 @@ import {
   advance,
   barAt,
   currentStep,
+  freePlan,
+  jumpTo,
   leftThePlan,
   otherOptions,
   plannedNext,
   restoreLive,
   saveLiveAsSet,
   secondsUntilBar,
+  startFreeWalk,
   startLive,
   stepBack,
 } from './live';
@@ -136,5 +139,37 @@ describe('bar clock', () => {
   it('gives the time until a bar', () => {
     expect(secondsUntilBar(113, 129, 128)).toBe(30);
     expect(secondsUntilBar(130, 129, 120)).toBe(-2);
+  });
+});
+
+describe('free walk (no set)', () => {
+  it('starts at any song and offers every way out, best rated first', () => {
+    const g = fixture();
+    const plan = freePlan('free:c1');
+    const s = startFreeWalk(plan, 'b');
+    expect(currentStep(s)).toEqual({ songId: 'b', viaTransitionId: null, planIndex: null });
+    expect(plannedNext(g, plan, s)).toBeNull();
+    expect(otherOptions(g, plan, s).map((o) => [o.transition!.id, o.rejoinsAt])).toEqual([
+      ['bd', null],
+      ['bc', null],
+    ]);
+  });
+
+  it('walks, jumps, steps back, saves and restores', () => {
+    const g = fixture();
+    const plan = freePlan('free:c1');
+    let s = startFreeWalk(plan, 'a');
+    s = advance(s, otherOptions(g, plan, s)[0]!); // a →ab b (rating 4 beats ac's 2)
+    s = advance(s, jumpTo('c')); // no transition: a gap
+    expect(s.steps.map((x) => [x.songId, x.viaTransitionId])).toEqual([
+      ['a', null],
+      ['b', 'ab'],
+      ['c', null],
+    ]);
+    expect(restoreLive(g, plan, JSON.parse(JSON.stringify(s)))).toEqual(s);
+    expect(restoreLive(g, freePlan('free:other'), s)).toBeNull();
+    const { set } = saveLiveAsSet(g, s, 'Free walk');
+    expect(set).toMatchObject({ songIds: ['a', 'b', 'c'], transitionIds: ['ab', null] });
+    expect(currentStep(stepBack(s)).songId).toBe('b');
   });
 });

@@ -5,7 +5,7 @@ import { AddView } from './AddView';
 import { CratesView } from './CratesView';
 import { DataView } from './DataView';
 import { LibraryView } from './LibraryView';
-import { PlayView } from './PlayView';
+import { FreeWalkView, PlayView } from './PlayView';
 import { SetView } from './SetView';
 import { SetsView } from './SetsView';
 import { SongForm } from './SongForm';
@@ -38,6 +38,8 @@ function Screen({ route }: { route: Route }) {
       return <SetView key={route.id} id={route.id} />;
     case 'set-play':
       return <PlayView key={route.id} id={route.id} />;
+    case 'free-play':
+      return <FreeWalkView start={route.start} />;
     case 'song':
       return <SongView key={route.id} id={route.id} />;
     case 'song-new':
@@ -62,7 +64,7 @@ function Screen({ route }: { route: Route }) {
 
 /** Screens without the tab bar: forms (keyboard) and play mode (full screen). */
 const isForm = (r: Route) =>
-  r.name === 'song-new' || r.name === 'song-edit' || r.name === 'transition-new' || r.name === 'transition-edit' || r.name === 'set-play';
+  r.name === 'song-new' || r.name === 'song-edit' || r.name === 'transition-new' || r.name === 'transition-edit' || r.name === 'set-play' || r.name === 'free-play';
 
 /** Shown when a newer version was deployed while the app was open. Reloads only on tap. */
 function UpdateBanner() {

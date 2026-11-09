@@ -91,7 +91,10 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
 - [x] Type-ahead suggestions in the song card (also inside the transition card): artists, tags
       (categories) and keys already used in the crate. Tap a chip to fill it in
 - [ ] Highlight the live position on the graph
-- [ ] Play mode without a set: start at any song and walk the graph freely
+- [x] **Free walk** (issue #7): play mode without a set. Start at any song (*Sets → ▶ Free walk*,
+      *▶ Free walk from here* on a song, or from the graph); every way out of the current song is
+      listed, best rated first and pre-selected; jump to any song when you hit a dead end; save the
+      walk as a set afterwards
 
 ## Chunk 3: Sync & multiple devices
 

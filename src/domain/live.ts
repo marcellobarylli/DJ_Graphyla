@@ -31,6 +31,23 @@ export interface NextOption {
   rejoinsAt: number | null;
 }
 
+/**
+ * A free walk has no plan: an empty, never-saved set stands in for it, so the
+ * same functions work (no planned next step, every way out is an option).
+ */
+export function freePlan(id: string): DjSet {
+  return { id, name: 'Free walk', notes: '', songIds: [], transitionIds: [], createdAt: '', updatedAt: '' };
+}
+
+export function startFreeWalk(plan: DjSet, songId: SongId): LiveSession {
+  return { setId: plan.id, steps: [{ songId, viaTransitionId: null, planIndex: null }] };
+}
+
+/** Going to any song without a known transition (recorded as a gap). */
+export function jumpTo(songId: SongId): NextOption {
+  return { toSongId: songId, transition: null, planned: false, rejoinsAt: null };
+}
+
 export function startLive(set: DjSet): LiveSession {
   const first = set.songIds[0];
   if (first === undefined) throw new GraphError('This set has no songs yet');

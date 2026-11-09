@@ -19,6 +19,8 @@ describe('parseRoute', () => {
     ['#/crates', { name: 'crates' }],
     ['#/set/s1', { name: 'set', id: 's1' }],
     ['#/set/s1/play', { name: 'set-play', id: 's1' }],
+    ['#/play', { name: 'free-play', start: undefined }],
+    ['#/play?start=a', { name: 'free-play', start: 'a' }],
     ['#/nope/x/y', { name: 'not-found' }],
   ])('%s', (hash, expected) => {
     expect(parseRoute(hash)).toEqual(expected);
