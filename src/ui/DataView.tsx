@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { createEmptyGraph, stats } from '../domain/graph';
 import { ImportError, exportJson, exportLibraryJson, parseBackupFile } from '../domain/serialize';
 import { requestPersistentStorage } from '../storage/localStore';
@@ -6,6 +6,7 @@ import { linkTo, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
 import { useTheme } from '../state/theme';
 import { TopBar } from './components';
+import { duplicateGroups } from './DuplicatesView';
 
 type ImportMode = 'merge' | 'replace' | 'new';
 
@@ -39,7 +40,8 @@ export function DataView() {
   const s = stats(store.graph);
   const fileInput = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<ImportMode>('merge');
-  const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string; duplicates?: number } | null>(null);
+  const duplicates = useMemo(() => duplicateGroups(store.graph, crate.id).length, [store.graph, crate.id]);
   const [persisted, setPersisted] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -79,7 +81,13 @@ export function DataView() {
         const names = parsed.crates.map((c) => c.name).join(', ');
         if (!confirm(`This file is a backup of ${parsed.crates.length} crates (${names}). Crates you already have are merged (newer edits win); the others are added. Continue?`)) return;
         const r = store.restoreCrates(parsed.crates);
-        setMessage({ kind: 'ok', text: `Restored: ${r.added} crate${r.added === 1 ? '' : 's'} added, ${r.merged} merged.` });
+        const withDupes = r.merges.filter((m) => duplicateGroups(m.graph, m.id, m.addedSongIds).length > 0).map((m) => store.crates.find((c) => c.id === m.id)?.name ?? '');
+        setMessage({
+          kind: 'ok',
+          text: `Restored: ${r.added} crate${r.added === 1 ? '' : 's'} added, ${r.merged} merged.${
+            withDupes.length ? ` Some songs that came in look like songs you already had in ${withDupes.map((n) => `“${n}”`).join(', ')}: open the crate and check Data → Duplicate songs.` : ''
+          }`,
+        });
         return;
       }
 
@@ -99,6 +107,7 @@ export function DataView() {
         setMessage({
           kind: 'ok',
           text: `Merged into “${crate.name}”: ${r.added.songs} new songs, ${r.added.transitions} new transitions, ${r.added.sets} new sets, ${r.updated.songs + r.updated.transitions + r.updated.sets} updated.`,
+          duplicates: duplicateGroups(r.graph, crate.id, r.addedSongIds).length,
         });
       }
     } catch (err) {
@@ -128,6 +137,18 @@ export function DataView() {
           <p className="small muted">
             {store.crates.length} crate{store.crates.length === 1 ? '' : 's'} on this device ·{' '}
             <a {...linkTo(paths.crates())}>manage crates</a>
+          </p>
+          <p className="small muted">
+            {duplicates > 0 ? (
+              <>
+                <strong className="gap-count">{duplicates === 1 ? '1 possible duplicate' : `${duplicates} possible duplicates`}</strong> (look-alike songs) ·{' '}
+                <a {...linkTo(paths.duplicates())}>review</a>
+              </>
+            ) : (
+              <>
+                No duplicate songs · <a {...linkTo(paths.duplicates())}>check</a>
+              </>
+            )}
           </p>
           <p className="small muted">
             Everything is stored on this device only.{' '}
@@ -200,7 +221,22 @@ export function DataView() {
           </button>
         </section>
 
-        {message && <p className={message.kind === 'ok' ? 'notice' : 'field-error'}>{message.text}</p>}
+        {message && (
+          <div className={message.kind === 'ok' ? 'notice stack' : 'field-error'} role="status">
+            <span>{message.text}</span>
+            {!!message.duplicates && (
+              <>
+                <span>
+                  Found {message.duplicates === 1 ? 'a possible duplicate' : `${message.duplicates} possible duplicates`}: songs that came in
+                  look like songs you already had (typos, capitals, spacing).
+                </span>
+                <a className="btn btn-small" {...linkTo(paths.duplicates())}>
+                  Review possible duplicates
+                </a>
+              </>
+            )}
+          </div>
+        )}
 
         <div className="danger-zone">
           <button type="button" className="btn btn-danger" onClick={clearCrate}>

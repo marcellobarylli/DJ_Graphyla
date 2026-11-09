@@ -137,6 +137,12 @@ A public crate collection in the GitHub repo, before real accounts and sync (chu
       skipped with a warning instead of breaking the deploy; works offline from the last visit
 - [x] Friends share via GitHub collaborator access (classic `public_repo` token); the owner can use
       a fine-grained token limited to this repo
+- [x] **Duplicate songs** (like collapsing repeats in a de Bruijn graph): look-alike titles/artists
+      (typos, capitals, spacing, accents, word order; numbers must match) are suggested after every
+      merge and while typing a new song (*Did you mean …?*). *Merge into one* keeps the chosen
+      spelling, moves mixes and set steps over, folds identical mixes and remembers the folded ids,
+      so later merges and syncs don't bring the duplicate back; *Not the same* keeps them apart.
+      *Data → Duplicate songs* checks a whole crate
 - [ ] Ratings or comments on shop crates
 - [ ] Preview a shop crate's graph before downloading
 

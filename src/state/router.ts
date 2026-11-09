@@ -9,6 +9,7 @@ export type Route =
   | { name: 'add' }
   | { name: 'data' }
   | { name: 'shop' }
+  | { name: 'duplicates' }
   | { name: 'graph'; set?: string; focus?: string }
   | { name: 'sets' }
   | { name: 'crates' }
@@ -31,6 +32,7 @@ export function parseRoute(hash: string): Route {
   if (a === 'add' && parts.length === 1) return { name: 'add' };
   if (a === 'data' && parts.length === 1) return { name: 'data' };
   if (a === 'shop' && parts.length === 1) return { name: 'shop' };
+  if (a === 'duplicates' && parts.length === 1) return { name: 'duplicates' };
   if (a === 'graph' && parts.length === 1) {
     return { name: 'graph', set: params.get('set') ?? undefined, focus: params.get('focus') ?? undefined };
   }
@@ -54,6 +56,7 @@ export const paths = {
   add: () => '/add',
   data: () => '/data',
   shop: () => '/shop',
+  duplicates: () => '/duplicates',
   graph: (opts: { set?: string; focus?: string } = {}) => withQuery('/graph', opts),
   sets: () => '/sets',
   crates: () => '/crates',

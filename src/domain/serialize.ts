@@ -6,8 +6,9 @@
  *  - a crate backup: one crate's songs, transitions and sets (+ the crate's name)
  *  - a library backup (`kind: "library"`): every crate, each with its own data
  */
+import { aliasesFrom, foldSongs } from './dedupe';
 import { createEmptyGraph, removeSetSongAt } from './graph';
-import { OVERLAP_MAX, SCHEMA_VERSION, type DjSet, type GraphData, type Song, type Transition } from './types';
+import { OVERLAP_MAX, SCHEMA_VERSION, type DjSet, type GraphData, type Song, type SongId, type Transition } from './types';
 
 export const FILE_APP_ID = 'dj-graphyla';
 
@@ -91,6 +92,7 @@ function readSong(raw: unknown, i: number, now: string): Song {
   const title = str(raw.title).trim();
   if (!id) throw new ImportError(`songs[${i}] has no id`);
   if (!title) throw new ImportError(`songs[${i}] has no title`);
+  const mergedIds = Array.isArray(raw.mergedIds) ? raw.mergedIds.filter((x): x is string => typeof x === 'string' && x !== '' && x !== id) : [];
   return {
     id,
     title,
@@ -99,6 +101,7 @@ function readSong(raw: unknown, i: number, now: string): Song {
     key: str(raw.key),
     tags: Array.isArray(raw.tags) ? raw.tags.filter((t): t is string => typeof t === 'string') : [],
     notes: str(raw.notes),
+    ...(mergedIds.length ? { mergedIds } : {}),
     createdAt: str(raw.createdAt, now),
     updatedAt: str(raw.updatedAt, now),
   };
@@ -237,26 +240,40 @@ export interface MergeResult {
   graph: GraphData;
   added: { songs: number; transitions: number; sets: number };
   updated: { songs: number; transitions: number; sets: number };
+  /** Songs that came in new: where to look for look-alike duplicates (see dedupe.ts). */
+  addedSongIds: SongId[];
 }
 
 /**
  * Merges `incoming` into `base` by id. When both sides have the same record,
  * the one with the later `updatedAt` wins. Nothing is ever deleted.
+ * Duplicates that either side collapsed (a song's `mergedIds`) are folded
+ * into the kept song on both sides first, so they don't come back.
  */
-export function mergeGraphs(base: GraphData, incoming: GraphData): MergeResult {
+export function mergeGraphs(baseGraph: GraphData, incomingGraph: GraphData): MergeResult {
+  const alias = aliasesFrom([baseGraph, incomingGraph]);
+  const base = alias.size ? foldSongs(baseGraph, alias) : baseGraph;
+  const incoming = alias.size ? foldSongs(incomingGraph, alias) : incomingGraph;
   const result: MergeResult = {
     graph: { ...base, songs: { ...base.songs }, transitions: { ...base.transitions }, sets: { ...base.sets } },
     added: { songs: 0, transitions: 0, sets: 0 },
     updated: { songs: 0, transitions: 0, sets: 0 },
+    addedSongIds: [],
   };
   for (const song of Object.values(incoming.songs)) {
     const existing = result.graph.songs[song.id];
     if (!existing) {
       result.graph.songs[song.id] = song;
       result.added.songs++;
-    } else if (song.updatedAt > existing.updatedAt) {
-      result.graph.songs[song.id] = song;
-      result.updated.songs++;
+      result.addedSongIds.push(song.id);
+    } else {
+      if (song.updatedAt > existing.updatedAt) {
+        result.graph.songs[song.id] = song;
+        result.updated.songs++;
+      }
+      // Whichever version wins, both sides' collapsed duplicates stay collapsed.
+      const ids = [...new Set([...(existing.mergedIds ?? []), ...(song.mergedIds ?? [])])];
+      if (ids.length) result.graph.songs[song.id] = { ...result.graph.songs[song.id]!, mergedIds: ids };
     }
   }
   for (const t of Object.values(incoming.transitions)) {

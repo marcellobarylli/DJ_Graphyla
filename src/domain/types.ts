@@ -27,6 +27,11 @@ export interface Song {
   key: string;
   tags: string[];
   notes: string;
+  /**
+   * Ids of duplicate songs that were collapsed into this one. Merges and syncs
+   * fold those songs into this one again instead of bringing them back.
+   */
+  mergedIds?: SongId[];
   createdAt: string;
   updatedAt: string;
 }

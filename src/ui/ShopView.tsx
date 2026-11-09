@@ -10,6 +10,7 @@ import { SHOP_DIR, filterShopEntries, parseShopIndex, prepareShopUpload, type Sh
 import { ImportError, parseBackupFile } from '../domain/serialize';
 import { navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
+import { duplicateGroups } from './DuplicatesView';
 import {
   SHOP_REPO,
   SHOP_REPO_URL,
@@ -31,6 +32,8 @@ interface Notice {
   link?: string;
   /** Offer to open this crate. */
   crateId?: string;
+  /** Look-alike song groups the merge brought into a crate. */
+  duplicates?: { crateId: string; count: number };
 }
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
@@ -102,10 +105,15 @@ export function ShopView() {
       const done = prep as ShopUpload | null;
       // Two-way: whatever the shop copy had that this crate didn't comes back into the crate.
       let pulled = '';
+      let dupes: Notice['duplicates'];
       if (done?.remote && done.fromShop) {
         const { added, updated } = done.fromShop;
         pulled = listCounts({ songs: added.songs + updated.songs, transitions: added.transitions + updated.transitions, sets: added.sets + updated.sets });
-        if (pulled) store.restoreCrates([{ id: crate.id, name: crate.name, graph: done.remote }]);
+        if (pulled) {
+          const merge = store.restoreCrates([{ id: crate.id, name: crate.name, graph: done.remote }]).merges[0];
+          const count = merge ? duplicateGroups(merge.graph, crate.id, merge.addedSongIds).length : 0;
+          if (count) dupes = { crateId: crate.id, count };
+        }
       }
       setNotice({
         kind: 'ok',
@@ -113,6 +121,7 @@ export function ShopView() {
           ? `Shared “${crate.name}”. It shows up in the shop in a minute or two, once the site has updated.`
           : `Synced “${crate.name}” with the record shop${done && done.sharedBy !== account.djName ? ` (shared by ${done.sharedBy})` : ''}: the same entry is updated, no new one added.${pulled ? ` Your crate got ${pulled} from the shop copy.` : ''} The shop shows the update in a minute or two.`,
         link: r.htmlUrl,
+        duplicates: dupes,
       });
     } catch (err) {
       setNotice({ kind: 'error', text: message(err) });
@@ -132,11 +141,13 @@ export function ShopView() {
       const mine = store.crates.find((c) => c.id === parsed.crate!.id);
       const nameTaken = !mine && store.crates.some((c) => c.name === parsed.crate!.name);
       const name = nameTaken ? `${parsed.crate.name} (${entry.by})` : parsed.crate.name;
-      store.restoreCrates([{ id: parsed.crate.id, name, graph: parsed.graph }]);
+      const merge = store.restoreCrates([{ id: parsed.crate.id, name, graph: parsed.graph }]).merges[0];
+      const count = merge ? duplicateGroups(merge.graph, merge.id, merge.addedSongIds).length : 0;
       setNotice({
         kind: 'ok',
         text: mine ? `Updated your copy of “${mine.name}”. Newer edits win; nothing was deleted.` : `Added “${name}” to your crates.`,
         crateId: parsed.crate.id,
+        duplicates: count ? { crateId: parsed.crate.id, count } : undefined,
       });
     } catch (err) {
       setNotice({ kind: 'error', text: message(err) });
@@ -212,8 +223,26 @@ export function ShopView() {
         {notice && (
           <div className={notice.kind === 'ok' ? 'notice stack' : 'field-error'} role="status">
             <span>{notice.text}</span>
-            {(notice.link || notice.crateId) && (
+            {notice.duplicates && (
+              <span>
+                Found {notice.duplicates.count === 1 ? 'a possible duplicate' : `${notice.duplicates.count} possible duplicates`}: songs from the
+                shop look like songs you already had (typos, capitals, spacing).
+              </span>
+            )}
+            {(notice.link || notice.crateId || notice.duplicates) && (
               <div className="row tight">
+                {notice.duplicates && (
+                  <button
+                    type="button"
+                    className="btn btn-small btn-primary"
+                    onClick={() => {
+                      store.switchCrate(notice.duplicates!.crateId);
+                      navigate(paths.duplicates());
+                    }}
+                  >
+                    Review duplicates
+                  </button>
+                )}
                 {notice.crateId && notice.crateId !== crate.id && (
                   <button
                     type="button"

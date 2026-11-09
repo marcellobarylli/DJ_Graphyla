@@ -20,6 +20,13 @@ that's on, a bar clock counting down to the mix-out, and what comes next and how
 through with *Mix in next*, or take another way out of the current song if the crowd wants
 something else. No set? *▶ Free walk* starts at any song and shows every way out at each step.
 
+**Duplicate songs** are caught when they'd slip in. Typing a new song suggests *Did you mean …?*
+for look-alikes (typos, capitals, spacing, accents, word order). After a merge (import, record shop
+download or sync), songs that came in looking like ones you already had are offered for review:
+pick the spelling to keep and *Merge into one*. Their mixes and set steps move over, identical mixes
+fold together, and later merges and syncs fold the old spelling in again instead of bringing it
+back. *Not the same* keeps them apart for good. *Data → Duplicate songs* checks the whole crate.
+
 **Crates** keep libraries apart, like Obsidian vaults: one per genre or label, each with its
 own songs, transitions and sets. Switch crates from the header.
 
@@ -110,13 +117,19 @@ bpm            original      fromBar      bar of `from` where the mix starts tra
 key            e.g. 8A / Am  toBar        bar of `to` where it enters                         (null = gap)
 tags[]                       fromTime     optional m:ss of the mix-out point createdAt / updatedAt
 notes                        toTime       optional m:ss of the mix-in point
-createdAt / updatedAt        fromBpm      tempo `from` runs at during the mix
-                             toBpm        tempo `to` runs at during the mix
+mergedIds[]    folded dups   fromBpm      tempo `from` runs at during the mix
+createdAt / updatedAt        toBpm        tempo `to` runs at during the mix
                              overlapBars  how many bars both songs play together
                              rating       1 (doesn't work) … 5 (banger)
                              notes, createdAt / updatedAt
 ```
 
+- Collapsing duplicates keeps one song and lists the folded songs' ids in its `mergedIds`. Every
+  merge folds those ids into the kept song on both sides first, so a collapsed duplicate can't
+  return from a backup or the record shop. Look-alikes: titles equal after ignoring case, accents,
+  punctuation, spacing, “&”/“and” and word order, or within a few typos (none up to 4 letters, then
+  1, 2 from 9, 3 from 17), never with different numbers (“Part 1” ≠ “Part 2”); artists likewise,
+  unless one is missing.
 - Direction matters: A → B and B → A are different edges. The same pair can have many edges (variants).
 - A blank *In BPM* is saved as the *Out BPM*, because most mixes are beatmatched.
 - **Sets only reference the graph.** Deleting a set never touches songs or transitions.
