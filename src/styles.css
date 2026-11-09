@@ -79,7 +79,7 @@ fieldset { margin: 0; min-width: 0; }
   height: 28px;
   margin-left: 4px;
   border-radius: 8px;
-  background: url('/graphyla-g.svg') center / cover no-repeat;
+  background: url('/graphyla-icon.svg') center / cover no-repeat;
 }
 .topbar-actions { display: flex; align-items: center; gap: 8px; }
 .topbar-stat { font-size: 0.8rem; color: var(--muted); }
@@ -774,7 +774,7 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 .theme-option-hint { font-size: 0.8rem; color: var(--muted); }
 /* Each swatch and name previews its own look, whichever look is on. */
 .theme-swatch { flex: none; width: 42px; height: 42px; border-radius: 10px; border: 1px solid rgb(255 255 255 / 0.14); }
-.theme-swatch-graphyla { background: url('/graphyla-g.svg') center / cover no-repeat; }
+.theme-swatch-graphyla { background: url('/graphyla-icon.svg') center / cover no-repeat; }
 .theme-swatch-swag { background: url('./assets/cap.svg') center / 30px no-repeat, url('./assets/camo.svg') 0 0 / 120px 120px, #0b0b0c; }
 .theme-swatch-futurism {
   background:

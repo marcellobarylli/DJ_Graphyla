@@ -58,7 +58,7 @@ and works offline.
    running is shown at the bottom of the *Data* tab.
 5. Want to look around first? *Crates → Add sample crate* adds made-up songs, transitions and
    two sets without touching your own crates.
-6. **New icon (v0.8):** the app icon is now a “g” built from circles and a straight stem. An iPhone keeps the
+6. **New icon (v0.8):** the app icon is now a small graph drawn as an acid-house smiley. An iPhone keeps the
    icon it saved when the app was added, so to see the new one, remove the app from the home
    screen and *Add to Home Screen* again (your data stays: it belongs to the website, not the icon).
 
@@ -168,7 +168,7 @@ npm run typecheck
 npm run build      # production build in dist/
 npm run preview    # serve the production build
 npm run art:y2k    # re-render the Y2K Futurism 3D pictures (needs Playwright + Chromium)
-npm run icons      # re-draw the app icon (public/graphyla-g*; needs Playwright + Chromium)
+npm run icons      # re-draw the app icon (public/graphyla-icon*; needs Playwright + Chromium)
 ```
 
 Code layout:

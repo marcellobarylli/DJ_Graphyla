@@ -8,7 +8,7 @@
  * drop the cached assets, and the app could fail to open offline right after
  * an update. */
 const CACHE = 'dj-graphyla-v1';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './graphyla-g.svg'];
+const SHELL = ['./', './index.html', './manifest.webmanifest', './graphyla-icon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

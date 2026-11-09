@@ -9,9 +9,9 @@
   "background_color": "#0b0c14",
   "theme_color": "#0e0f14",
   "icons": [
-    { "src": "graphyla-g.svg", "sizes": "any", "type": "image/svg+xml" },
-    { "src": "graphyla-g-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "graphyla-g-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "graphyla-g-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "graphyla-icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "graphyla-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "graphyla-icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "graphyla-icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
