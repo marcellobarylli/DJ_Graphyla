@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { createEmptyGraph, stats } from '../domain/graph';
 import { ImportError, exportJson, exportLibraryJson, parseBackupFile } from '../domain/serialize';
 import { requestPersistentStorage } from '../storage/localStore';
+import { LOOKUP_SOURCE, loadLookupEnabled, saveLookupEnabled } from '../storage/songLookup';
 import { linkTo, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
 import { useTheme } from '../state/theme';
@@ -43,6 +44,7 @@ export function DataView() {
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string; duplicates?: number } | null>(null);
   const duplicates = useMemo(() => duplicateGroups(store.graph, crate.id).length, [store.graph, crate.id]);
   const [persisted, setPersisted] = useState<boolean | null>(null);
+  const [lookup, setLookup] = useState(loadLookupEnabled);
 
   useEffect(() => {
     void requestPersistentStorage().then(setPersisted);
@@ -196,6 +198,41 @@ export function DataView() {
               Browse the record shop
             </button>
           </div>
+        </section>
+
+        <section className="card">
+          <h3 className="section-title">Song lookup</h3>
+          <div className="segmented" role="radiogroup" aria-label="Song lookup">
+            {(
+              [
+                [true, 'On'],
+                [false, 'Off'],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={label}
+                type="button"
+                role="radio"
+                aria-checked={lookup === value}
+                className={lookup === value ? 'on' : ''}
+                onClick={() => {
+                  saveLookupEnabled(value);
+                  setLookup(value);
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="small muted">
+            While you type a song title, matching songs from{' '}
+            <a href={LOOKUP_SOURCE.url} target="_blank" rel="noreferrer">
+              {LOOKUP_SOURCE.name}
+            </a>
+            ’s public catalogue are listed. Picking one fills in the title and artist, and the BPM when {LOOKUP_SOURCE.name} has
+            it. The title and artist you type are sent to {LOOKUP_SOURCE.name}; nothing else is. Needs a connection; saved on this
+            device only.
+          </p>
         </section>
 
         <section className="card">

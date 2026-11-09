@@ -27,6 +27,12 @@ pick the spelling to keep and *Merge into one*. Their mixes and set steps move o
 fold together, and later merges and syncs fold the old spelling in again instead of bringing it
 back. *Not the same* keeps them apart for good. *Data → Duplicate songs* checks the whole crate.
 
+**Song lookup**: start typing a title and matching songs from [Deezer](https://www.deezer.com)'s public
+catalogue are listed under it (*From Deezer*, with artist, album and length), in the song card and in the
+transition card's song search. Pick one and the title, artist and, when Deezer has it, the original BPM
+are filled in (check the BPM by ear: it is Deezer's estimate, and missing for some tracks). Only the typed
+title and artist are sent, to Deezer only; no account or key is needed. Turn it off under *Data → Song lookup*.
+
 **Crates** keep libraries apart, like Obsidian vaults: one per genre or label, each with its
 own songs, transitions and sets. Switch crates from the header.
 
@@ -186,7 +192,8 @@ src/
   domain/    pure, tested logic: graph (songs/transitions), sets (walks, tempo track), crates, positions, tempo, backup format,
              digicam (the overexposed picture treatment of SW4G 3R4)
   storage/   localStorage persistence, one entry per crate (swappable for a sync backend later);
-             githubShop: uploads to the record shop through the GitHub API
+             githubShop: uploads to the record shop through the GitHub API;
+             songLookup: Deezer search/BPM through a sandboxed JSONP iframe (domain/onlineSongs reads the answers)
   state/     React store, tiny hash router, looks (themes)
   ui/        screens: library, song page, song/transition cards, graph (Cytoscape, lazy-loaded), sets, data, look switch,
              edge decorations of the Y2K looks (SwagDecor, Y2KDecor)
