@@ -19,9 +19,14 @@ export interface ThemeInfo {
   appName: string;
   /** Browser / status bar colour: the page background. */
   themeColor: string;
-  /** Cytoscape cannot read CSS variables, so the graph canvas gets its colours here. */
-  graph: { canvas: string; node: string; nodeBorder: string; text: string };
+  /**
+   * Cytoscape cannot read CSS variables, so the graph canvas gets its colours and label font here.
+   * Cytoscape only accepts double quotes around font names.
+   */
+  graph: { canvas: string; node: string; nodeBorder: string; text: string; font: string };
 }
+
+const SYSTEM_FONT = 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
 
 export const THEMES: readonly ThemeInfo[] = [
   {
@@ -31,7 +36,7 @@ export const THEMES: readonly ThemeInfo[] = [
     hint: 'The original dark look',
     appName: 'DJ Graphyla',
     themeColor: '#0e0f14',
-    graph: { canvas: '#0e0f14', node: '#1f2230', nodeBorder: '#8b6cff', text: '#eceef5' },
+    graph: { canvas: '#0e0f14', node: '#1f2230', nodeBorder: '#8b6cff', text: '#eceef5', font: SYSTEM_FONT },
   },
   {
     id: 'swag',
@@ -40,7 +45,7 @@ export const THEMES: readonly ThemeInfo[] = [
     hint: 'Y2K camo, caps, hypebeast',
     appName: 'DJ GR4PHYL4',
     themeColor: '#0b0b0c',
-    graph: { canvas: '#0b0b0c', node: '#1f1f23', nodeBorder: '#22e3d3', text: '#f5f5f4' },
+    graph: { canvas: '#0b0b0c', node: '#1f1f23', nodeBorder: '#22e3d3', text: '#f5f5f4', font: SYSTEM_FONT },
   },
   {
     id: 'futurism',
@@ -49,7 +54,7 @@ export const THEMES: readonly ThemeInfo[] = [
     hint: 'Chrome and electric blue, dark',
     appName: 'DJ Graphyla',
     themeColor: '#05070d',
-    graph: { canvas: '#05070d', node: '#141c31', nodeBorder: '#b9c6dc', text: '#eaf2ff' },
+    graph: { canvas: '#05070d', node: '#141c31', nodeBorder: '#b9c6dc', text: '#eaf2ff', font: '"Exo 2 Variable", system-ui, sans-serif' },
   },
 ];
 

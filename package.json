@@ -1,7 +1,7 @@
 {
   "name": "dj-graphyla",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "A DJ transition graph: songs are nodes, mixes are directed edges, a set is a walk.",
   "type": "module",
   "scripts": {
@@ -14,8 +14,9 @@
     "art:y2k": "node tools/y2k-art/render.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/exo-2": "^5.3.0",
+    "@fontsource-variable/orbitron": "^5.3.0",
     "@fontsource/jost": "^5.3.0",
-    "@fontsource/orbitron": "^5.3.0",
     "cytoscape": "^3.34.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
