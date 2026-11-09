@@ -26,8 +26,10 @@ own songs, transitions and sets. Switch crates from the header.
 **Looks**: the slim handle on the right edge of the screen switches between three looks. *Graphyla*
 is the original. *SW4G 3R4* is Y2K camo, caps and hypebeast (Swag / Jerk era). *Y2K Futurism* is
 dark mode with a rendered liquid-glass orb behind the page, chrome objects, sparkles and flavour text
-at the edges, and chrome buttons. Its headings can use your own font file, for example your copy
-of Xylem (the app can't ship Xylem: its licence doesn't allow that); pick it in the look panel.
+at the edges, and chrome buttons. Every text element follows its type scheme: headings and big song
+titles in chrome, in your own font file (for example your copy of Xylem, which the app can't ship:
+its licence doesn't allow that; pick it in the look panel) or else Orbitron; buttons, labels,
+badges and numbers in Orbitron; everything else, graph labels included, in Exo 2.
 Backgrounds stay behind the cards, so buttons and text read the same in every look, and the
 graph's rating colours never change. The look and the font are saved per device and are not part
 of backups.

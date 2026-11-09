@@ -110,7 +110,7 @@ const graphStyle = (look: ThemeInfo['graph']): StylesheetJson => [
       label: 'data(label)',
       color: look.text,
       'font-size': 13,
-      'font-family': 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
+      'font-family': look.font,
       'text-valign': 'bottom',
       'text-margin-y': 5,
       'text-wrap': 'ellipsis',
@@ -212,8 +212,17 @@ export default function GraphView({ setId, focusId }: { setId?: string; focusId?
   }, [isEmpty]);
 
   // Switching the look restyles the canvas in place (positions and zoom stay).
+  // Canvas text doesn't swap fonts by itself, so restyle again once the look's font has loaded.
   useEffect(() => {
     cyRef.current?.style(graphStyle(theme.graph));
+    let live = true;
+    void document.fonts
+      ?.load(`13px ${theme.graph.font}`)
+      .then(() => live && cyRef.current?.style(graphStyle(theme.graph)))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
   }, [theme.id, isEmpty]);
 
   // (Re)load elements and lay out new nodes.

@@ -8,8 +8,8 @@ import { watchForUpdates } from './updates';
 // Display fonts of the Y2K looks. Bundled for offline use; browsers download a
 // face only when a look that uses it is on screen.
 import '@fontsource/jost/latin-800-italic.css';
-import '@fontsource/orbitron/latin-500.css';
-import '@fontsource/orbitron/latin-700.css';
+import '@fontsource-variable/exo-2/wght.css';
+import '@fontsource-variable/orbitron/wght.css';
 import './styles.css';
 
 initTheme();

@@ -26,6 +26,11 @@ describe('themes', () => {
   it('keeps the graph canvas in step with the page background', () => {
     for (const t of THEMES) expect(t.graph.canvas).toBe(t.themeColor);
   });
+
+  it('gives the graph a label font Cytoscape accepts (no single quotes)', () => {
+    for (const t of THEMES) expect(t.graph.font).toMatch(/^[\w\- ",]+$/);
+    expect(themeInfo('futurism').graph.font).toContain('"Exo 2 Variable"');
+  });
 });
 
 describe('parseTheme', () => {

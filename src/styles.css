@@ -721,7 +721,7 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
     #05070d;
 }
 .theme-option-swag .theme-option-name { font-family: 'Jost', 'Futura', system-ui, sans-serif; font-style: italic; font-weight: 800; letter-spacing: 0.02em; }
-.theme-option-futurism .theme-option-name { font-family: 'Orbitron', system-ui, sans-serif; letter-spacing: 0.03em; }
+.theme-option-futurism .theme-option-name { font-family: 'Orbitron Variable', 'Orbitron', system-ui, sans-serif; letter-spacing: 0.03em; }
 
 /* Both Y2K looks draw a backdrop behind the page; cards and bars stay solid
    or blurred, so text never sits directly on the pattern. */
@@ -790,9 +790,13 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
    Late-90s / early-2000s tech optimism at night: a rendered liquid-glass orb
    over light streaks behind the page (darkened), chrome objects, sparkles and
    flavour text at the edges (Y2KDecor), chrome buttons and a chrome orb for
-   Add, electric and ice blue with neon pink, a faint terminal grid, Orbitron
-   for labels and the bar clock, and headings in the person's own font file
-   (e.g. Xylem) when they pick one. 3D pictures: tools/y2k-art. */
+   Add, electric and ice blue with neon pink and a faint terminal grid.
+   Every text element follows one type scheme, in three tiers:
+     1. headings and big song titles: the person's own font file (e.g. Xylem)
+        or Orbitron, in chrome with a blue glow;
+     2. interface text (labels, buttons, badges, numbers, the bar clock): Orbitron;
+     3. everything else (lists, notes, inputs, hints, graph labels): Exo 2.
+   3D pictures: tools/y2k-art. */
 :root[data-theme='futurism'] {
   --bg: #05070d;
   --surface: #0c1221;
@@ -806,10 +810,13 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
   --out: #ff6ad5;
   --in: #3fe6ff;
   --radius: 16px;
-  --font-display: 'Orbitron', 'Eurostile', system-ui, sans-serif;
+  --font-body: 'Exo 2 Variable', 'Exo 2', system-ui, sans-serif;
+  --font-display: 'Orbitron Variable', 'Orbitron', 'Eurostile', system-ui, sans-serif;
   /* 'Graphyla Heading' is the font file picked in the look panel (state/lookFont.ts);
      an installed Xylem is used next, then Orbitron. */
-  --font-heading: 'Graphyla Heading', 'Xylem', 'AF Xylem', 'Orbitron', 'Eurostile', system-ui, sans-serif;
+  --font-heading: 'Graphyla Heading', 'Xylem', 'AF Xylem', 'Orbitron Variable', 'Orbitron', 'Eurostile', system-ui, sans-serif;
+  --chrome-text: linear-gradient(180deg, #ffffff 0%, #e4ebf7 40%, #9db0cf 54%, #f3f7ff 100%);
+  font-family: var(--font-body);
   --y2k-art: url('./assets/y2k/orb-portrait.webp');
 }
 @media (min-aspect-ratio: 4/3) {
@@ -823,13 +830,53 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
     var(--y2k-art) center top / cover no-repeat,
     var(--bg);
 }
-[data-theme='futurism'] :is(.play-label, .tab, .picker-caption, .side-legend, .clock-bar, .stats strong) {
+/* Tier 3, body: Exo 2 everywhere by default (set on :root above); form fields inherit it too. */
+[data-theme='futurism'] :is(input, select, textarea, option) { font-family: inherit; }
+[data-theme='futurism'] .input::placeholder { color: color-mix(in srgb, var(--muted) 85%, transparent); }
+[data-theme='futurism'] :is(.song-title, .picker-option, .choice-text) { letter-spacing: 0.01em; }
+
+/* Tier 2, interface: Orbitron for controls, labels, badges and every number. */
+[data-theme='futurism'] :is(
+  .btn, .chip-btn, .link-btn, .segmented button, .tab, .suggestion, .picker-new, .badge, .count, .cue-num,
+  .stats strong, .stats span, .clock-bar, .clock-status, .clock-approx, .mixpoint-time, .mixpoint-bpm,
+  .pitch, .degree, .tempo-line, .topbar-stat, .app-version, .input-suffix, .stars-label, .gap-count,
+  .chart-tick, .chart-label, .chart-tooltip strong, .legend, .side-legend, .side-label, .field-label,
+  .play-label, .picker-caption, .chart-axis-note, .theme-font-name, .y2k-hud
+) {
   font-family: var(--font-display);
   letter-spacing: 0.03em;
 }
-[data-theme='futurism'] :is(.topbar-title, .section-title, .chart-title, .empty-title, .theme-panel-title) {
+/* Small labels: spaced capitals in ice blue (out/in labels keep their colours). */
+[data-theme='futurism'] :is(.field-label, .play-label, .picker-caption, .chart-axis-note, .side-legend, .side-label, .legend) {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+[data-theme='futurism'] :is(.field-label, .play-label, .picker-caption, .chart-axis-note) { color: color-mix(in srgb, var(--accent-strong) 70%, var(--muted)); }
+[data-theme='futurism'] :is(.field-label, .play-label, .picker-caption) { font-size: 0.7rem; }
+[data-theme='futurism'] .badge { font-size: 0.7rem; letter-spacing: 0.02em; }
+[data-theme='futurism'] .y2k-hud { font-size: 10px; letter-spacing: 0.08em; }
+
+/* Tier 1, headings and big song titles: own font / Orbitron in chrome with a blue glow. */
+[data-theme='futurism'] :is(
+  .topbar-title:not(:has(.crate-pill)), .crate-pill-name, .section-title, .chart-title, .empty-title,
+  .theme-panel-title, .song-card-title, .play-title, .up-next-title, .choice-title
+) {
   font-family: var(--font-heading);
   letter-spacing: 0.03em;
+  background: var(--chrome-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 6px rgb(59 158 255 / 0.45)) drop-shadow(0 1px 1px rgb(0 0 0 / 0.9));
+}
+/* Badges and counters inside a heading keep their own solid colour. */
+[data-theme='futurism'] :is(.section-title, .topbar-title, .choice-title) * { -webkit-text-fill-color: currentColor; }
+/* Mix out / mix in section titles keep their meaning colours, with a neon glow. */
+[data-theme='futurism'] :is(.section-out, .section-in) .section-title {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, currentColor 55%, transparent)) drop-shadow(0 1px 1px rgb(0 0 0 / 0.9));
 }
 [data-theme='futurism'] .tab { font-size: 0.62rem; letter-spacing: 0.05em; }
 [data-theme='futurism'] .tab.on { color: var(--accent-strong); text-shadow: 0 0 10px color-mix(in srgb, var(--accent-strong) 60%, transparent); }
@@ -842,7 +889,7 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 [data-theme='futurism'] :is(.card, .list, .group:not(.group-flat), .cue-song) { background-color: color-mix(in srgb, var(--surface) 86%, transparent); }
 [data-theme='futurism'] .card.choice:active { background-color: var(--surface-2); }
 /* Text that sits on the backdrop itself gets a dark halo; the graph's filter strip a dark band. */
-[data-theme='futurism'] :is(.section-title, .empty, .legend, .app-version, .topbar-stat) { text-shadow: 0 0 8px rgb(5 7 13 / 0.95), 0 0 2px rgb(5 7 13 / 0.9); }
+[data-theme='futurism'] :is(.empty, .legend, .app-version, .topbar-stat) { text-shadow: 0 0 8px rgb(5 7 13 / 0.95), 0 0 2px rgb(5 7 13 / 0.9); }
 [data-theme='futurism'] :is(.graph-filters, .legend) { background: color-mix(in srgb, var(--bg) 80%, transparent); }
 [data-theme='futurism'] .btn-primary {
   background: linear-gradient(180deg, #f7faff 0%, #c9d3e2 42%, #8e9bb2 52%, #dfe6f1 100%);
@@ -909,7 +956,8 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
   background: rgb(8 14 30 / 0.55);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 24px rgb(59 158 255 / 0.12);
   color: color-mix(in srgb, var(--accent-strong) 80%, var(--muted));
-  font: 11px/1.7 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.7;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
