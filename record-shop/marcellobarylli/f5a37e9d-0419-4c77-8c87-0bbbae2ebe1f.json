@@ -1,0 +1,28 @@
+{
+  "app": "dj-graphyla",
+  "schemaVersion": 3,
+  "exportedAt": "2026-11-09T22:02:10.130Z",
+  "crate": {
+    "id": "f5a37e9d-0419-4c77-8c87-0bbbae2ebe1f",
+    "name": "My crate"
+  },
+  "songs": [
+    {
+      "id": "ef45becc-6180-44d5-9c73-8b7d39965c4d",
+      "title": "Titanium (feat. Sia)",
+      "artist": "David Guetta",
+      "bpm": 126.1,
+      "key": "",
+      "tags": [],
+      "notes": "",
+      "createdAt": "2026-11-09T21:04:39.063Z",
+      "updatedAt": "2026-11-09T21:04:39.063Z"
+    }
+  ],
+  "transitions": [],
+  "sets": [],
+  "shop": {
+    "by": "kokopenny",
+    "uploadedAt": "2026-11-09T22:02:10.130Z"
+  }
+}
