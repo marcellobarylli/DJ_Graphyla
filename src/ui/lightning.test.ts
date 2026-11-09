@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { jag, seeded, skyBolt } from './lightning';
+import { PATTERNS, jag, patternBolts, seeded, skyBolt } from './lightning';
 
 describe('jag', () => {
   it('runs from a to b in 2^depth segments', () => {
@@ -31,5 +31,23 @@ describe('skyBolt', () => {
 
   it('is repeatable with the same seed', () => {
     expect(skyBolt(390, 844, seeded(9))).toEqual(skyBolt(390, 844, seeded(9)));
+  });
+});
+
+describe('patterns', () => {
+  it('have distinct names and draw one bolt per spec', () => {
+    expect(new Set(PATTERNS.map((p) => p.name)).size).toBe(PATTERNS.length);
+    PATTERNS.forEach((p, i) => expect(patternBolts(i, 1440, 900)).toHaveLength(p.bolts.length));
+  });
+
+  it('are the same every time and wrap around', () => {
+    expect(patternBolts(2, 390, 844)).toEqual(patternBolts(2, 390, 844));
+    expect(patternBolts(PATTERNS.length + 1, 390, 844)).toEqual(patternBolts(1, 390, 844));
+  });
+
+  it('end where the spec says', () => {
+    const [bolt] = patternBolts(0, 1000, 1000);
+    const end = bolt!.main.match(/-?[\d.]+/g)!.slice(-2).map(Number);
+    expect(end).toEqual([400, 920]);
   });
 });

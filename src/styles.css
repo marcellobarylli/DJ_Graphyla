@@ -261,6 +261,7 @@ fieldset { margin: 0; min-width: 0; }
 .segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: 10px 0; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); }
 .segmented button { min-height: 36px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-weight: 600; cursor: pointer; }
 .segmented button.on { background: var(--surface-2); color: var(--text); }
+.segmented button:disabled { opacity: 0.4; cursor: default; }
 
 /* ── transition card ─────────────────────────────────────── */
 .side-card { display: flex; flex-direction: column; gap: 12px; padding-top: 10px; }
@@ -1266,6 +1267,10 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 /* The look panel's heading-font row. */
 .theme-font { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid var(--border); }
 .theme-font-name { font-family: var(--font-heading, inherit); letter-spacing: 0.03em; }
+/* The look panel's lightning row: ‹ pattern name › */
+.lightning-pattern { display: flex; align-items: center; gap: 10px; }
+.lightning-pattern p { flex: 1; margin: 0; text-align: center; }
+.lightning-pattern .btn { min-width: 44px; font-size: 1.1rem; }
 
 @media (min-width: 720px) {
   .page { padding-top: 20px; }
