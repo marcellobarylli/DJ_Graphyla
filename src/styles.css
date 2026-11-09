@@ -775,7 +775,11 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 /* Each swatch and name previews its own look, whichever look is on. */
 .theme-swatch { flex: none; width: 42px; height: 42px; border-radius: 10px; border: 1px solid rgb(255 255 255 / 0.14); }
 .theme-swatch-graphyla { background: url('/graphyla-icon.svg') center / cover no-repeat; }
-.theme-swatch-swag { background: url('./assets/cap.svg') center / 30px no-repeat, url('./assets/camo.svg') 0 0 / 120px 120px, #0b0b0c; }
+.theme-swatch-swag {
+  border-color: #0b0b0b;
+  background: url('./assets/cap-ink.svg') center / 30px no-repeat, url('./assets/camo-digital.svg') 0 0 / 160px 160px, #f4f4f1;
+  box-shadow: 2px 2px 0 #0b0b0b;
+}
 .theme-swatch-futurism {
   background:
     radial-gradient(circle at 44% 40%, #ffffff 0, #d6deea 3px, #8d9ab0 9px, #2a3550 14px, transparent 15px),
@@ -783,7 +787,7 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
     linear-gradient(90deg, rgb(143 211 255 / 0.14) 1px, transparent 1px) 0 0 / 7px 7px,
     #05070d;
 }
-.theme-option-swag .theme-option-name { font-family: 'Jost', 'Futura', system-ui, sans-serif; font-style: italic; font-weight: 800; letter-spacing: 0.02em; }
+.theme-option-swag .theme-option-name { font-family: 'Pirata One', 'Old English Text MT', serif; font-size: 1.25rem; font-weight: 400; line-height: 1.1; letter-spacing: 0.04em; }
 .theme-option-futurism .theme-option-name { font-family: 'Orbitron Variable', 'Orbitron', system-ui, sans-serif; letter-spacing: 0.03em; }
 
 /* Both Y2K looks draw a backdrop behind the page; cards and bars stay solid
@@ -802,51 +806,249 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
   -webkit-backdrop-filter: blur(10px);
 }
 
-/* ── look: SW4G 3R4 ──────────────────────────────────────────
-   Y2K camo, caps, Swag / Jerk era, hypebeast: black and white with pops of
-   teal, orange and box-logo red, a dark multi-colour camo backdrop, heavy
-   italic caps on headings, labels and buttons (song titles keep their case),
-   boxy corners, a snapback logo and a checkerboard strip under the header. */
+/* ── look: SW4G 3R4 (light) ──────────────────────────────────
+   Issue #12: the hypebeast / swag era of the 2000s and 2010s, updated for
+   2026. A light look: an overexposed, digicam-white page over soft digital
+   camo (pale greys, sage, lilac), black and white with box-logo red, square
+   corners, hard black shadows and a checkerboard strip (a bit of punk).
+   Y2K type only, in four tiers:
+     1. headings, buttons, tabs, labels: Anybody stretched to ExtraExpanded,
+        heavy italic caps; big song titles stretched too but keep their case;
+     2. everything else (lists, notes, inputs): Anybody at normal width;
+     3. numbers, badges, counters and the bar clock: Silkscreen (pixel);
+     4. the crate name, empty-state titles and flourishes: Pirata One (blackletter).
+   SwagDecor adds flourishes, stars, a safety pin and flavour text at the
+   edges; DjAvatar turns pictures into pixelated, overexposed digicam shots.
+   Camo: tools/swag-art. */
 :root[data-theme='swag'] {
-  --bg: #0b0b0c;
-  --surface: #151517;
-  --surface-2: #1f1f23;
-  --border: #303036;
-  --text: #f5f5f4;
-  --muted: #a8a8b0;
-  --accent: #22e3d3;
-  --accent-strong: #5ff0e4;
-  --on-accent: #04110f;
-  --out: #ff8a1f;
-  --in: #c084fc;
+  color-scheme: light;
+  --bg: #f4f4f1;
+  --surface: #ffffff;
+  --surface-2: #ebebe7;
+  --border: #d2d2cb;
+  --ink: #0b0b0b;
+  --text: #0b0b0b;
+  --muted: #5a5a56;
+  --accent: #0b0b0b;
+  --accent-strong: #c8102e;
+  --on-accent: #ffffff;
+  --out: #c2410c;
+  --in: #0e7490;
+  --star: #b45309;
+  --danger: #c81e1e;
+  --ok: #15803d;
+  --set: #a86b00;
   --brand: #e5132b;
-  --radius: 6px;
-  --font-display: 'Jost', 'Futura', 'Trebuchet MS', system-ui, sans-serif;
+  --radius: 4px;
+  --font-body: 'Anybody Variable', 'Anybody', Verdana, system-ui, sans-serif;
+  --font-pixel: 'Silkscreen', 'Courier New', monospace;
+  --font-gothic: 'Pirata One', 'Old English Text MT', serif;
+  font-family: var(--font-body);
 }
-[data-theme='swag'] body::before { background: url('./assets/camo.svg') 0 0 / 240px 240px; opacity: 0.75; }
-[data-theme='swag'] :is(.section-title, .play-label, .topbar-title, .tab, .btn, .chip-btn, .field-label, .side-legend, .picker-caption, .chart-title, .empty-title, .segmented button, .theme-panel-title) {
-  font-family: var(--font-display);
+[data-theme='swag'] body::before {
+  background:
+    /* the flash: the middle of the page washes out to white, like an overexposed digicam shot */
+    radial-gradient(130% 80% at 50% 16%, rgb(255 255 255 / 0.8), rgb(255 255 255 / 0.35) 55%, rgb(255 255 255 / 0) 100%),
+    url('./assets/camo-digital.svg') 0 0 / 320px 320px,
+    var(--bg);
+}
+[data-theme='swag'] :is(input, select, textarea, option) { font-family: inherit; }
+
+/* Tier 1: stretched heavy italic caps; headings widest, controls and labels less so they fit a phone. */
+[data-theme='swag'] :is(
+  .section-title, .chart-title, .theme-panel-title, .btn, .chip-btn, .link-btn, .tab, .segmented button,
+  .field-label, .side-legend, .side-label, .play-label, .picker-caption, .picker-new, .clock-status, .legend, .stars-label
+) {
+  font-stretch: 118%;
   font-style: italic;
-  font-weight: 800;
+  font-weight: 850;
   text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+[data-theme='swag'] :is(.section-title, .chart-title, .theme-panel-title) { font-stretch: 140%; font-size: 1.05rem; }
+[data-theme='swag'] :is(.field-label, .side-legend, .side-label, .play-label, .picker-caption, .legend, .stars-label) { font-stretch: 125%; font-weight: 750; letter-spacing: 0.02em; }
+[data-theme='swag'] .suggestion { font-stretch: 112%; }
+[data-theme='swag'] .suggestion strong { font-weight: 850; }
+[data-theme='swag'] .tab { font-size: 0.66rem; }
+/* Big song titles: stretched and heavy, in their own case. */
+[data-theme='swag'] :is(.song-card-title, .play-title, .up-next-title, .topbar-title) { font-stretch: 140%; font-weight: 850; letter-spacing: -0.02em; line-height: 1.05; }
+[data-theme='swag'] .topbar-title { font-stretch: 118%; }
+[data-theme='swag'] .song-card-title { font-size: 1.55rem; }
+[data-theme='swag'] .play-title { font-stretch: 125%; font-size: 2rem; }
+[data-theme='swag'] .up-next-title { font-stretch: 125%; }
+[data-theme='swag'] :is(.song-title, .choice-title) { font-stretch: 115%; font-weight: 700; }
+/* Tier 3: pixel numbers and badges. */
+[data-theme='swag'] :is(
+  .badge, .count, .cue-num, .degree, .stats strong, .clock-bar, .clock-approx, .mixpoint-time, .gap-count,
+  .topbar-stat, .app-version, .input-suffix, .chart-tick, .theme-font-name, .dj-avatar-initials
+) {
+  font-family: var(--font-pixel);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+[data-theme='swag'] :is(.badge, .degree, .topbar-stat, .app-version, .count) { font-size: 0.72rem; }
+[data-theme='swag'] .clock-bar { font-size: 2.5rem; }
+[data-theme='swag'] .stats strong { font-size: 1.5rem; }
+/* Tier 4: blackletter for the crate name and empty-state titles. */
+[data-theme='swag'] :is(.crate-pill-name, .empty-title) {
+  font-family: var(--font-gothic);
+  font-weight: 400;
+  font-style: normal;
   letter-spacing: 0.02em;
+  text-transform: none;
 }
-[data-theme='swag'] :is(.btn, .input, .segmented, .segmented button, .variant, .picked, .gap, .theme-option, .theme-swatch) { border-radius: 4px; }
-[data-theme='swag'] .tab-add-btn {
-  border-radius: 4px;
-  background: var(--brand);
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--brand) 40%, transparent);
+[data-theme='swag'] .crate-pill-name { font-size: 1.45rem; line-height: 1.05; }
+[data-theme='swag'] .empty-title { font-size: 1.7rem; }
+[data-theme='swag'] .empty-title::after {
+  content: '';
+  display: block;
+  width: 150px;
+  height: 30px;
+  margin: 4px auto 0;
+  background: url('./assets/flourish.svg') center / contain no-repeat;
 }
-[data-theme='swag'] .topbar-logo { border-radius: 0; background: url('./assets/cap.svg') center / contain no-repeat; }
+
+/* Black and white: ink outlines, square corners, hard shadows on the main blocks. */
+[data-theme='swag'] :is(.card, .list, .group:not(.group-flat), .cue-song, .crate-pill, .dj-chip, .theme-panel, .update-banner) { border: 1.5px solid var(--ink); }
+[data-theme='swag'] :is(.card, .list, .cue-song) { box-shadow: 3px 3px 0 var(--ink); }
+[data-theme='swag'] :is(.card.side-card-out, .play-now) { border-color: var(--out); box-shadow: 3px 3px 0 var(--out); }
+[data-theme='swag'] :is(.card.side-card-in, .up-next) { border-color: var(--in); box-shadow: 3px 3px 0 var(--in); }
+[data-theme='swag'] :is(.btn, .input, .segmented, .segmented button, .variant, .picked, .gap, .theme-option, .theme-swatch, .chip-btn, .suggestion, .badge, .count, .crate-pill, .dj-chip, .picker-results, .dup-option, .new-song, .stats div, .warning, .notice, .play-note, .gap-note, .icon-btn) { border-radius: 2px; }
+[data-theme='swag'] .btn { border: 1.5px solid var(--ink); background: var(--surface); }
+[data-theme='swag'] .btn-primary { background: var(--ink); color: var(--on-accent); box-shadow: 3px 3px 0 var(--brand); }
+[data-theme='swag'] .btn-danger { border-color: var(--danger); background: transparent; color: var(--danger); }
+[data-theme='swag'] .btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: none; }
+[data-theme='swag'] .input { border-color: #8d8d86; background: var(--surface); }
+[data-theme='swag'] .input:focus { border-color: var(--ink); box-shadow: 0 0 0 2px var(--ink); }
+[data-theme='swag'] :is(.chip-btn, .suggestion) { border-color: var(--ink); background: var(--surface); }
+[data-theme='swag'] .badge { border-color: var(--ink); background: var(--surface); }
+[data-theme='swag'] .badge-tag { border-style: dashed; }
+[data-theme='swag'] .cue-num { border-radius: 0; background: var(--ink); color: var(--on-accent); }
+[data-theme='swag'] .count { background: var(--ink); color: var(--on-accent); }
+[data-theme='swag'] .chart-hit:focus-visible { fill: rgb(0 0 0 / 0.05); }
+[data-theme='swag'] .dj-avatar-initials { background: var(--ink); text-shadow: none; }
+[data-theme='swag'] .theme-panel { box-shadow: 5px 5px 0 var(--ink); }
+[data-theme='swag'] .update-banner { box-shadow: 4px 4px 0 var(--ink); }
+[data-theme='swag'] .theme-option[aria-checked='true'] { border-color: var(--ink); box-shadow: 2px 2px 0 var(--brand); }
+
+/* Header: a black band behind the phone's status bar (white status text in the
+   installed app), then the checkerboard strip; the bars keep a hairline of ink. */
+[data-theme='swag'] .topbar {
+  background:
+    linear-gradient(var(--ink) 0 var(--safe-top), transparent var(--safe-top)),
+    color-mix(in srgb, var(--bg) 90%, transparent);
+  border-bottom: 0;
+  padding-bottom: 14px;
+}
 [data-theme='swag'] .topbar::after {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 4px;
-  background: repeating-conic-gradient(rgb(255 255 255 / 0.14) 0 25%, transparent 0 50%) 0 0 / 4px 4px;
+  height: 6px;
+  border-top: 1.5px solid var(--ink);
+  background: repeating-conic-gradient(var(--ink) 0 25%, #ffffff 0 50%) 0 0 / 6px 6px;
   pointer-events: none;
+}
+[data-theme='swag'] .topbar-logo { border-radius: 0; background: url('./assets/cap-ink.svg') center / contain no-repeat; }
+[data-theme='swag'] .tabbar { background: color-mix(in srgb, var(--surface) 94%, transparent); border-top: 1.5px solid var(--ink); }
+[data-theme='swag'] .tab.on { color: var(--ink); }
+[data-theme='swag'] .tab.on:not(.tab-add)::after { content: ''; width: 18px; height: 3px; margin-top: 1px; background: var(--brand); }
+[data-theme='swag'] .tab-add-btn {
+  border-radius: 2px;
+  background: var(--brand);
+  border: 1.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+[data-theme='swag'] .theme-handle { border: 1.5px solid var(--ink); border-right: 0; border-radius: 2px 0 0 2px; background: var(--surface); }
+[data-theme='swag'] .theme-handle-dot { border-radius: 0; background: var(--ink); }
+[data-theme='swag'] .theme-handle-dot.on { background: var(--brand); box-shadow: none; }
+[data-theme='swag'] :is(.play-actions, .sheet) { border-top: 1.5px solid var(--ink); }
+[data-theme='swag'] .graph-canvas-wrap { border-top: 1.5px solid var(--ink); }
+/* Text on the backdrop itself gets a white halo, so the camo never crowds it. */
+[data-theme='swag'] :is(.empty, .legend, .app-version, .topbar-stat, .section-head) { text-shadow: 0 0 6px rgb(255 255 255 / 0.95), 0 0 2px #fff; }
+[data-theme='swag'] :is(.graph-filters, .legend) { background: color-mix(in srgb, var(--bg) 85%, transparent); }
+
+/* Pictures as digicam shots: pixel blocks stay crisp when scaled up (ui/useDigicam.ts). */
+.is-digicam { image-rendering: pixelated; }
+[data-theme='swag'] .dj-avatar { border-radius: 0; box-shadow: 0 0 0 1.5px var(--ink); }
+
+/* ── SW4G 3R4 edge decorations (ui/SwagDecor.tsx) ──────────── */
+.swag-decor { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; color: var(--ink); }
+.swag-flourish { position: absolute; width: 220px; height: 44px; background: url('./assets/flourish.svg') center / contain no-repeat; }
+.swag-flourish-1 { left: -92px; bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 36px); transform: rotate(-78deg); }
+.swag-flourish-2 { right: -96px; top: calc(var(--safe-top) + 190px); transform: rotate(84deg); }
+.swag-pin { position: absolute; right: 2px; top: calc(var(--safe-top) + 72px); width: 13px; height: 46px; background: url('./assets/safety-pin.svg') center / contain no-repeat; transform: rotate(14deg); }
+.swag-star { position: absolute; fill: var(--ink); }
+.swag-star-1 { left: 3px; top: calc(var(--safe-top) + 70px); width: 10px; height: 10px; }
+.swag-star-2 { right: 3px; bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 70px); width: 10px; height: 10px; }
+.swag-star-3 { display: none; }
+/* Flavour text in the 16px page margins, reading up (left) and down (right). */
+.swag-rail {
+  position: absolute;
+  margin: 0;
+  overflow: hidden;
+  font-family: 'Silkscreen', 'Courier New', monospace;
+  font-size: 8px;
+  line-height: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+  color: rgb(11 11 11 / 0.6);
+}
+.swag-rail-left { left: 3px; top: calc(var(--safe-top) + 92px); bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 150px); transform: rotate(180deg); }
+/* Right rail: between the look handle (mid-screen) and the star above the tab bar. */
+.swag-rail-right { right: 3px; top: calc(50% + 40px); bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 96px); }
+/* Wide screens: a hang tag and a digicam snapshot beside the page column. */
+.swag-tag, .swag-snapshot { position: absolute; display: none; }
+.swag-tag {
+  width: 230px;
+  padding: 30px 18px 16px;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px 4px 4px 4px;
+  background: #fff;
+  box-shadow: 4px 4px 0 var(--ink);
+  font-family: 'Silkscreen', 'Courier New', monospace;
+  font-size: 8px;
+  line-height: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(-4deg);
+}
+.swag-tag p { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.swag-tag-hole { position: absolute; top: 10px; left: 50%; width: 10px; height: 10px; margin-left: -5px; border: 1.5px solid var(--ink); border-radius: 50%; background: var(--bg); }
+.swag-tag-brand { font-family: 'Pirata One', serif; font-size: 40px; line-height: 44px; letter-spacing: 0.01em; text-transform: none; }
+.swag-tag-crate { margin: 10px 0 2px !important; font-family: 'Anybody Variable', sans-serif; font-size: 16px; line-height: 20px; font-stretch: 140%; font-style: italic; font-weight: 850; letter-spacing: -0.01em; }
+.swag-barcode { display: block; width: 100%; height: 34px; margin: 10px 0 4px; fill: var(--ink); }
+.swag-snapshot {
+  margin: 0;
+  padding: 10px 10px 38px;
+  border: 1.5px solid var(--ink);
+  background: #fff;
+  box-shadow: 4px 4px 0 var(--ink);
+  transform: rotate(5deg);
+}
+.swag-snapshot img { display: block; width: 200px; height: 200px; }
+.swag-stamp {
+  position: absolute;
+  right: 18px;
+  bottom: 48px;
+  font-family: 'Silkscreen', 'Courier New', monospace;
+  font-size: 16px;
+  line-height: 1;
+  color: #ff8a1f;
+  text-shadow: 0 0 3px rgb(255 120 20 / 0.9), 0 0 1px #ffb366;
+}
+@media (min-width: 1100px) {
+  .swag-tag, .swag-snapshot { display: block; }
+  .swag-tag { left: calc(50% - 320px - 290px); top: calc(var(--safe-top) + 130px); }
+  .swag-snapshot { right: calc(50% - 320px - 280px); top: calc(var(--safe-top) + 120px); }
+  .swag-flourish-1 { left: calc(50% - 320px - 300px); bottom: calc(var(--tabbar-h) + 60px); width: 260px; height: 52px; transform: rotate(-6deg); }
+  .swag-flourish-2 { right: calc(50% - 320px - 290px); top: calc(var(--safe-top) + 470px); width: 240px; height: 48px; transform: rotate(4deg); }
+  .swag-pin { right: calc(50% - 320px - 74px); top: calc(var(--safe-top) + 92px); width: 24px; height: 84px; transform: rotate(-20deg); }
+  .swag-star-3 { display: block; left: calc(50% - 320px - 70px); top: calc(var(--safe-top) + 470px); width: 26px; height: 26px; }
 }
 
 /* ── look: Y2K Futurism (dark) ───────────────────────────────

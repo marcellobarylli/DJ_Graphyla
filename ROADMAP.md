@@ -104,6 +104,7 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
 - [x] *SW4G 3R4*: Y2K camo, caps, leet name, Swag / Jerk era and hypebeast. Black and white with
       teal, orange and box-logo red, a dark multi-colour camo backdrop, heavy italic caps on
       headings, labels and buttons, a snapback logo and a checkerboard strip under the header
+      (redesigned as a light look in v0.9, see chunk 2.10)
 - [x] *Y2K Futurism* (dark): chrome buttons and a chrome orb for *Add*, electric and ice blue with
       neon pink, a faint grid, Orbitron for labels and the bar clock
 - [x] Real 3D art for Y2K Futurism, rendered with three.js (`npm run art:y2k`, all procedural, so
@@ -146,7 +147,7 @@ A public crate collection in the GitHub repo, before real accounts and sync (chu
 - [ ] Ratings or comments on shop crates
 - [ ] Preview a shop crate's graph before downloading
 
-## ✅ Chunk 2.9: App icon & DJ profiles (this release)
+## ✅ Chunk 2.9: App icon & DJ profiles
 
 - [x] **App icon**: a small graph drawn as an acid-house smiley: on a yellow disc, the eyes and a
       five-node smile are joined by edges into one walk (eye → smile → eye), like a set. Acid yellow
@@ -154,6 +155,29 @@ A public crate collection in the GitHub repo, before real accounts and sync (chu
 - [x] **DJ profiles** in the record shop: a DJ name and profile picture per GitHub account
       (`record-shop/<login>/profile.json`), created on connect, editable, shown with every crate
       and in a row of DJs at the top of the shop (tap to filter)
+
+## ✅ Chunk 2.10: Swag Era, light (issue #12, this release)
+
+*SW4G 3R4* becomes a light look: the hypebeast and swag era of the 2000s and 2010s, updated for 2026.
+
+- [x] Light colours: an overexposed, digicam-white page; black and white with box-logo red; out/in,
+      stars, gaps and sets in darker steps that keep 4.5:1 on white
+- [x] **Soft digital camo** behind the page: pixel camo in pale greys, sage and lilac, drawn by a
+      seeded script (`npm run art:swag`), washed out towards the middle like a flash photo
+- [x] **Y2K fonts only** (all bundled, offline): Anybody stretched to ExtraExpanded for headings,
+      buttons, tabs and labels (heavy italic caps) and big song titles (own case), Anybody for body
+      text; Silkscreen (the 1999 web pixel font) for numbers, badges and the bar clock; Pirata One
+      blackletter for the crate name and empty-state titles. Jost is gone
+- [x] Y2K flourishes and a bit of punk: a tribal flourish under empty-state titles and at the screen
+      edges, stars, a safety pin, pixel flavour text in the margins, square corners with hard black
+      shadows, a black/white checkerboard strip under the header
+- [x] Wide screens: a hang tag (crate name, counts, barcode) and a digicam snapshot with an orange
+      date stamp beside the page
+- [x] **Digicam pictures**: DJ profile pictures show pixelated and overexposed (tested tone curve;
+      plain pixel maths, so it works in Safari too)
+- [x] The graph keeps the meaning of its edge colours on the light canvas: the blue rating ramp is
+      stepped darker for better ratings (validated: monotone, visible steps, ≥ 2:1 at the weak end)
+- [x] A black band behind the phone's status bar keeps its white text readable in the installed app
 
 ## Chunk 3: Sync & multiple devices
 
