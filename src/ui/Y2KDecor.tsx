@@ -13,10 +13,10 @@ function Sparkle({ className }: { className: string }) {
 /**
  * Side decorations of the Y2K Futurism look: rendered chrome objects at the
  * screen edges, sparkles, flavour text running up the page margins, and on
- * wide screens a chrome DJ bust and a HUD readout beside the page. The readout
- * is bare glowing text, not a panel, so it doesn't look like a button. Purely
- * decorative: it sits behind the page, takes no taps, and is hidden from
- * screen readers.
+ * wide screens two full-body chrome DJs (a man and a woman, one in each
+ * margin) and a HUD readout. The readout is bare glowing text, not a panel,
+ * so it doesn't look like a button. Purely decorative: it sits behind the
+ * page, takes no taps, and is hidden from screen readers.
  */
 export function Y2KDecor() {
   const { graph, activeCrate } = useStore();
@@ -35,7 +35,8 @@ export function Y2KDecor() {
       </svg>
       <span className="y2k-chrome y2k-chrome-blob" />
       <span className="y2k-chrome y2k-chrome-torus" />
-      <span className="y2k-chrome y2k-chrome-head" />
+      <span className="y2k-chrome y2k-chrome-dj y2k-chrome-man" />
+      <span className="y2k-chrome y2k-chrome-dj y2k-chrome-woman" />
       <Sparkle className="y2k-sparkle y2k-sparkle-1" />
       <Sparkle className="y2k-sparkle y2k-sparkle-2" />
       <Sparkle className="y2k-sparkle y2k-sparkle-3" />

@@ -112,9 +112,10 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       behind the page (portrait and landscape versions, darkened), plus chrome torus and blob
 - [x] Y2K side elements: flavour text running up the page margins, chrome objects and sparkles at
       the edges; HUD panels (with the crate's node/edge counts) beside the page on wide screens
-- [x] Chrome DJ bust on wide screens: a raymarched chrome head with blue-chrome DJ headphones
-      (`npm run art:y2k -- head`) replaces the left HUD panel; the right HUD is now bare glowing
-      text without a frame, so neither looks like something to tap
+- [x] Chrome DJs on wide screens: a hairless man and woman, full body, in mirror chrome with
+      DJ headphones, one in each margin (`npm run art:y2k -- man woman`). Built from MakeHuman's
+      CC0 base mesh and body targets by `tools/y2k-art/bodies.py`. They replace the HUD panels'
+      boxes: the HUD is now bare glowing text in the corner, so nothing looks like something to tap
 - [x] Headings and flavour text in your own font file (e.g. Xylem, which can't be shipped), picked
       in the look panel and kept on the device; Orbitron otherwise
 - [x] v0.6.1: every text element in Y2K Futurism follows the type scheme. Headings and big song

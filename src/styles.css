@@ -1189,12 +1189,16 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
   background-image: url('./assets/y2k/torus.webp');
   opacity: 0.9;
 }
-/* Chrome DJ bust (tools/y2k-art, scene 'head'), beside the page on wide screens. */
-.y2k-chrome-head {
+/* Chrome DJs (tools/y2k-art, scenes 'man' and 'woman'), one in each margin beside the page on wide screens. */
+.y2k-chrome-dj {
   display: none;
-  background-image: url('./assets/y2k/head.webp');
-  filter: drop-shadow(0 0 24px rgb(59 158 255 / 0.4));
+  bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 12px);
+  height: min(66vh, 860px);
+  aspect-ratio: 560 / 1300;
+  filter: drop-shadow(0 0 22px rgb(59 158 255 / 0.4));
 }
+.y2k-chrome-man { left: calc(25% - 160px); transform: translateX(-50%); background-image: url('./assets/y2k/man.webp'); }
+.y2k-chrome-woman { right: calc(25% - 160px); transform: translateX(50%); background-image: url('./assets/y2k/woman.webp'); }
 .y2k-chrome-blob {
   right: -54px;
   top: calc(var(--safe-top) + 96px);
@@ -1242,12 +1246,11 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 .y2k-hud-title { margin-bottom: 6px !important; font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.06em; color: var(--text); text-shadow: 0 0 10px rgb(143 211 255 / 0.6); }
 .y2k-hud-crate { color: var(--text); }
 @media (min-width: 1100px) {
-  .y2k-hud { display: block; }
-  /* Left: the chrome bust over a chrome torus. Right: the orb (backdrop), the HUD readout above it and a blob below. */
-  .y2k-chrome-head { display: block; left: calc(50% - 320px - 330px); top: calc(var(--safe-top) + 60px); width: 300px; height: 356px; }
-  .y2k-hud { right: calc(50% - 320px - 300px); top: calc(var(--safe-top) + 120px); }
-  .y2k-chrome-torus { left: calc(50% - 320px - 340px); width: 300px; height: 300px; bottom: calc(var(--tabbar-h) + 50px); }
-  .y2k-chrome-blob { top: auto; right: calc(50% - 320px - 250px); bottom: calc(var(--tabbar-h) + 40px); width: 190px; height: 190px; }
+  /* The two chrome DJs stand in the margins (the torus and blob stay for narrow screens);
+     the HUD readout sits in the top-right corner, above the woman's head. */
+  .y2k-chrome-dj { display: block; }
+  .y2k-chrome-torus, .y2k-chrome-blob { display: none; }
+  .y2k-hud { display: block; right: 28px; top: calc(var(--safe-top) + 70px); text-align: right; }
   .y2k-sparkle-3 { right: calc(50% - 320px - 60px); top: calc(var(--safe-top) + 300px); width: 28px; height: 28px; }
 }
 /* The look panel's heading-font row. */
