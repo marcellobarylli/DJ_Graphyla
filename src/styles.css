@@ -295,6 +295,15 @@ fieldset { margin: 0; min-width: 0; }
 .picker-caption + li .picker-option { border-top: 0; }
 .picker-option:active { background: var(--surface-2); }
 .picker-new { color: var(--ok); font-weight: 600; }
+/* Songs from the online catalogue (Deezer), under a title or in the song picker. */
+.online-songs { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.field .online-songs { margin-top: 6px; }
+.online-songs .picker-caption + .picker-option { border-top: 0; }
+.online-song-main { display: flex; flex-direction: column; min-width: 0; }
+.online-song-main .song-artist { display: inline; }
+.online-song-album { font-size: 0.75rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.online-song-time { flex: none; font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.online-songs-status { padding: 8px 12px; font-size: 0.8rem; color: var(--muted); }
 .picked {
   display: flex;
   flex-wrap: wrap;
@@ -913,7 +922,7 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 [data-theme='swag'] :is(.card, .list, .cue-song) { box-shadow: 3px 3px 0 var(--ink); }
 [data-theme='swag'] :is(.card.side-card-out, .play-now) { border-color: var(--out); box-shadow: 3px 3px 0 var(--out); }
 [data-theme='swag'] :is(.card.side-card-in, .up-next) { border-color: var(--in); box-shadow: 3px 3px 0 var(--in); }
-[data-theme='swag'] :is(.btn, .input, .segmented, .segmented button, .variant, .picked, .gap, .theme-option, .theme-swatch, .chip-btn, .suggestion, .badge, .count, .crate-pill, .dj-chip, .picker-results, .dup-option, .new-song, .stats div, .warning, .notice, .play-note, .gap-note, .icon-btn) { border-radius: 2px; }
+[data-theme='swag'] :is(.btn, .input, .segmented, .segmented button, .variant, .picked, .gap, .theme-option, .theme-swatch, .chip-btn, .suggestion, .badge, .count, .crate-pill, .dj-chip, .picker-results, .online-songs, .dup-option, .new-song, .stats div, .warning, .notice, .play-note, .gap-note, .icon-btn) { border-radius: 2px; }
 [data-theme='swag'] .btn { border: 1.5px solid var(--ink); background: var(--surface); }
 [data-theme='swag'] .btn-primary { background: var(--ink); color: var(--on-accent); box-shadow: 3px 3px 0 var(--brand); }
 [data-theme='swag'] .btn-danger { border-color: var(--danger); background: transparent; color: var(--danger); }

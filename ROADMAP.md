@@ -156,7 +156,7 @@ A public crate collection in the GitHub repo, before real accounts and sync (chu
       (`record-shop/<login>/profile.json`), created on connect, editable, shown with every crate
       and in a row of DJs at the top of the shop (tap to filter)
 
-## ✅ Chunk 2.10: Swag Era, light (issue #12, this release)
+## ✅ Chunk 2.10: Swag Era, light (issue #12)
 
 *SW4G 3R4* becomes a light look: the hypebeast and swag era of the 2000s and 2010s, updated for 2026.
 
@@ -178,6 +178,27 @@ A public crate collection in the GitHub repo, before real accounts and sync (chu
 - [x] The graph keeps the meaning of its edge colours on the light canvas: the blue rating ramp is
       stepped darker for better ratings (validated: monotone, visible steps, ≥ 2:1 at the weak end)
 - [x] A black band behind the phone's status bar keeps its white text readable in the installed app
+
+## ✅ Chunk 2.11: Song lookup (this release)
+
+Start typing a title and songs from a public catalogue are suggested, with their BPM.
+
+- [x] Source checked first: **Deezer's public API** (no account or key; search gives title, artist,
+      album and length; the full track has a `bpm` field, 0 when unknown). Spotify's audio features
+      (BPM/key) are closed to new apps since November 2024, AcousticBrainz stopped in 2022,
+      MusicBrainz has no BPM, GetSongBPM needs a personal API key
+- [x] *From Deezer* list under the **Title** of the song card (new song page and the new-song card
+      inside a transition), and under the transition card's song search, below your own songs.
+      Songs already in the crate aren't offered twice
+- [x] Picking one fills in title and artist, then looks up the BPM (only if none is typed) and says
+      where it came from
+- [x] Safe in the browser: Deezer answers cross-origin only as JSONP (a script), so the script runs
+      in a sandboxed iframe with no access to the app's storage (or the record shop token); answers
+      are read as untrusted data
+- [x] Switch on/off per device (*Data → Song lookup*); only the typed title and artist are sent,
+      after a pause in typing, from 3 letters; cached for the session; offline it stays quiet
+- [ ] Key (Deezer has none): optional GetSongBPM lookup with your own API key
+- [ ] Look up the BPM for songs already in a crate that have none
 
 ## Chunk 3: Sync & multiple devices
 
@@ -204,7 +225,8 @@ Goal: let the graph tell you things you haven't tried.
 ## Chunk 5: Integrations
 
 - [ ] Import a library or playlists with cue points from DJ software (e.g. Rekordbox XML export)
-- [ ] Metadata lookup (BPM, key, artwork). Check which services' APIs currently allow this before building
+- [x] Metadata lookup: title, artist and BPM from Deezer while typing (chunk 2.11)
+- [ ] Key and artwork lookup
 - [ ] Links or previews to the track on a streaming store
 
 ## Optional: native app wrapper

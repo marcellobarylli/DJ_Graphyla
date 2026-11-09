@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { findSimilarSong } from '../domain/dedupe';
 import { GraphError, findDuplicateSong, validateSongInput, type FieldErrors } from '../domain/graph';
 import { formatBpm, parseBpm } from '../domain/tempo';
@@ -6,7 +6,10 @@ import type { Song, SongInput } from '../domain/types';
 import { goBack, linkTo, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
 import { artistSuggestions, currentTag, keySuggestions, replaceCurrentTag, tagSuggestions } from '../domain/suggest';
-import { EmptyState, SuggestField, TextArea, TextField, TopBar } from './components';
+import { LOOKUP_SOURCE, songLookup } from '../storage/songLookup';
+import type { OnlineSong } from '../domain/onlineSongs';
+import { EmptyState, Field, SuggestField, TextArea, TextField, TopBar } from './components';
+import { OnlineSongList, useSuggestedOnlineSongs } from './OnlineSongs';
 
 export interface SongDraft {
   title: string;
@@ -15,9 +18,111 @@ export interface SongDraft {
   key: string;
   tags: string;
   notes: string;
+  /** Set when the song was picked from the online catalogue: its BPM is looked up once, then this is cleared. */
+  onlineId?: string;
 }
 
 export const emptySongDraft = (title = ''): SongDraft => ({ title, artist: '', bpm: '', key: '', tags: '', notes: '' });
+
+/** A new draft from a catalogue hit; the BPM follows (see SongFields). */
+export const draftFromOnline = (song: OnlineSong, base: SongDraft = emptySongDraft()): SongDraft => ({
+  ...base,
+  title: song.title,
+  artist: song.artist || base.artist,
+  onlineId: song.id,
+});
+
+/**
+ * Title input with songs from the online catalogue listed under it while it
+ * has focus. Picking one fills in title and artist.
+ */
+function TitleField({
+  draft,
+  onChange,
+  error,
+  autoFocus,
+}: {
+  draft: SongDraft;
+  onChange: (d: SongDraft) => void;
+  error?: string;
+  autoFocus?: boolean;
+}) {
+  const id = useId();
+  const [open, setOpen] = useState(false);
+  const blurTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(blurTimer.current), []);
+  const online = useSuggestedOnlineSongs(draft.title, draft.artist, open);
+  return (
+    <Field label="Title" error={error} htmlFor={id}>
+      <input
+        id={id}
+        className="input"
+        value={draft.title}
+        autoFocus={autoFocus}
+        autoComplete="off"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded={open && online.hits.length > 0}
+        onChange={(e) => {
+          setOpen(true);
+          onChange({ ...draft, title: e.target.value });
+        }}
+        onFocus={() => {
+          window.clearTimeout(blurTimer.current);
+          setOpen(true);
+        }}
+        // Hide a moment later so a tap on a suggestion still lands.
+        onBlur={() => {
+          blurTimer.current = window.setTimeout(() => setOpen(false), 200);
+        }}
+      />
+      {open && (
+        <OnlineSongList
+          {...online}
+          query={draft.title}
+          onPick={(song) => {
+            setOpen(false);
+            onChange(draftFromOnline(song, draft));
+          }}
+        />
+      )}
+    </Field>
+  );
+}
+
+/**
+ * Fills in the BPM of a song picked from the catalogue (unless one was typed
+ * meanwhile) and says where it came from.
+ */
+function useOnlineBpm(draft: SongDraft, onChange: (d: SongDraft) => void): string {
+  const [note, setNote] = useState('');
+  const latest = useRef({ draft, onChange });
+  latest.current = { draft, onChange };
+  const onlineId = draft.onlineId;
+  useEffect(() => {
+    if (!onlineId) return;
+    let live = true;
+    const done = (bpm: number | null, text: string) => {
+      const { draft: cur, onChange: apply } = latest.current;
+      if (!live || cur.onlineId !== onlineId) return;
+      apply({ ...cur, bpm: cur.bpm.trim() || bpm === null ? cur.bpm : formatBpm(bpm), onlineId: undefined });
+      setNote(text);
+    };
+    if (latest.current.draft.bpm.trim()) {
+      done(null, '');
+      return;
+    }
+    setNote(`Looking up the BPM on ${LOOKUP_SOURCE.name}…`);
+    songLookup.bpm(onlineId).then(
+      (bpm) => done(bpm, bpm === null ? `${LOOKUP_SOURCE.name} has no BPM for this track.` : `BPM from ${LOOKUP_SOURCE.name}: worth checking by ear.`),
+      () => done(null, `Couldn’t get the BPM from ${LOOKUP_SOURCE.name}.`),
+    );
+    return () => {
+      live = false;
+    };
+  }, [onlineId]);
+  return note;
+}
 
 export function songToDraft(song: Song): SongDraft {
   return {
@@ -58,9 +163,10 @@ export function SongFields({
 }) {
   const { graph } = useStore();
   const set = (k: keyof SongDraft) => (v: string) => onChange({ ...draft, [k]: v });
+  const bpmNote = useOnlineBpm(draft, onChange);
   return (
     <>
-      <TextField label="Title" value={draft.title} onChange={set('title')} error={errors.title} autoFocus={autoFocus} />
+      <TitleField draft={draft} onChange={onChange} error={errors.title} autoFocus={autoFocus} />
       <SuggestField
         label="Artist"
         value={draft.artist}
@@ -69,7 +175,15 @@ export function SongFields({
         onPick={set('artist')}
       />
       <div className="grid-2">
-        <TextField label="Original BPM" value={draft.bpm} onChange={set('bpm')} inputMode="decimal" placeholder="e.g. 124" error={errors.bpm} />
+        <TextField
+          label="Original BPM"
+          value={draft.bpm}
+          onChange={set('bpm')}
+          inputMode="decimal"
+          placeholder="e.g. 124"
+          error={errors.bpm}
+          hint={bpmNote || undefined}
+        />
         <SuggestField
           label="Key"
           value={draft.key}

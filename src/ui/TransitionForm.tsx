@@ -9,7 +9,8 @@ import type { GraphData, SongId, TransitionInput } from '../domain/types';
 import { goBack, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
 import { BarField, BpmBadge, BpmField, EmptyState, KeyBadge, StarRating, TextArea, TimeField, TopBar, VariantRow } from './components';
-import { SongFields, draftToSongInput, emptySongDraft, type SongDraft } from './SongForm';
+import { SongFields, draftFromOnline, draftToSongInput, emptySongDraft, type SongDraft } from './SongForm';
+import { OnlineSongList, useSuggestedOnlineSongs } from './OnlineSongs';
 
 type SongChoice = { kind: 'none' } | { kind: 'existing'; songId: SongId } | { kind: 'new'; draft: SongDraft };
 
@@ -415,6 +416,8 @@ function SongPicker({
 }) {
   const { graph } = useStore();
   const [query, setQuery] = useState('');
+  // Songs from the online catalogue, below the crate's own matches.
+  const online = useSuggestedOnlineSongs(query, '', choice.kind === 'none');
 
   if (choice.kind === 'existing') {
     const song = graph.songs[choice.songId];
@@ -518,6 +521,7 @@ function SongPicker({
           </li>
         )}
       </ul>
+      <OnlineSongList {...online} query={query} onPick={(song) => onChange({ kind: 'new', draft: draftFromOnline(song) })} />
       {error && <p className="field-error">{error}</p>}
     </div>
   );
