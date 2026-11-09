@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { findSimilarSong } from '../domain/dedupe';
 import { GraphError, findDuplicateSong, validateSongInput, type FieldErrors } from '../domain/graph';
 import { formatBpm, parseBpm } from '../domain/tempo';
 import type { Song, SongInput } from '../domain/types';
@@ -116,6 +117,8 @@ export function SongForm({ id }: { id?: string }) {
   }
 
   const duplicate = findDuplicateSong(store.graph, draft.title, draft.artist, id);
+  // Typos, capitals, word order: “did you mean …?” (only for new songs; editing may fix a spelling on purpose).
+  const similar = !duplicate && !existing ? findSimilarSong(store.graph, draft.title, draft.artist) : undefined;
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -146,6 +149,12 @@ export function SongForm({ id }: { id?: string }) {
             <p className="warning">
               “{duplicate.title}”{duplicate.artist ? ` by ${duplicate.artist}` : ''} is already in your library.{' '}
               <a {...linkTo(paths.song(duplicate.id), { replace: true })}>Open it</a>
+            </p>
+          )}
+          {similar && (
+            <p className="warning">
+              Did you mean “{similar.title}”{similar.artist ? ` by ${similar.artist}` : ''}? It’s already in your library.{' '}
+              <a {...linkTo(paths.song(similar.id), { replace: true })}>Open it</a>
             </p>
           )}
           {formError && <p className="field-error">{formError}</p>}

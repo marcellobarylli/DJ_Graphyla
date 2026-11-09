@@ -84,6 +84,30 @@ export function saveCrate(id: CrateId, graph: GraphData, store: KeyValueStore = 
 
 export function deleteCrateData(id: CrateId, store: KeyValueStore = localStorage): void {
   store.removeItem(crateKey(id));
+  store.removeItem(distinctKey(id));
+}
+
+/**
+ * Song pairs the person marked “not the same” in a crate (see domain/dedupe.ts
+ * pairKey), so they aren't suggested as duplicates again. Kept on this device.
+ */
+export const distinctKey = (id: CrateId) => `dj-graphyla:distinct:${id}`;
+
+export function loadDistinct(id: CrateId, store: KeyValueStore = localStorage): Set<string> {
+  try {
+    const v = JSON.parse(store.getItem(distinctKey(id)) ?? '[]') as unknown;
+    return new Set(Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+  } catch {
+    return new Set();
+  }
+}
+
+export function saveDistinct(id: CrateId, pairs: ReadonlySet<string>, store: KeyValueStore = localStorage): void {
+  try {
+    store.setItem(distinctKey(id), JSON.stringify([...pairs]));
+  } catch {
+    /* not remembered: the pair may be suggested again */
+  }
 }
 
 /** Asks the browser not to evict our data under storage pressure. */

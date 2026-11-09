@@ -6,6 +6,7 @@
  */
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import * as C from '../domain/crates';
+import * as D from '../domain/dedupe';
 import * as G from '../domain/graph';
 import { mergeGraphs, type CrateData, type MergeResult } from '../domain/serialize';
 import type { GraphData, Song, SongId, SongInput, Transition, TransitionId, TransitionInput } from '../domain/types';
@@ -26,6 +27,8 @@ export interface GraphStore {
   apply(fn: (graph: GraphData) => GraphData): void;
   replaceAll(graph: GraphData): void;
   mergeIn(graph: GraphData): MergeResult;
+  /** Folds duplicate songs into `keepId` (see domain/dedupe.ts). */
+  collapseSongs(keepId: SongId, dropIds: SongId[]): void;
 
   /* crates */
   crates: C.CrateMeta[];
@@ -37,12 +40,19 @@ export interface GraphStore {
   /** Every crate with its data, for a full library backup. */
   allCrateData(): CrateData[];
   /** Restores a library backup: crates with a known id are merged, others are added. */
-  restoreCrates(crates: CrateData[]): { added: number; merged: number };
+  restoreCrates(crates: CrateData[]): { added: number; merged: number; merges: CrateMerge[] };
 }
 
 interface State {
   index: C.CrateIndex;
   graph: GraphData;
+}
+
+/** A crate that was merged into (not added): its result and the songs that came in new. */
+export interface CrateMerge {
+  id: C.CrateId;
+  graph: GraphData;
+  addedSongIds: SongId[];
 }
 
 const StoreContext = createContext<GraphStore | null>(null);
@@ -127,6 +137,9 @@ export function GraphProvider({ children }: { children: ReactNode }) {
         commit(result.graph);
         return result;
       },
+      collapseSongs(keepId, dropIds) {
+        commit(D.collapseSongs(ref.current.graph, keepId, dropIds));
+      },
 
       crates: C.sortedCrates(index),
       activeCrate: C.activeCrate(index),
@@ -175,11 +188,14 @@ export function GraphProvider({ children }: { children: ReactNode }) {
         let active = ref.current.graph;
         let added = 0;
         let merged = 0;
+        const merges: CrateMerge[] = [];
         persist(() => {
           for (const crate of incoming) {
             const known = idx.crates.some((c) => c.id === crate.id);
             const base = !known ? null : crate.id === idx.activeId ? active : storage.loadCrate(crate.id);
-            const data = base ? mergeGraphs(base, crate.graph).graph : crate.graph;
+            const result = base ? mergeGraphs(base, crate.graph) : null;
+            const data = result ? result.graph : crate.graph;
+            if (result) merges.push({ id: crate.id, graph: data, addedSongIds: result.addedSongIds });
             storage.saveCrate(crate.id, data);
             if (known) {
               idx = C.touchCrate(idx, crate.id, data);
@@ -193,7 +209,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
           storage.saveIndex(idx);
         });
         set({ index: idx, graph: active });
-        return { added, merged };
+        return { added, merged, merges };
       },
     };
   }, [state, commit, saveIndex, set]);

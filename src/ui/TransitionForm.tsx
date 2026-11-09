@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { findSimilarSong } from '../domain/dedupe';
 import * as G from '../domain/graph';
 import { formatBar, formatOverlap, overlapSeconds, parseBar } from '../domain/position';
 import { setsUsingTransition } from '../domain/sets';
@@ -436,6 +437,7 @@ function SongPicker({
 
   if (choice.kind === 'new') {
     const dup = G.findDuplicateSong(graph, choice.draft.title, choice.draft.artist);
+    const similar = dup ? undefined : findSimilarSong(graph, choice.draft.title, choice.draft.artist);
     return (
       <div className="new-song">
         <div className="new-song-head">
@@ -458,6 +460,15 @@ function SongPicker({
             <button type="button" className="link-btn" onClick={() => onChange({ kind: 'existing', songId: dup.id })}>
               Use “{G.songLabel(dup)}”
             </button>
+          </p>
+        )}
+        {similar && (
+          <p className="warning">
+            Did you mean{' '}
+            <button type="button" className="link-btn" onClick={() => onChange({ kind: 'existing', songId: similar.id })}>
+              “{G.songLabel(similar)}”
+            </button>
+            ? It’s already in your library.
           </p>
         )}
       </div>

@@ -5,10 +5,12 @@ import { useTheme } from '../state/theme';
 import { AddView } from './AddView';
 import { CratesView } from './CratesView';
 import { DataView } from './DataView';
+import { DuplicatesView } from './DuplicatesView';
 import { LibraryView } from './LibraryView';
 import { FreeWalkView, PlayView } from './PlayView';
 import { SetView } from './SetView';
 import { SetsView } from './SetsView';
+import { ShopView } from './ShopView';
 import { SongForm } from './SongForm';
 import { SongView } from './SongView';
 import { ThemeSwitch } from './ThemeSwitch';
@@ -27,6 +29,10 @@ function Screen({ route }: { route: Route }) {
       return <AddView />;
     case 'data':
       return <DataView />;
+    case 'shop':
+      return <ShopView />;
+    case 'duplicates':
+      return <DuplicatesView />;
     case 'graph':
       return (
         <Suspense fallback={<TopBar crate />}>
@@ -96,7 +102,7 @@ export function App() {
   const theme = useTheme();
   const tab =
     route.name === 'add' ? 'add'
-    : route.name === 'data' ? 'data'
+    : route.name === 'data' || route.name === 'shop' || route.name === 'duplicates' ? 'data'
     : route.name === 'graph' ? 'graph'
     : route.name === 'sets' || route.name === 'set' ? 'sets'
     : 'library';

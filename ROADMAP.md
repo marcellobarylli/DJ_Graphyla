@@ -96,7 +96,7 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       listed, best rated first and pre-selected; jump to any song when you hit a dead end; save the
       walk as a set afterwards
 
-## ✅ Chunk 2.7: Looks (this release)
+## ✅ Chunk 2.7: Looks
 
 - [x] **Look switch** (issue #9): a slim handle on the right screen edge (in the page margin, hidden
       in play mode and forms) opens a panel with three looks; picking one applies it at once
@@ -120,6 +120,31 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       graph's edge colours (ratings) are the same in every look
 - [x] The look is a device setting (saved next to the crates, not in backups); display fonts are
       bundled, so every look works offline
+
+## ✅ Chunk 2.8: Record shop (this release)
+
+A public crate collection in the GitHub repo, before real accounts and sync (chunk 3).
+
+- [x] **Share to record shop**: upload the open crate (songs, transitions, sets) to
+      `record-shop/<github-login>/<crate-id>.json` with your GitHub token and a DJ name; remove
+      your own uploads
+- [x] **One entry per crate**: sharing a crate that's already in the shop (by anyone) syncs it.
+      Both copies are merged into the same file (newer edits win, nothing deleted), your crate
+      gets the shop's additions, and the entry shows who synced it last
+- [x] **Browse and download** without an account: newest first, search by crate, DJ or set name;
+      *Add to my crates*, or *Update my copy* (merge, newer edits win)
+- [x] The site publishes the shop (index + files) on every deploy; broken or oversized uploads are
+      skipped with a warning instead of breaking the deploy; works offline from the last visit
+- [x] Friends share via GitHub collaborator access (classic `public_repo` token); the owner can use
+      a fine-grained token limited to this repo
+- [x] **Duplicate songs** (like collapsing repeats in a de Bruijn graph): look-alike titles/artists
+      (typos, capitals, spacing, accents, word order; numbers must match) are suggested after every
+      merge and while typing a new song (*Did you mean …?*). *Merge into one* keeps the chosen
+      spelling, moves mixes and set steps over, folds identical mixes and remembers the folded ids,
+      so later merges and syncs don't bring the duplicate back; *Not the same* keeps them apart.
+      *Data → Duplicate songs* checks a whole crate
+- [ ] Ratings or comments on shop crates
+- [ ] Preview a shop crate's graph before downloading
 
 ## Chunk 3: Sync & multiple devices
 

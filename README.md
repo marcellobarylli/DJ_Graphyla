@@ -20,6 +20,13 @@ that's on, a bar clock counting down to the mix-out, and what comes next and how
 through with *Mix in next*, or take another way out of the current song if the crowd wants
 something else. No set? *▶ Free walk* starts at any song and shows every way out at each step.
 
+**Duplicate songs** are caught when they'd slip in. Typing a new song suggests *Did you mean …?*
+for look-alikes (typos, capitals, spacing, accents, word order). After a merge (import, record shop
+download or sync), songs that came in looking like ones you already had are offered for review:
+pick the spelling to keep and *Merge into one*. Their mixes and set steps move over, identical mixes
+fold together, and later merges and syncs fold the old spelling in again instead of bringing it
+back. *Not the same* keeps them apart for good. *Data → Duplicate songs* checks the whole crate.
+
 **Crates** keep libraries apart, like Obsidian vaults: one per genre or label, each with its
 own songs, transitions and sets. Switch crates from the header.
 
@@ -62,6 +69,42 @@ They get their own copy: later changes on either side don't sync. Live shared cr
 sync backend planned for chunk 3. Saving backups to iCloud Drive or Google Drive also keeps a
 copy outside the phone's browser storage.
 
+## Record shop
+
+The record shop is a public collection of crates (with their sets) in this repo's
+[`record-shop/`](record-shop/) folder. In the app: *Data → Record shop*.
+
+- **Download:** anyone can browse the shop and tap *Add to my crates*, without an account. A crate
+  you already have shows *Update my copy*, which merges the shop's version in (newer edits win,
+  nothing is deleted).
+- **Share:** *Share “…” to the record shop* uploads the open crate as
+  `record-shop/<github-login>/<crate-id>.json`. *Remove from shop* deletes your own uploads. Each
+  upload is a commit to `main`, so the site redeploys and the crate appears in the shop a minute
+  or two later.
+- **One entry per crate (sync):** a crate is identified by its id, which stays the same when
+  someone downloads it from the shop. If the crate is already in the shop, whoever shared it,
+  the button reads *Sync “…” with the record shop*: the shop copy and your crate are merged
+  (newer edits win, nothing is deleted, as in *Import → Merge*) into the **same** file, and your
+  crate gets anything new from the shop copy. The entry keeps who shared it first and shows who
+  synced it last. A crate imported as *New crate* from a file gets a new id, so it counts as a
+  different crate.
+- **Who can share:** anyone with write access to the repo, using their own GitHub token. The token
+  is stored on their device only and sent only to `api.github.com`.
+
+Setting up a friend:
+
+1. Repo owner: on GitHub open the repo, then **Settings → Collaborators → Add people**, and enter the
+   friend's GitHub username. Collaborators get write access to the whole repo (code too), so add
+   people you trust.
+2. Friend: accept the invitation (email, or github.com/marcellobarylli/DJ_Graphyla/invitations).
+3. Friend: create a **classic** token with the `public_repo` scope
+   (github.com/settings/tokens/new). GitHub's fine-grained tokens can't write to a repository you're
+   only a collaborator on. Set an expiry date.
+4. In the app: *Data → Record shop*, enter a DJ name, paste the token, *Connect*, then share.
+
+The repo owner can use a fine-grained token instead (github.com/settings/personal-access-tokens/new):
+only this repository, permission *Contents: Read and write*.
+
 ## Data model
 
 ```text
@@ -74,13 +117,19 @@ bpm            original      fromBar      bar of `from` where the mix starts tra
 key            e.g. 8A / Am  toBar        bar of `to` where it enters                         (null = gap)
 tags[]                       fromTime     optional m:ss of the mix-out point createdAt / updatedAt
 notes                        toTime       optional m:ss of the mix-in point
-createdAt / updatedAt        fromBpm      tempo `from` runs at during the mix
-                             toBpm        tempo `to` runs at during the mix
+mergedIds[]    folded dups   fromBpm      tempo `from` runs at during the mix
+createdAt / updatedAt        toBpm        tempo `to` runs at during the mix
                              overlapBars  how many bars both songs play together
                              rating       1 (doesn't work) … 5 (banger)
                              notes, createdAt / updatedAt
 ```
 
+- Collapsing duplicates keeps one song and lists the folded songs' ids in its `mergedIds`. Every
+  merge folds those ids into the kept song on both sides first, so a collapsed duplicate can't
+  return from a backup or the record shop. Look-alikes: titles equal after ignoring case, accents,
+  punctuation, spacing, “&”/“and” and word order, or within a few typos (none up to 4 letters, then
+  1, 2 from 9, 3 from 17), never with different numbers (“Part 1” ≠ “Part 2”); artists likewise,
+  unless one is missing.
 - Direction matters: A → B and B → A are different edges. The same pair can have many edges (variants).
 - A blank *In BPM* is saved as the *Out BPM*, because most mixes are beatmatched.
 - **Sets only reference the graph.** Deleting a set never touches songs or transitions.
@@ -117,12 +166,14 @@ Code layout:
 ```text
 src/
   domain/    pure, tested logic: graph (songs/transitions), sets (walks, tempo track), crates, positions, tempo, backup format
-  storage/   localStorage persistence, one entry per crate (swappable for a sync backend later)
+  storage/   localStorage persistence, one entry per crate (swappable for a sync backend later);
+             githubShop: uploads to the record shop through the GitHub API
   state/     React store, tiny hash router, looks (themes)
   ui/        screens: library, song page, song/transition cards, graph (Cytoscape, lazy-loaded), sets, data, look switch
   assets/    camo pattern and cap logo (SW4G 3R4); y2k/ = rendered 3D pictures (Y2K Futurism)
 public/      PWA manifest, service worker, icons
 tools/       y2k-art: three.js scenes that render the Y2K Futurism pictures
+record-shop/ crates shared from the app; published with the site by vite.config.ts
 ```
 
 ## Deploy
