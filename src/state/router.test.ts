@@ -19,6 +19,7 @@ describe('parseRoute', () => {
     ['#/graph?set=s1&focus=a', { name: 'graph', set: 's1', focus: 'a' }],
     ['#/sets', { name: 'sets' }],
     ['#/crates', { name: 'crates' }],
+    ['#/import/playlist', { name: 'playlist-import' }],
     ['#/set/s1', { name: 'set', id: 's1' }],
     ['#/set/s1/play', { name: 'set-play', id: 's1' }],
     ['#/play', { name: 'free-play', start: undefined }],

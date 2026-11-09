@@ -256,6 +256,10 @@ export function DataView() {
           <button type="button" className="btn btn-block" onClick={() => fileInput.current?.click()}>
             Choose backup file…
           </button>
+          <p className="small muted">
+            A Spotify playlist or another exported playlist isn’t a backup:{' '}
+            <a {...linkTo(paths.playlistImport())}>import a playlist as a new crate</a>.
+          </p>
         </section>
 
         {message && (

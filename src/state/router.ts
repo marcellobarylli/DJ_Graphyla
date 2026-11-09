@@ -13,6 +13,7 @@ export type Route =
   | { name: 'graph'; set?: string; focus?: string }
   | { name: 'sets' }
   | { name: 'crates' }
+  | { name: 'playlist-import' }
   | { name: 'set'; id: string }
   | { name: 'set-play'; id: string }
   | { name: 'free-play'; start?: string }
@@ -38,6 +39,7 @@ export function parseRoute(hash: string): Route {
   }
   if (a === 'sets' && parts.length === 1) return { name: 'sets' };
   if (a === 'crates' && parts.length === 1) return { name: 'crates' };
+  if (a === 'import' && b === 'playlist' && parts.length === 2) return { name: 'playlist-import' };
   if (a === 'play' && parts.length === 1) return { name: 'free-play', start: params.get('start') ?? undefined };
   if (a === 'set' && b && parts.length === 2) return { name: 'set', id: b };
   if (a === 'set' && b && c === 'play' && parts.length === 3) return { name: 'set-play', id: b };
@@ -60,6 +62,7 @@ export const paths = {
   graph: (opts: { set?: string; focus?: string } = {}) => withQuery('/graph', opts),
   sets: () => '/sets',
   crates: () => '/crates',
+  playlistImport: () => '/import/playlist',
   set: (id: string) => `/set/${encodeURIComponent(id)}`,
   setPlay: (id: string) => `/set/${encodeURIComponent(id)}/play`,
   freePlay: (opts: { start?: string } = {}) => withQuery('/play', opts),

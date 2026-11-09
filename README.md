@@ -33,6 +33,20 @@ transition card's song search. Pick one and the title, artist and, when Deezer h
 are filled in (check the BPM by ear: it is Deezer's estimate, and missing for some tracks). Only the typed
 title and artist are sent, to Deezer only; no account or key is needed. Turn it off under *Data → Song lookup*.
 
+**Playlist import** turns a playlist into a new crate: every track becomes a song, and the graph starts
+empty for you to add mixes. *Crates → Import a playlist*, then pick the file:
+
+- **Spotify:** open [exportify.net](https://exportify.net), log in with Spotify, tap *Export* next to the
+  playlist and pick the `.csv` it saves. Spotify's own data download (`Playlist1.json`, from *Account →
+  Privacy → Download your data*) works too, as do CSV files from other playlist exporters, or a pasted list
+  with one *Artist - Title* per line.
+- **BPM:** Spotify no longer hands out tempo or key to new apps, so missing BPMs are looked up on Deezer:
+  first by ISRC (the code of the exact recording, in Exportify's CSV), otherwise by artist and title, keeping
+  only a hit that looks like the same song. A tempo or key already in the file is kept (keys become Camelot).
+  Each song's title, artist and ISRC is sent to Deezer, nothing else; the lookup can be switched off for the
+  import. Songs Deezer doesn't know are listed afterwards, without BPM.
+- Exact repeats in the playlist are added once; look-alikes are offered under *Data → Duplicate songs*.
+
 **Crates** keep libraries apart, like Obsidian vaults: one per genre or label, each with its
 own songs, transitions and sets. Switch crates from the header.
 
@@ -193,7 +207,8 @@ src/
              digicam (the overexposed picture treatment of SW4G 3R4)
   storage/   localStorage persistence, one entry per crate (swappable for a sync backend later);
              githubShop: uploads to the record shop through the GitHub API;
-             songLookup: Deezer search/BPM through a sandboxed JSONP iframe (domain/onlineSongs reads the answers)
+             songLookup: Deezer search/BPM through a sandboxed JSONP iframe (domain/onlineSongs reads the answers);
+             domain/playlistImport reads exported playlists (CSV, Spotify JSON, text) and matches them in Deezer
   state/     React store, tiny hash router, looks (themes)
   ui/        screens: library, song page, song/transition cards, graph (Cytoscape, lazy-loaded), sets, data, look switch,
              edge decorations of the Y2K looks (SwagDecor, Y2KDecor)

@@ -12,9 +12,11 @@
  * answer back with postMessage; the app reads it as untrusted data.
  *
  * What is sent: the typed title (and artist), to api.deezer.com only. The
- * lookup can be switched off per device (Data tab).
+ * lookup can be switched off per device (Data tab). A playlist import sends
+ * each song's title, artist and ISRC, when the person asks for the lookup.
  */
 import { deezerError, deezerSearchPath, deezerTrackPath, parseDeezerBpm, parseDeezerSearch, type OnlineSong } from '../domain/onlineSongs';
+import { deezerIsrcPath, parseCatalogTrack, type CatalogLookup, type CatalogTrack } from '../domain/playlistImport';
 
 export const LOOKUP_SETTING_KEY = 'dj-graphyla:online-lookup';
 export const LOOKUP_SOURCE = { name: 'Deezer', url: 'https://www.deezer.com' } as const;
@@ -69,6 +71,33 @@ export function createSongLookup(transport: Transport, maxCached = 150) {
   };
 }
 
+/** Lookups for a playlist import: by ISRC, search, full track. Not cached (each song is asked once). */
+export function createCatalogLookup(transport: Transport): CatalogLookup {
+  const get = async (path: string): Promise<unknown> => {
+    const json = await transport(path);
+    const err = deezerError(json);
+    if (err) throw new LookupError(err);
+    return json;
+  };
+  return {
+    byIsrc: async (isrc: string): Promise<CatalogTrack | null> => parseCatalogTrack(await get(deezerIsrcPath(isrc))),
+    search: async (query: string) => parseDeezerSearch(await get(deezerSearchPath(query, 10))),
+    track: async (id: string): Promise<CatalogTrack | null> => parseCatalogTrack(await get(deezerTrackPath(id))),
+  };
+}
+
+/** Spaces requests out so a long playlist stays under Deezer's limit (about 50 per 5 s). */
+export function throttled(transport: Transport, gapMs: number): Transport {
+  let next = 0;
+  return async (path) => {
+    const now = Date.now();
+    const wait = Math.max(0, next - now);
+    next = Math.max(now, next) + gapMs;
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    return transport(path);
+  };
+}
+
 /* ── the sandboxed JSONP bridge ─────────────────────────────── */
 
 const BRIDGE_HTML = `<!doctype html><meta charset="utf-8"><script>
@@ -78,7 +107,7 @@ const BRIDGE_HTML = `<!doctype html><meta charset="utf-8"><script>
   addEventListener('message', function (e) {
     if (e.source !== parent) return;
     var m = e.data;
-    if (!m || typeof m.id !== 'number' || typeof m.path !== 'string' || !/^\\/[\\w\\/?=&%.~+-]*$/.test(m.path)) return;
+    if (!m || typeof m.id !== 'number' || typeof m.path !== 'string' || !/^\\/[\\w\\/?=&%.:~+-]*$/.test(m.path)) return;
     var id = m.id, cb = '__dz' + (++n), s = document.createElement('script'), done = false;
     function finish(msg) {
       if (done) return;
@@ -165,3 +194,6 @@ const jsonpTransport: Transport = async (path) => {
 
 /** The app's lookup (Deezer through the sandboxed bridge). */
 export const songLookup = createSongLookup(jsonpTransport);
+
+/** The playlist import's lookup: the same bridge, about 7 requests a second. */
+export const catalogLookup = createCatalogLookup(throttled(jsonpTransport, 140));

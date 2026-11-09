@@ -179,7 +179,7 @@ A public crate collection in the GitHub repo, before real accounts and sync (chu
       stepped darker for better ratings (validated: monotone, visible steps, ≥ 2:1 at the weak end)
 - [x] A black band behind the phone's status bar keeps its white text readable in the installed app
 
-## ✅ Chunk 2.11: Song lookup (this release)
+## ✅ Chunk 2.11: Song lookup
 
 Start typing a title and songs from a public catalogue are suggested, with their BPM.
 
@@ -199,6 +199,27 @@ Start typing a title and songs from a public catalogue are suggested, with their
       after a pause in typing, from 3 letters; cached for the session; offline it stays quiet
 - [ ] Key (Deezer has none): optional GetSongBPM lookup with your own API key
 - [ ] Look up the BPM for songs already in a crate that have none
+
+## ✅ Chunk 2.12: Playlist import (this release)
+
+A playlist becomes a crate of its songs with no mixes yet: an empty graph to fill in.
+
+- [x] Source checked first: Spotify's Web API needs a registered app and login, and since February 2026
+      development-mode apps need a Premium owner and only see playlists the user owns; tempo and key
+      (audio features) are closed to new apps since November 2024. So the app reads exported files
+      instead of talking to Spotify
+- [x] Reads Exportify's CSV (exportify.net: ISRC, title, album, artists, length, and tempo/key when
+      present), Spotify's data download (`Playlist1.json`, every playlist, pick one), other exporters'
+      CSV (columns found by name; comma, semicolon or tab), and a pasted *Artist - Title* list
+- [x] Missing BPMs from Deezer: by ISRC first (exact recording), else an artist/title search; a hit
+      must look like the same song (featured artists and edit/remaster suffixes ignored, remixes kept
+      apart, closest length wins). About 7 requests a second, under Deezer's limit; can be stopped,
+      and the crate is created with what was found
+- [x] Keys from the file become Camelot (Spotify's pitch class + mode, or note names)
+- [x] Exact repeats are added once; look-alikes go to the duplicate review
+- [ ] Import into the open crate (merge) instead of a new one
+- [ ] Spotify genres as tags
+- [ ] Re-run the BPM lookup for songs in a crate that have none
 
 ## Chunk 3: Sync & multiple devices
 
@@ -224,6 +245,7 @@ Goal: let the graph tell you things you haven't tried.
 
 ## Chunk 5: Integrations
 
+- [x] Import playlists exported from Spotify or other services (chunk 2.12)
 - [ ] Import a library or playlists with cue points from DJ software (e.g. Rekordbox XML export)
 - [x] Metadata lookup: title, artist and BPM from Deezer while typing (chunk 2.11)
 - [ ] Key and artwork lookup

@@ -7,6 +7,7 @@ import { CratesView } from './CratesView';
 import { DataView } from './DataView';
 import { DuplicatesView } from './DuplicatesView';
 import { LibraryView } from './LibraryView';
+import { PlaylistImportView } from './PlaylistImportView';
 import { FreeWalkView, PlayView } from './PlayView';
 import { SetView } from './SetView';
 import { SetsView } from './SetsView';
@@ -44,6 +45,8 @@ function Screen({ route }: { route: Route }) {
       return <SetsView />;
     case 'crates':
       return <CratesView />;
+    case 'playlist-import':
+      return <PlaylistImportView />;
     case 'set':
       return <SetView key={route.id} id={route.id} />;
     case 'set-play':
