@@ -59,13 +59,54 @@ function forks(main: Pt[], rand: Rand, count: number, reach: number): string[] {
   return out;
 }
 
+/** Where a bolt runs, as fractions of the screen: its start along the top
+ *  edge, its end (x, y), and how many forks it has. */
+export interface BoltSpec {
+  from: number;
+  to: readonly [number, number];
+  forks?: number;
+}
+
 /**
- * A bolt from above the top edge of a `width` x `height` screen, reaching
- * between half way down and the bottom, drifting sideways as it goes.
+ * A bolt from above the top edge of a `width` x `height` screen. Without a
+ * spec it starts anywhere and ends between half way down and the bottom,
+ * drifting sideways as it goes.
  */
-export function skyBolt(width: number, height: number, rand: Rand): Bolt {
-  const x0 = width * (0.05 + rand() * 0.9);
-  const end: Pt = [x0 + (rand() - 0.5) * width * 0.5, height * (0.5 + rand() * 0.5)];
+export function skyBolt(width: number, height: number, rand: Rand, spec?: BoltSpec): Bolt {
+  const x0 = width * (spec ? spec.from : 0.05 + rand() * 0.9);
+  const end: Pt = spec ? [width * spec.to[0], height * spec.to[1]] : [x0 + (rand() - 0.5) * width * 0.5, height * (0.5 + rand() * 0.5)];
   const main = jag([x0, -10], end, rand, 0.18, 8);
-  return { main: toPath(main), forks: forks(main, rand, 3 + Math.floor(rand() * 4), height * 0.28) };
+  const count = spec?.forks ?? 3 + Math.floor(rand() * 4);
+  return { main: toPath(main), forks: forks(main, rand, count, height * 0.28) };
+}
+
+/** A still lightning picture: named, with fixed bolts and its own seed. */
+export interface Pattern {
+  name: string;
+  seed: number;
+  bolts: readonly BoltSpec[];
+}
+
+/** The still patterns, cycled through in the look panel. */
+export const PATTERNS: readonly Pattern[] = [
+  { name: 'Strike', seed: 11, bolts: [{ from: 0.3, to: [0.4, 0.92] }] },
+  { name: 'Twin', seed: 23, bolts: [{ from: 0.12, to: [0.2, 0.86] }, { from: 0.88, to: [0.8, 0.8] }] },
+  { name: 'Storm', seed: 37, bolts: [{ from: 0.15, to: [0.05, 0.72] }, { from: 0.5, to: [0.62, 0.96] }, { from: 0.85, to: [0.95, 0.76] }] },
+  { name: 'Fork', seed: 41, bolts: [{ from: 0.58, to: [0.46, 1], forks: 10 }] },
+  { name: 'Crossfire', seed: 53, bolts: [{ from: 0.08, to: [0.72, 0.95] }, { from: 0.92, to: [0.28, 0.9] }] },
+  { name: 'Flank', seed: 67, bolts: [{ from: 0.06, to: [0.14, 1], forks: 6 }, { from: 0.94, to: [0.86, 1], forks: 6 }] },
+  {
+    name: 'Downpour',
+    seed: 79,
+    bolts: [0.1, 0.3, 0.5, 0.7, 0.9].map((x, i) => ({ from: x, to: [x + 0.04 * (i % 2 ? 1 : -1), 0.45 + 0.1 * (i % 3)] as const, forks: 2 })),
+  },
+  { name: 'Glancing', seed: 97, bolts: [{ from: 0.78, to: [0.08, 0.6], forks: 5 }] },
+];
+
+/** The bolts of pattern `index` (wrapping) on a `width` x `height` screen. */
+export function patternBolts(index: number, width: number, height: number): Bolt[] {
+  const n = PATTERNS.length;
+  const p = PATTERNS[((index % n) + n) % n]!;
+  const rand = seeded(p.seed);
+  return p.bolts.map((spec) => skyBolt(width, height, rand, spec));
 }

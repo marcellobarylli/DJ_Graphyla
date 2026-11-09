@@ -120,6 +120,9 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       top of the screen, over the orb and behind the chrome DJs (`ui/Y2KLightning.tsx`, bolts in
       `ui/lightning.ts`). Under three flashes a second; still bolts with reduced motion; paused
       in a hidden tab
+- [x] Lightning setting in the look panel (Y2K Futurism): *Flashing* or *Still*, and in still
+      mode ‹ › through eight patterns (Strike, Twin, Storm, Fork, Crossfire, Flank, Downpour,
+      Glancing). Kept on the device; reduced motion always shows the still pattern
 - [x] Headings and flavour text in your own font file (e.g. Xylem, which can't be shipped), picked
       in the look panel and kept on the device; Orbitron otherwise
 - [x] v0.6.1: every text element in Y2K Futurism follows the type scheme. Headings and big song

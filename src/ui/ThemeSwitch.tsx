@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState, type ChangeEvent } from 'react';
+import { setLightning, stepPattern, useLightning } from '../state/lightningSetting';
 import { clearLookFont, setLookFontFile, useLookFont } from '../state/lookFont';
 import { THEMES, setTheme, useTheme } from '../state/theme';
+import { PATTERNS } from './lightning';
 
 /**
  * The look switch (issue #9): a slim handle on the right edge of the screen,
@@ -76,7 +78,12 @@ export function ThemeSwitch() {
                 </button>
               ))}
             </div>
-            {theme.id === 'futurism' && <HeadingFont />}
+            {theme.id === 'futurism' && (
+              <>
+                <HeadingFont />
+                <LightningControls />
+              </>
+            )}
           </div>
         </>
       )}
@@ -122,6 +129,61 @@ function HeadingFont() {
       <p className="small muted">E.g. your copy of Xylem (.ttf, .otf, .woff). It stays on this device.</p>
       {error && <p className="field-error">{error}</p>}
       <input ref={input} type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden onChange={onPick} />
+    </div>
+  );
+}
+
+/**
+ * Y2K Futurism lightning: flashing (random strikes) or still, and in still
+ * mode which pattern. The backdrop updates behind the panel as you pick.
+ */
+function LightningControls() {
+  const { still, pattern } = useLightning();
+  const calm = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const showStill = still || calm;
+  const current = PATTERNS[stepPattern(pattern, 0, PATTERNS.length)]!;
+  const step = (by: number) => setLightning({ pattern: stepPattern(pattern, by, PATTERNS.length) });
+  return (
+    <div className="theme-font">
+      <p className="small">Lightning</p>
+      <div className="segmented" role="radiogroup" aria-label="Lightning">
+        {(
+          [
+            [false, 'Flashing'],
+            [true, 'Still'],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={label}
+            type="button"
+            role="radio"
+            aria-checked={showStill === value}
+            className={showStill === value ? 'on' : ''}
+            disabled={calm && !value}
+            onClick={() => setLightning({ still: value })}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {showStill && (
+        <div className="lightning-pattern">
+          <button type="button" className="btn btn-small" aria-label="Previous pattern" onClick={() => step(-1)}>
+            ‹
+          </button>
+          <p className="small" aria-live="polite">
+            <strong>{current.name}</strong>
+            <span className="muted">
+              {' '}
+              {stepPattern(pattern, 0, PATTERNS.length) + 1} of {PATTERNS.length}
+            </span>
+          </p>
+          <button type="button" className="btn btn-small" aria-label="Next pattern" onClick={() => step(1)}>
+            ›
+          </button>
+        </div>
+      )}
+      {calm && <p className="small muted">Your device asks for less motion, so the lightning stays still.</p>}
     </div>
   );
 }
