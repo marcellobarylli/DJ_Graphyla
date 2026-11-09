@@ -9,6 +9,9 @@
  * file instead of adding a second entry. At build time the files are
  * summarised into record-shop/index.json and published with the site
  * (see vite.config.ts), so browsing needs no GitHub account.
+ *
+ * Each DJ can also have a profile, record-shop/<github-login>/profile.json:
+ * a DJ name and a small square picture, shown with every crate they shared.
  */
 import { stats } from './graph';
 import { ImportError, mergeGraphs, parseBackupFile, toBackup, type CrateLabel, type MergeResult } from './serialize';
@@ -50,6 +53,69 @@ export interface ShopEntry {
 export interface ShopIndex {
   generatedAt: string;
   entries: ShopEntry[];
+  profiles: ShopProfileEntry[];
+}
+
+/* ── DJ profiles ── */
+
+export const PROFILE_FILE = 'profile.json';
+/** Largest picture accepted in a profile (the app makes 256×256 JPEGs of ~20–40 KB). */
+export const MAX_AVATAR_BYTES = 200 * 1024;
+
+/** A profile as stored in the repo. */
+export interface ShopProfile {
+  djName: string;
+  /** data: URL of a JPEG, PNG or WebP picture, or null for initials. */
+  avatar: string | null;
+  updatedAt: string;
+}
+
+/** A profile as listed in index.json; the picture is published as its own file. */
+export interface ShopProfileEntry {
+  login: string;
+  djName: string;
+  /** Path inside record-shop/ of the published picture, e.g. "kat-ko/avatar.jpg". */
+  avatar: string | null;
+  updatedAt: string;
+}
+
+const AVATAR_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' } as const;
+
+export function profilePath(login: string): string {
+  if (!SEGMENT.test(login)) throw new Error(`Unexpected GitHub login “${login}”`);
+  return `${login}/${PROFILE_FILE}`;
+}
+
+/** A profile picture's type, file extension and bytes (base64), or null if it isn't an acceptable picture. */
+export function avatarParts(dataUrl: string): { mime: keyof typeof AVATAR_TYPES; ext: string; base64: string } | null {
+  const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+=*)$/.exec(dataUrl);
+  if (!m) return null;
+  const mime = m[1] as keyof typeof AVATAR_TYPES;
+  const base64 = m[2]!;
+  if (Math.floor((base64.length * 3) / 4) > MAX_AVATAR_BYTES) return null;
+  return { mime, ext: AVATAR_TYPES[mime], base64 };
+}
+
+export function buildProfileFile(profile: { djName: string; avatar: string | null }, now = new Date().toISOString()): string {
+  const avatar = profile.avatar && avatarParts(profile.avatar) ? profile.avatar : null;
+  return JSON.stringify({ app: 'dj-graphyla', kind: 'dj-profile', djName: djLabel(profile.djName), avatar, updatedAt: now }, null, 2);
+}
+
+/** Reads a profile file. Throws ImportError if it isn't one; a bad picture is dropped. */
+export function parseProfileFile(text: string): ShopProfile {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    throw new ImportError('Profile is not valid JSON');
+  }
+  const v = raw as Partial<ShopProfile> & { kind?: unknown };
+  if (!v || v.kind !== 'dj-profile' || typeof v.djName !== 'string' || !v.djName.trim()) throw new ImportError('Not a DJ profile');
+  return {
+    djName: v.djName.trim().slice(0, 60),
+    avatar: typeof v.avatar === 'string' && avatarParts(v.avatar) ? v.avatar : null,
+    updatedAt: typeof v.updatedAt === 'string' ? v.updatedAt : '',
+  };
 }
 
 const SEGMENT = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/;
@@ -64,7 +130,7 @@ export function shopFilePath(login: string, crateId: string): string {
 /** Reads "<login>/<file>.json"; null for anything else (READMEs, nested folders, odd names). */
 export function parseShopPath(path: string): { login: string } | null {
   const m = /^([^/]+)\/([^/]+)\.json$/.exec(path);
-  if (!m || !SEGMENT.test(m[1]!) || !SEGMENT.test(m[2]!)) return null;
+  if (!m || !SEGMENT.test(m[1]!) || !SEGMENT.test(m[2]!) || `${m[2]}.json` === PROFILE_FILE) return null;
   return { login: m[1]! };
 }
 
@@ -193,8 +259,17 @@ export function parseShopIndex(value: unknown): ShopIndex {
         typeof e.by === 'string' &&
         typeof e.songs === 'number',
   );
+  const profiles = (Array.isArray(v?.profiles) ? v.profiles : []).filter(
+    (p): p is ShopProfileEntry =>
+      !!p &&
+      typeof p.login === 'string' &&
+      SEGMENT.test(p.login) &&
+      typeof p.djName === 'string' &&
+      (p.avatar === null || (typeof p.avatar === 'string' && new RegExp(`^${p.login.replace(/[.]/g, '\\.')}/avatar\\.(jpg|png|webp)$`).test(p.avatar))),
+  );
   return {
     generatedAt: typeof v?.generatedAt === 'string' ? v.generatedAt : '',
+    profiles,
     // Indexes built before syncing existed have no updatedAt / updatedBy.
     entries: dedupeShopEntries(
       valid.map((e) => ({

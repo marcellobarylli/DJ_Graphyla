@@ -6,7 +6,18 @@
  * part of backups. Browsing the shop needs no token: the site publishes the
  * files itself (see vite.config.ts).
  */
-import { SHOP_DIR, fromBase64, parseShopPath, shopFilePath, toBase64 } from '../domain/recordShop';
+import {
+  SHOP_DIR,
+  avatarParts,
+  buildProfileFile,
+  fromBase64,
+  parseProfileFile,
+  parseShopPath,
+  profilePath,
+  shopFilePath,
+  toBase64,
+  type ShopProfile,
+} from '../domain/recordShop';
 
 /** The repo that holds the record shop. Change this in a fork. */
 export const SHOP_REPO = { owner: 'marcellobarylli', repo: 'DJ_Graphyla', branch: 'main' } as const;
@@ -19,6 +30,8 @@ export interface ShopAccount {
   login: string;
   /** Shown with every crate this person shares. */
   djName: string;
+  /** Profile picture (data: URL), cached from the profile in the shop. */
+  avatar?: string | null;
 }
 
 export class ShopError extends Error {}
@@ -30,7 +43,7 @@ export function loadAccount(store?: Store): ShopAccount | null {
   try {
     const v = JSON.parse((store ?? localStorage).getItem(ACCOUNT_KEY) ?? 'null') as Partial<ShopAccount> | null;
     return v && typeof v.token === 'string' && typeof v.login === 'string' && typeof v.djName === 'string'
-      ? { token: v.token, login: v.login, djName: v.djName }
+      ? { token: v.token, login: v.login, djName: v.djName, ...(typeof v.avatar === 'string' && avatarParts(v.avatar) ? { avatar: v.avatar } : {}) }
       : null;
   } catch {
     return null;
@@ -195,6 +208,41 @@ export async function syncCrateToShop(
     }
     // Someone else changed the file between reading and writing: read and merge again.
     if ((res.status === 409 || res.status === 422) && attempt < 2) continue;
+    throw errorFor(res.status, account.login);
+  }
+}
+
+/** This account's DJ profile in the shop, or null if it has none (or it can't be read). */
+export async function loadProfile(account: ShopAccount, fetchFn: Fetch = fetch): Promise<ShopProfile | null> {
+  try {
+    const file = await readShopFile(account, profilePath(account.login), fetchFn);
+    return file ? parseProfileFile(file.text) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Creates or updates this account's DJ profile (record-shop/<login>/profile.json): one commit. */
+export async function saveProfile(account: ShopAccount, profile: { djName: string; avatar: string | null }, fetchFn: Fetch = fetch): Promise<void> {
+  const path = profilePath(account.login);
+  for (let attempt = 0; ; attempt++) {
+    const existing = await readShopFile(account, path, fetchFn);
+    const res = await gh(
+      contentsPath(path),
+      account.token,
+      {
+        method: 'PUT',
+        body: JSON.stringify({
+          message: `Record shop: DJ profile of ${profile.djName.trim() || account.login}`,
+          content: toBase64(buildProfileFile(profile)),
+          branch: SHOP_REPO.branch,
+          ...(existing ? { sha: existing.sha } : {}),
+        }),
+      },
+      fetchFn,
+    );
+    if (res.ok) return;
+    if ((res.status === 409 || res.status === 422) && attempt === 0) continue;
     throw errorFor(res.status, account.login);
   }
 }

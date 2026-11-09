@@ -16,4 +16,9 @@ download them in the app; people with write access to this repo can share.
   (`vite.config.ts`) summarises all files into `record-shop/index.json` and publishes
   them next to the app. Files that aren't valid crates, or are over 2 MB, are skipped
   with a warning instead of breaking the deploy.
-- `sample/` holds the made-up sample crate, so the shop isn't empty. Delete it whenever.
+- DJ profiles: `record-shop/<github-login>/profile.json` =
+  `{ "kind": "dj-profile", "djName", "avatar": "data:image/jpeg;base64,…" | null, "updatedAt" }`.
+  The build publishes the picture as `<github-login>/avatar.jpg` and lists the profile in the
+  index; pictures must be JPEG, PNG or WebP and at most 200 KB.
+- `sample/` holds the made-up sample crate and its DJ profile, so the shop isn't empty. Delete it
+  whenever.

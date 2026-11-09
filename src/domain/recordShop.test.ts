@@ -3,13 +3,18 @@ import { addSong, updateSong } from './graph';
 import { buildSampleGraph } from './sample';
 import { exportLibraryJson, parseBackupFile } from './serialize';
 import {
+  MAX_AVATAR_BYTES,
+  avatarParts,
+  buildProfileFile,
   buildShopFile,
   dedupeShopEntries,
   filterShopEntries,
   fromBase64,
   parseShopIndex,
+  parseProfileFile,
   parseShopPath,
   prepareShopUpload,
+  profilePath,
   shopFilePath,
   sortShopEntries,
   summarizeShopFile,
@@ -209,5 +214,50 @@ describe('prepareShopUpload (share = create or sync)', () => {
     const r = prepareShopUpload(base, label, 'Marcello', '{broken', '2026-11-09T12:00:00.000Z');
     expect(r.remote).toBeNull();
     expect(parseBackupFile(r.content).kind).toBe('crate');
+  });
+});
+
+describe('DJ profiles', () => {
+  const NOW = '2026-11-09T12:00:00.000Z';
+  // A 1×1 PNG.
+  const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+  it('lives next to the DJ’s crates and is never mistaken for a crate', () => {
+    expect(profilePath('kat-ko')).toBe('kat-ko/profile.json');
+    expect(() => profilePath('../x')).toThrow();
+    expect(parseShopPath('kat-ko/profile.json')).toBeNull();
+  });
+
+  it('round-trips a name and picture', () => {
+    const text = buildProfileFile({ djName: '  DJ Kat ', avatar: png }, NOW);
+    expect(parseProfileFile(text)).toEqual({ djName: 'DJ Kat', avatar: png, updatedAt: NOW });
+  });
+
+  it('drops pictures that aren’t small JPEG/PNG/WebP images', () => {
+    expect(avatarParts(png)).toMatchObject({ mime: 'image/png', ext: 'png' });
+    expect(avatarParts('data:image/svg+xml;base64,PHN2Zz4=')).toBeNull();
+    expect(avatarParts('https://example.com/me.jpg')).toBeNull();
+    expect(avatarParts(`data:image/jpeg;base64,${'A'.repeat(Math.ceil((MAX_AVATAR_BYTES * 4) / 3) + 8)}`)).toBeNull();
+    expect(parseProfileFile(buildProfileFile({ djName: 'X', avatar: 'data:text/html;base64,PGI+' })).avatar).toBeNull();
+  });
+
+  it('rejects files that aren’t profiles', () => {
+    expect(() => parseProfileFile('{nope')).toThrow();
+    expect(() => parseProfileFile(JSON.stringify({ djName: 'X' }))).toThrow(/Not a DJ profile/);
+    expect(() => parseProfileFile(JSON.stringify({ kind: 'dj-profile', djName: '  ' }))).toThrow();
+  });
+
+  it('is listed in the index with its published picture', () => {
+    const index = parseShopIndex({
+      entries: [],
+      profiles: [
+        { login: 'kat-ko', djName: 'DJ Kat', avatar: 'kat-ko/avatar.jpg', updatedAt: NOW },
+        { login: 'sample', djName: 'Sample', avatar: null, updatedAt: NOW },
+        { login: 'evil', djName: 'Evil', avatar: '../../etc/passwd', updatedAt: NOW },
+        { login: 'kat-ko', djName: 'Spoof', avatar: 'other/avatar.jpg', updatedAt: NOW },
+      ],
+    });
+    expect(index.profiles.map((p) => p.djName)).toEqual(['DJ Kat', 'Sample']);
+    expect(parseShopIndex({ entries: [] }).profiles).toEqual([]);
   });
 });
