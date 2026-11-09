@@ -1,7 +1,7 @@
 {
   "app": "dj-graphyla",
   "schemaVersion": 3,
-  "exportedAt": "2026-11-09T22:02:10.130Z",
+  "exportedAt": "2026-11-09T22:03:37.433Z",
   "crate": {
     "id": "f5a37e9d-0419-4c77-8c87-0bbbae2ebe1f",
     "name": "My crate"
@@ -23,6 +23,8 @@
   "sets": [],
   "shop": {
     "by": "kokopenny",
-    "uploadedAt": "2026-11-09T22:02:10.130Z"
+    "uploadedAt": "2026-11-09T22:02:10.130Z",
+    "updatedAt": "2026-11-09T22:03:37.433Z",
+    "updatedBy": "kokopenny"
   }
 }
