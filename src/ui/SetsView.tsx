@@ -36,6 +36,22 @@ export function SetsView() {
         }
       />
       <main className="page">
+        {hasSongs && (
+          <a className="card choice" {...linkTo(paths.freePlay())}>
+            <span className="choice-icon" aria-hidden="true">
+              <svg viewBox="0 0 48 24" width="48" height="24">
+                <circle cx="6" cy="12" r="4" />
+                <path d="M10 12h8M18 12l8-7M18 12l8 7M26 5h8M26 19h8" />
+                <circle cx="38" cy="5" r="3" />
+                <circle cx="38" cy="19" r="3" />
+              </svg>
+            </span>
+            <span>
+              <span className="choice-title">▶ Free walk</span>
+              <span className="choice-text">No set needed: start with any song and pick from every way out, live.</span>
+            </span>
+          </a>
+        )}
         {sets.length === 0 ? (
           <EmptyState title="No sets yet">
             <p>

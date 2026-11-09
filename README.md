@@ -18,7 +18,7 @@ everything and can highlight a set's walk.
 **Play mode** is for the gig itself: press *▶ Play this set* and the screen shows the song
 that's on, a bar clock counting down to the mix-out, and what comes next and how to mix it. Step
 through with *Mix in next*, or take another way out of the current song if the crowd wants
-something else.
+something else. No set? *▶ Free walk* starts at any song and shows every way out at each step.
 
 **Crates** keep libraries apart, like Obsidian vaults: one per genre or label, each with its
 own songs, transitions and sets. Switch crates from the header.

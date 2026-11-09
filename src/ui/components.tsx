@@ -1,8 +1,9 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { searchSongs } from '../domain/graph';
 import { formatOverlap, formatPosition } from '../domain/position';
 import { formatTimestamp, parseTimestamp } from '../domain/time';
 import { formatBpm, formatPitch, pitchPercent } from '../domain/tempo';
-import { RATING_LABELS, type Song, type Transition } from '../domain/types';
+import { RATING_LABELS, type GraphData, type Song, type SongId, type Transition } from '../domain/types';
 import { goBack, linkTo, paths } from '../state/router';
 import { useStore } from '../state/store';
 
@@ -408,6 +409,41 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
     <div className="empty">
       <p className="empty-title">{title}</p>
       {children}
+    </div>
+  );
+}
+
+/** Search box with a list of matching songs to pick from. */
+export function SongSearch({ graph, onPick, placeholder = 'Search your songs…' }: { graph: GraphData; onPick: (id: SongId) => void; placeholder?: string }) {
+  const [query, setQuery] = useState('');
+  const results: Song[] = searchSongs(graph, query).slice(0, 8);
+  return (
+    <div className="picker">
+      <input
+        className="input"
+        type="search"
+        placeholder={placeholder}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        aria-label="Search songs"
+      />
+      {results.length > 0 ? (
+        <ul className="picker-results">
+          {results.map((s) => (
+            <li key={s.id}>
+              <button type="button" className="picker-option" onClick={() => onPick(s.id)}>
+                <span>
+                  <span className="song-title">{s.title}</span>
+                  {s.artist && <span className="song-artist"> — {s.artist}</span>}
+                </span>
+                <BpmBadge bpm={s.bpm} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="small muted">No matching song.</p>
+      )}
     </div>
   );
 }

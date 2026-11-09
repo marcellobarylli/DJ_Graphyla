@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { groupByNeighbor, outgoing, searchSongs } from '../domain/graph';
+import { groupByNeighbor, outgoing } from '../domain/graph';
 import * as S from '../domain/sets';
 import { formatBpm } from '../domain/tempo';
-import type { DjSet, GraphData, Song, SongId } from '../domain/types';
+import type { DjSet, GraphData } from '../domain/types';
 import { goBack, linkTo, paths } from '../state/router';
 import { useStore } from '../state/store';
-import { BpmBadge, EmptyState, TextArea, TextField, TopBar, VariantRow } from './components';
+import { EmptyState, SongSearch, TextArea, TextField, TopBar, VariantRow } from './components';
 import { liveProgress } from './PlayView';
 import { TempoChart } from './TempoChart';
 
@@ -341,39 +341,5 @@ function NextStep({ set, graph }: { set: DjSet; graph: GraphData }) {
         </>
       )}
     </section>
-  );
-}
-
-function SongSearch({ graph, onPick }: { graph: GraphData; onPick: (id: SongId) => void }) {
-  const [query, setQuery] = useState('');
-  const results: Song[] = searchSongs(graph, query).slice(0, 8);
-  return (
-    <div className="picker">
-      <input
-        className="input"
-        type="search"
-        placeholder="Search your songs…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        aria-label="Search songs"
-      />
-      {results.length > 0 ? (
-        <ul className="picker-results">
-          {results.map((s) => (
-            <li key={s.id}>
-              <button type="button" className="picker-option" onClick={() => onPick(s.id)}>
-                <span>
-                  <span className="song-title">{s.title}</span>
-                  {s.artist && <span className="song-artist"> — {s.artist}</span>}
-                </span>
-                <BpmBadge bpm={s.bpm} />
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="small muted">No matching song.</p>
-      )}
-    </div>
   );
 }

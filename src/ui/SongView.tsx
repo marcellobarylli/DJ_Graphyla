@@ -63,6 +63,9 @@ export function SongView({ id }: { id: string }) {
           </div>
           {song.notes && <p className="song-card-notes">{song.notes}</p>}
           <div className="row">
+            <a className="btn btn-small btn-primary" {...linkTo(paths.freePlay({ start: song.id }))}>
+              ▶ Free walk from here
+            </a>
             <button type="button" className="btn btn-small" onClick={() => createAndOpenSet(store, song.id)}>
               Start a set here
             </button>
