@@ -62,6 +62,35 @@ They get their own copy: later changes on either side don't sync. Live shared cr
 sync backend planned for chunk 3. Saving backups to iCloud Drive or Google Drive also keeps a
 copy outside the phone's browser storage.
 
+## Record shop
+
+The record shop is a public collection of crates (with their sets) in this repo's
+[`record-shop/`](record-shop/) folder. In the app: *Data → Record shop*.
+
+- **Download:** anyone can browse the shop and tap *Add to my crates*, without an account. A crate
+  you already have shows *Update my copy*, which merges the shop's version in (newer edits win,
+  nothing is deleted).
+- **Share:** *Share “…” to the record shop* uploads the open crate as
+  `record-shop/<github-login>/<crate-id>.json`. Sharing it again replaces it; *Remove from shop*
+  deletes your own uploads. Each upload is a commit to `main`, so the site redeploys and the
+  crate appears in the shop a minute or two later.
+- **Who can share:** anyone with write access to the repo, using their own GitHub token. The token
+  is stored on their device only and sent only to `api.github.com`.
+
+Setting up a friend:
+
+1. Repo owner: on GitHub open the repo, then **Settings → Collaborators → Add people**, and enter the
+   friend's GitHub username. Collaborators get write access to the whole repo (code too), so add
+   people you trust.
+2. Friend: accept the invitation (email, or github.com/marcellobarylli/DJ_Graphyla/invitations).
+3. Friend: create a **classic** token with the `public_repo` scope
+   (github.com/settings/tokens/new). GitHub's fine-grained tokens can't write to a repository you're
+   only a collaborator on. Set an expiry date.
+4. In the app: *Data → Record shop*, enter a DJ name, paste the token, *Connect*, then share.
+
+The repo owner can use a fine-grained token instead (github.com/settings/personal-access-tokens/new):
+only this repository, permission *Contents: Read and write*.
+
 ## Data model
 
 ```text
@@ -117,12 +146,14 @@ Code layout:
 ```text
 src/
   domain/    pure, tested logic: graph (songs/transitions), sets (walks, tempo track), crates, positions, tempo, backup format
-  storage/   localStorage persistence, one entry per crate (swappable for a sync backend later)
+  storage/   localStorage persistence, one entry per crate (swappable for a sync backend later);
+             githubShop: uploads to the record shop through the GitHub API
   state/     React store, tiny hash router, looks (themes)
   ui/        screens: library, song page, song/transition cards, graph (Cytoscape, lazy-loaded), sets, data, look switch
   assets/    camo pattern and cap logo (SW4G 3R4); y2k/ = rendered 3D pictures (Y2K Futurism)
 public/      PWA manifest, service worker, icons
 tools/       y2k-art: three.js scenes that render the Y2K Futurism pictures
+record-shop/ crates shared from the app; published with the site by vite.config.ts
 ```
 
 ## Deploy

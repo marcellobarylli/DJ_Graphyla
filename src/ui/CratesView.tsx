@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { GraphError } from '../domain/common';
 import type { CrateMeta } from '../domain/crates';
 import { buildSampleGraph, sampleCrateName } from '../domain/sample';
-import { navigate, paths } from '../state/router';
+import { linkTo, navigate, paths } from '../state/router';
 import { useStore, type GraphStore } from '../state/store';
 import { TextField, TopBar } from './components';
 
@@ -91,14 +91,17 @@ export function CratesView() {
         </form>
 
         <section className="card form">
-          <h3 className="section-title">Sample crate</h3>
+          <h3 className="section-title">More crates</h3>
           <p className="small muted">
-            Look around with made-up songs, transitions and two sets, without touching your own crates. Delete it whenever
-            you like.
+            Look around with a sample crate of made-up songs, transitions and two sets, or get crates other DJs shared in the
+            record shop. Neither touches your own crates.
           </p>
           <button type="button" className="btn btn-block" onClick={() => openSampleCrate(store)}>
             Add sample crate
           </button>
+          <a className="btn btn-block" {...linkTo(paths.shop())}>
+            Get crates from the record shop
+          </a>
         </section>
       </main>
     </>

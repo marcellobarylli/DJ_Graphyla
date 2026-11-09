@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { createEmptyGraph, stats } from '../domain/graph';
 import { ImportError, exportJson, exportLibraryJson, parseBackupFile } from '../domain/serialize';
 import { requestPersistentStorage } from '../storage/localStore';
-import { linkTo, paths } from '../state/router';
+import { linkTo, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
 import { useTheme } from '../state/theme';
 import { TopBar } from './components';
@@ -157,6 +157,22 @@ export function DataView() {
             )}
             <button type="button" className="btn btn-block" onClick={() => saveFile(libraryFile())}>
               Download all crates (.json)
+            </button>
+          </div>
+        </section>
+
+        <section className="card">
+          <h3 className="section-title">Record shop</h3>
+          <div className="stack">
+            <p className="small muted">
+              The public crate collection in the app’s GitHub repo. Share your crates with its sets for other DJs to download, and
+              get theirs.
+            </p>
+            <button type="button" className="btn btn-block" onClick={() => navigate(paths.shop())}>
+              Share “{crate.name}” to the record shop…
+            </button>
+            <button type="button" className="btn btn-block" onClick={() => navigate(paths.shop())}>
+              Browse the record shop
             </button>
           </div>
         </section>

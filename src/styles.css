@@ -641,6 +641,14 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
   font-weight: 600;
 }
 
+/* ── record shop ─────────────────────────────────────────── */
+.shop-list { display: flex; flex-direction: column; gap: 10px; }
+.shop-entry { display: flex; flex-direction: column; gap: 8px; }
+.shop-entry-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.token-help { font-size: 0.85rem; color: var(--muted); }
+.token-help summary { cursor: pointer; color: var(--accent-strong); font-weight: 600; }
+.token-help ol { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 0; padding-left: 20px; }
+
 /* ── look switch (issue #9) ──────────────────────────────── */
 /* A slim handle in the right page margin (16px), so it never covers content. */
 .theme-handle {

@@ -1,7 +1,13 @@
 /// <reference types="vitest/config" />
-import { defineConfig, type Plugin } from 'vite';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative, sep } from 'node:path';
+import { defineConfig, runnerImport, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import pkg from './package.json' with { type: 'json' };
+import type { ShopEntry, ShopIndex } from './src/domain/recordShop.ts';
+
+type ShopModule = typeof import('./src/domain/recordShop.ts');
+const SHOP_DIR = 'record-shop';
 
 /** Unique per build; the running app compares it with the deployed version.json. */
 const BUILD_ID = `${pkg.version}+${Date.now().toString(36)}`;
@@ -17,10 +23,73 @@ function versionFile(): Plugin {
   };
 }
 
+/**
+ * Reads the record shop (record-shop/<login>/<crate>.json in the repo), using
+ * the app's own parser (loaded through Vite, so the config needs no TS imports).
+ * Files that aren't valid crates are skipped with a warning, so one broken
+ * upload never stops a deploy.
+ */
+async function collectShop(root: string, warn: (msg: string) => void): Promise<{ index: ShopIndex; files: Map<string, string> }> {
+  const { module: shop } = await runnerImport<ShopModule>(join(root, 'src/domain/recordShop.ts'), { configFile: false, logLevel: 'error' });
+  const { MAX_SHOP_FILE_BYTES, sortShopEntries, summarizeShopFile } = shop;
+  const dir = join(root, SHOP_DIR);
+  const files = new Map<string, string>();
+  const entries: ShopEntry[] = [];
+  const walk = (folder: string) => {
+    for (const name of readdirSync(folder)) {
+      const full = join(folder, name);
+      if (statSync(full).isDirectory()) walk(full);
+      else if (name.endsWith('.json')) {
+        const path = relative(dir, full).split(sep).join('/');
+        if (statSync(full).size > MAX_SHOP_FILE_BYTES) {
+          warn(`record shop: skipped ${path} (larger than ${MAX_SHOP_FILE_BYTES / 1024 / 1024} MB)`);
+          continue;
+        }
+        const text = readFileSync(full, 'utf8');
+        try {
+          entries.push(summarizeShopFile(path, text));
+          files.set(path, text);
+        } catch (err) {
+          warn(`record shop: skipped ${path}: ${(err as Error).message}`);
+        }
+      }
+    }
+  };
+  if (existsSync(dir)) walk(dir);
+  return { index: { generatedAt: new Date().toISOString(), entries: sortShopEntries(entries) }, files };
+}
+
+/** Publishes the record shop with the site: record-shop/index.json plus every crate file. */
+function recordShop(): Plugin {
+  let root = process.cwd();
+  return {
+    name: 'dj-graphyla-record-shop',
+    configResolved(config) {
+      root = config.root;
+    },
+    configureServer(server) {
+      server.middlewares.use(`/${SHOP_DIR}/`, (req, res, next) => {
+        const path = decodeURIComponent((req.url ?? '').split('?')[0]!.replace(/^\//, ''));
+        collectShop(root, (m) => server.config.logger.warn(m)).then(({ index, files }) => {
+          const body = path === 'index.json' ? JSON.stringify(index) : files.get(path);
+          if (body === undefined) return next();
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.end(body);
+        }, next);
+      });
+    },
+    async generateBundle() {
+      const { index, files } = await collectShop(root, (m) => this.warn(m));
+      this.emitFile({ type: 'asset', fileName: `${SHOP_DIR}/index.json`, source: JSON.stringify(index) });
+      for (const [path, text] of files) this.emitFile({ type: 'asset', fileName: `${SHOP_DIR}/${path}`, source: text });
+    },
+  };
+}
+
 export default defineConfig({
   // Relative base so the build works on GitHub Pages (/DJ_Graphyla/) and any other host.
   base: './',
-  plugins: [react(), versionFile()],
+  plugins: [react(), versionFile(), recordShop()],
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
     __BUILD_ID__: JSON.stringify(BUILD_ID),

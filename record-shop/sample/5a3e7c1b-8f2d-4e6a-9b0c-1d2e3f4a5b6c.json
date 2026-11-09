@@ -1,0 +1,423 @@
+{
+  "app": "dj-graphyla",
+  "schemaVersion": 3,
+  "exportedAt": "2026-11-09T12:00:00.000Z",
+  "crate": {
+    "id": "5a3e7c1b-8f2d-4e6a-9b0c-1d2e3f4a5b6c",
+    "name": "Sample crate"
+  },
+  "songs": [
+    {
+      "id": "ef43b983-0bb1-4a30-837e-ef81961b3480",
+      "title": "Neon Tide",
+      "artist": "Kaia Lumen",
+      "bpm": 122,
+      "key": "8A",
+      "tags": [
+        "deep",
+        "warmup"
+      ],
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "ff42118d-7dc0-4a32-8a47-1bcdde6e9aab",
+      "title": "Velvet Static",
+      "artist": "The Night Assembly",
+      "bpm": 123,
+      "key": "9A",
+      "tags": [
+        "deep",
+        "vocal"
+      ],
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "49993dbd-7a60-4e56-8d28-52d9e447340b",
+      "title": "Glasshouse",
+      "artist": "Oren Vale",
+      "bpm": 124,
+      "key": "9A",
+      "tags": [
+        "melodic"
+      ],
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "cdb07573-8e94-43d2-acb4-375e5b5caead",
+      "title": "Lowlight Parade",
+      "artist": "Mira Okoro",
+      "bpm": 124,
+      "key": "10A",
+      "tags": [
+        "groovy"
+      ],
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "abf564e7-d36e-492b-a055-fc3a127f52d9",
+      "title": "Afterburner Drive",
+      "artist": "Sola & Kemp",
+      "bpm": 125,
+      "key": "10A",
+      "tags": [
+        "peak"
+      ],
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "a3e6251f-dd19-4918-a7a8-c1746cf31232",
+      "title": "Copper Moon",
+      "artist": "Duskwalker",
+      "bpm": 126,
+      "key": "11A",
+      "tags": [
+        "peak",
+        "vocal"
+      ],
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "25ea4d06-b185-4891-a45c-8e5ede80190f",
+      "title": "Signal Lost",
+      "artist": "Iris Montego",
+      "bpm": 126,
+      "key": "11B",
+      "tags": [
+        "breakdown"
+      ],
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "0f7b4587-c13b-4701-8f81-31d20bb2873a",
+      "title": "Paper Satellites",
+      "artist": "Hollow Arcade",
+      "bpm": 127,
+      "key": "12A",
+      "tags": [
+        "peak"
+      ],
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "17f4ab9a-f75b-47f3-89a0-7fe32bc3d367",
+      "title": "Saltwater Radio",
+      "artist": "Tamsin Reyes",
+      "bpm": 120,
+      "key": "7A",
+      "tags": [
+        "closing"
+      ],
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "eeb05a0b-ec04-4b91-9247-41ea53e42b28",
+      "title": "Ghost Frequency",
+      "artist": "Ventura Haze",
+      "bpm": 128,
+      "key": "1A",
+      "tags": [
+        "peak",
+        "dark"
+      ],
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "c85de515-1a36-4010-9029-5e5677decb96",
+      "fromSongId": "ef43b983-0bb1-4a30-837e-ef81961b3480",
+      "toSongId": "ff42118d-7dc0-4a32-8a47-1bcdde6e9aab",
+      "fromBar": 97,
+      "toBar": 1,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 122,
+      "toBpm": 122,
+      "overlapBars": 16,
+      "rating": 4,
+      "notes": "Swap the bass at bar 105",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "8080cb3a-3f37-4745-a936-8e69f4552eb2",
+      "fromSongId": "ef43b983-0bb1-4a30-837e-ef81961b3480",
+      "toSongId": "ff42118d-7dc0-4a32-8a47-1bcdde6e9aab",
+      "fromBar": 129,
+      "toBar": 17,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 122,
+      "toBpm": 122,
+      "overlapBars": 8,
+      "rating": 3,
+      "notes": "Shorter: skip the intro",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "b23e5bf5-fe97-4372-b055-8c4e28788a18",
+      "fromSongId": "ff42118d-7dc0-4a32-8a47-1bcdde6e9aab",
+      "toSongId": "49993dbd-7a60-4e56-8d28-52d9e447340b",
+      "fromBar": 113,
+      "toBar": 1,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 123,
+      "toBpm": 123,
+      "overlapBars": 32,
+      "rating": 5,
+      "notes": "Long blend, the pads lock together",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "c098062e-1110-4434-976c-7abc1cfa8d41",
+      "fromSongId": "ff42118d-7dc0-4a32-8a47-1bcdde6e9aab",
+      "toSongId": "cdb07573-8e94-43d2-acb4-375e5b5caead",
+      "fromBar": 97,
+      "toBar": 1,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 123,
+      "toBpm": 123,
+      "overlapBars": 16,
+      "rating": null,
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "3e375805-1ce7-48da-aaad-bf8882cdbcb4",
+      "fromSongId": "49993dbd-7a60-4e56-8d28-52d9e447340b",
+      "toSongId": "cdb07573-8e94-43d2-acb4-375e5b5caead",
+      "fromBar": 129,
+      "toBar": 1,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 124,
+      "toBpm": 124,
+      "overlapBars": 16,
+      "rating": 4,
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "abf86ec5-d9e6-47f8-91d2-9d2a0762949c",
+      "fromSongId": "49993dbd-7a60-4e56-8d28-52d9e447340b",
+      "toSongId": "abf564e7-d36e-492b-a055-fc3a127f52d9",
+      "fromBar": 97,
+      "toBar": 9,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 124,
+      "toBpm": 124,
+      "overlapBars": 8,
+      "rating": 2,
+      "notes": "Hi-hats clash",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "9851c10a-d48e-457c-9a32-114382d17e3a",
+      "fromSongId": "cdb07573-8e94-43d2-acb4-375e5b5caead",
+      "toSongId": "abf564e7-d36e-492b-a055-fc3a127f52d9",
+      "fromBar": 145,
+      "toBar": 1,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 124,
+      "toBpm": 124,
+      "overlapBars": 16,
+      "rating": 5,
+      "notes": "Ride up to 125 during Afterburner",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "5bdba347-5561-48b4-a241-76a7acf6da53",
+      "fromSongId": "abf564e7-d36e-492b-a055-fc3a127f52d9",
+      "toSongId": "a3e6251f-dd19-4918-a7a8-c1746cf31232",
+      "fromBar": 129,
+      "toBar": 1,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 125,
+      "toBpm": 125,
+      "overlapBars": 16,
+      "rating": 4,
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "32eec588-9995-4bba-9cb7-8a8bb10e86a2",
+      "fromSongId": "a3e6251f-dd19-4918-a7a8-c1746cf31232",
+      "toSongId": "25ea4d06-b185-4891-a45c-8e5ede80190f",
+      "fromBar": 161,
+      "toBar": 1,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 126,
+      "toBpm": 126,
+      "overlapBars": 8,
+      "rating": 3,
+      "notes": "Drop straight into the breakdown",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "8e344f1e-1002-4950-8722-5237dad47022",
+      "fromSongId": "a3e6251f-dd19-4918-a7a8-c1746cf31232",
+      "toSongId": "17f4ab9a-f75b-47f3-89a0-7fe32bc3d367",
+      "fromBar": 97,
+      "toBar": 1,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 126,
+      "toBpm": 126,
+      "overlapBars": null,
+      "rating": 1,
+      "notes": "Tempo gap too big, energy dies",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "bb265f89-2144-4746-9221-d7a8a06adcad",
+      "fromSongId": "25ea4d06-b185-4891-a45c-8e5ede80190f",
+      "toSongId": "0f7b4587-c13b-4701-8f81-31d20bb2873a",
+      "fromBar": 97,
+      "toBar": 1,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 126,
+      "toBpm": 126,
+      "overlapBars": 16,
+      "rating": 4,
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "bb1111be-669e-4c97-b8b6-3baf9a5e9ac8",
+      "fromSongId": "0f7b4587-c13b-4701-8f81-31d20bb2873a",
+      "toSongId": "eeb05a0b-ec04-4b91-9247-41ea53e42b28",
+      "fromBar": 129,
+      "toBar": 1,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 127,
+      "toBpm": 127,
+      "overlapBars": 32,
+      "rating": 5,
+      "notes": "Peak moment",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "c96b28ef-6517-45e4-9189-bb94631e2dc9",
+      "fromSongId": "eeb05a0b-ec04-4b91-9247-41ea53e42b28",
+      "toSongId": "a3e6251f-dd19-4918-a7a8-c1746cf31232",
+      "fromBar": 113,
+      "toBar": 33,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 128,
+      "toBpm": 128,
+      "overlapBars": 16,
+      "rating": 3,
+      "notes": "",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "4b67b20d-b097-48ac-9e04-dccb952f6e51",
+      "fromSongId": "17f4ab9a-f75b-47f3-89a0-7fe32bc3d367",
+      "toSongId": "ef43b983-0bb1-4a30-837e-ef81961b3480",
+      "fromBar": 81,
+      "toBar": 1,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 120,
+      "toBpm": 120,
+      "overlapBars": 16,
+      "rating": 4,
+      "notes": "Closing track back to the opener",
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    }
+  ],
+  "sets": [
+    {
+      "id": "96af2642-3687-4fa4-9ed1-b6816b3a9934",
+      "name": "Sample: warmup to peak",
+      "notes": "Made-up example set.",
+      "songIds": [
+        "ef43b983-0bb1-4a30-837e-ef81961b3480",
+        "ff42118d-7dc0-4a32-8a47-1bcdde6e9aab",
+        "49993dbd-7a60-4e56-8d28-52d9e447340b",
+        "cdb07573-8e94-43d2-acb4-375e5b5caead",
+        "abf564e7-d36e-492b-a055-fc3a127f52d9",
+        "a3e6251f-dd19-4918-a7a8-c1746cf31232",
+        "25ea4d06-b185-4891-a45c-8e5ede80190f",
+        "0f7b4587-c13b-4701-8f81-31d20bb2873a",
+        "eeb05a0b-ec04-4b91-9247-41ea53e42b28"
+      ],
+      "transitionIds": [
+        "c85de515-1a36-4010-9029-5e5677decb96",
+        "b23e5bf5-fe97-4372-b055-8c4e28788a18",
+        "3e375805-1ce7-48da-aaad-bf8882cdbcb4",
+        "9851c10a-d48e-457c-9a32-114382d17e3a",
+        "5bdba347-5561-48b4-a241-76a7acf6da53",
+        "32eec588-9995-4bba-9cb7-8a8bb10e86a2",
+        "bb265f89-2144-4746-9221-d7a8a06adcad",
+        "bb1111be-669e-4c97-b8b6-3baf9a5e9ac8"
+      ],
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    },
+    {
+      "id": "f548e1d3-4bff-4f78-a4b4-64caac54470d",
+      "name": "Sample: closing (with a gap)",
+      "notes": "",
+      "songIds": [
+        "0f7b4587-c13b-4701-8f81-31d20bb2873a",
+        "eeb05a0b-ec04-4b91-9247-41ea53e42b28",
+        "17f4ab9a-f75b-47f3-89a0-7fe32bc3d367",
+        "ef43b983-0bb1-4a30-837e-ef81961b3480"
+      ],
+      "transitionIds": [
+        "bb1111be-669e-4c97-b8b6-3baf9a5e9ac8",
+        null,
+        "4b67b20d-b097-48ac-9e04-dccb952f6e51"
+      ],
+      "createdAt": "2026-11-09T12:00:00.000Z",
+      "updatedAt": "2026-11-09T12:00:00.000Z"
+    }
+  ],
+  "shop": {
+    "by": "Graphyla sample",
+    "uploadedAt": "2026-11-09T12:00:00.000Z"
+  }
+}

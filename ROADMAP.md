@@ -96,7 +96,7 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       listed, best rated first and pre-selected; jump to any song when you hit a dead end; save the
       walk as a set afterwards
 
-## ✅ Chunk 2.7: Looks (this release)
+## ✅ Chunk 2.7: Looks
 
 - [x] **Look switch** (issue #9): a slim handle on the right screen edge (in the page margin, hidden
       in play mode and forms) opens a panel with three looks; picking one applies it at once
@@ -120,6 +120,22 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       graph's edge colours (ratings) are the same in every look
 - [x] The look is a device setting (saved next to the crates, not in backups); display fonts are
       bundled, so every look works offline
+
+## ✅ Chunk 2.8: Record shop (this release)
+
+A public crate collection in the GitHub repo, before real accounts and sync (chunk 3).
+
+- [x] **Share to record shop**: upload the open crate (songs, transitions, sets) to
+      `record-shop/<github-login>/<crate-id>.json` with your GitHub token and a DJ name; sharing
+      again replaces it; remove your own uploads
+- [x] **Browse and download** without an account: newest first, search by crate, DJ or set name;
+      *Add to my crates*, or *Update my copy* (merge, newer edits win)
+- [x] The site publishes the shop (index + files) on every deploy; broken or oversized uploads are
+      skipped with a warning instead of breaking the deploy; works offline from the last visit
+- [x] Friends share via GitHub collaborator access (classic `public_repo` token); the owner can use
+      a fine-grained token limited to this repo
+- [ ] Ratings or comments on shop crates
+- [ ] Preview a shop crate's graph before downloading
 
 ## Chunk 3: Sync & multiple devices
 

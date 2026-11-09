@@ -7,6 +7,7 @@ describe('parseRoute', () => {
     ['#/', { name: 'library' }],
     ['#/add', { name: 'add' }],
     ['#/data', { name: 'data' }],
+    ['#/shop', { name: 'shop' }],
     ['#/song/new', { name: 'song-new' }],
     ['#/song/abc', { name: 'song', id: 'abc' }],
     ['#/song/abc/edit', { name: 'song-edit', id: 'abc' }],
