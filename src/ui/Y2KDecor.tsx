@@ -15,7 +15,7 @@ function Sparkle({ className }: { className: string }) {
  * Side decorations of the Y2K Futurism look: rendered chrome objects at the
  * screen edges, sparkles, flavour text running up the page margins, and on
  * wide screens two full-body chrome DJs (a man and a woman, one in each
- * margin, with lightning crackling around them) and a HUD readout. The readout is bare glowing text, not a panel,
+ * margin) and a HUD readout; lightning strikes from above behind it all. The readout is bare glowing text, not a panel,
  * so it doesn't look like a button. Purely decorative: it sits behind the
  * page, takes no taps, and is hidden from screen readers.
  */
@@ -24,6 +24,8 @@ export function Y2KDecor() {
   const s = stats(graph);
   return (
     <div className="y2k-decor" aria-hidden="true">
+      {/* First, so the bolts sit over the orb backdrop and under everything else here. */}
+      <Y2KLightning />
       <svg className="y2k-defs" width="0" height="0">
         <defs>
           <linearGradient id="y2k-chrome-fill" x1="0" y1="0" x2="0" y2="1">
@@ -36,12 +38,8 @@ export function Y2KDecor() {
       </svg>
       <span className="y2k-chrome y2k-chrome-blob" />
       <span className="y2k-chrome y2k-chrome-torus" />
-      <span className="y2k-chrome y2k-chrome-dj y2k-chrome-man">
-        <Y2KLightning figure="man" />
-      </span>
-      <span className="y2k-chrome y2k-chrome-dj y2k-chrome-woman">
-        <Y2KLightning figure="woman" />
-      </span>
+      <span className="y2k-chrome y2k-chrome-dj y2k-chrome-man" />
+      <span className="y2k-chrome y2k-chrome-dj y2k-chrome-woman" />
       <Sparkle className="y2k-sparkle y2k-sparkle-1" />
       <Sparkle className="y2k-sparkle y2k-sparkle-2" />
       <Sparkle className="y2k-sparkle y2k-sparkle-3" />

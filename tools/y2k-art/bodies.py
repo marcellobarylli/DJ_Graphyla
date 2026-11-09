@@ -174,10 +174,6 @@ def pose(coords, rig_dir, bone_rot):
     local = posed[head_idx] @ rot
     lo, hi = local.min(axis=0), local.max(axis=0)
     head = {'axes': rot, 'center': rot @ ((lo + hi) / 2), 'size': hi - lo}
-    # Where the lightning in the page can start: fingertips and toes, posed.
-    for key, bone in [('handL', 'finger3-3.L'), ('handR', 'finger3-3.R'), ('footL', 'foot.L'), ('footR', 'foot.R')]:
-        tail = np.append(joints[bones[bone]['tail']], 1)
-        head[key] = (world[bone] @ tail)[:3]
     return posed, head
 
 
@@ -204,7 +200,6 @@ def write_mesh(path, coords, faces, head):
             # Columns: the head's right, up and forward directions.
             'axes': [[round(float(v), 5) for v in row] for row in head['axes']],
         },
-        'anchors': {k: [round(float(v), 4) for v in head[k] + shift] for k in ('handL', 'handR', 'footL', 'footR')},
     }
     path.with_suffix('.json').write_text(json.dumps(meta, indent=2) + '\n')
     idx = np.array(tris, dtype=np.uint16 if len(used) < 65536 else np.uint32)

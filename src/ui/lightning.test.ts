@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import figures from '../assets/y2k/figures.json';
-import { type FigureAnchors, STRIKE_KINDS, jag, seeded, strike, toPath } from './lightning';
+import { jag, seeded, skyBolt } from './lightning';
 
 describe('jag', () => {
   it('runs from a to b in 2^depth segments', () => {
@@ -11,31 +10,26 @@ describe('jag', () => {
   });
 
   it('stays near the straight line', () => {
-    const pts = jag([0, 0], [0, 100], seeded(2), 0.28, 6);
-    for (const [x] of pts) expect(Math.abs(x)).toBeLessThan(100);
+    const pts = jag([0, 0], [0, 100], seeded(2), 0.2, 7);
+    for (const [x] of pts) expect(Math.abs(x)).toBeLessThan(60);
   });
 });
 
-describe('strike', () => {
-  const man = figures.man as unknown as FigureAnchors;
+describe('skyBolt', () => {
+  const numbers = (d: string) => d.match(/-?[\d.]+/g)!.map(Number);
 
-  it('gives a path and branches for every kind', () => {
-    for (const kind of STRIKE_KINDS) {
-      const s = strike(man, kind, seeded(3));
-      expect(s.main).toMatch(/^M[-\d.]+ [-\d.]+(L[-\d.]+ [-\d.]+)+$/);
-      expect(s.branches.length).toBeGreaterThan(0);
+  it('starts above the top edge and ends between half way and the bottom', () => {
+    for (let seed = 1; seed < 20; seed++) {
+      const b = skyBolt(1440, 900, seeded(seed));
+      const n = numbers(b.main);
+      expect(n[1]).toBeLessThan(0);
+      expect(n.at(-1)).toBeGreaterThanOrEqual(450);
+      expect(n.at(-1)).toBeLessThanOrEqual(900);
+      expect(b.forks.length).toBeGreaterThanOrEqual(3);
     }
   });
 
-  it('lands sky strikes on the headphones and starts hand strikes at a hand', () => {
-    const sky = strike(man, 'sky', seeded(4)).main;
-    expect(sky.endsWith(`L${man.crown[0].toFixed(1)} ${man.crown[1].toFixed(1)}`)).toBe(true);
-    const hands = strike(man, 'hands', seeded(5)).main;
-    const starts = [man.handL, man.handR].map((p) => toPath([p]));
-    expect(starts.some((m) => hands.startsWith(m))).toBe(true);
-  });
-
   it('is repeatable with the same seed', () => {
-    expect(strike(man, 'cross', seeded(9))).toEqual(strike(man, 'cross', seeded(9)));
+    expect(skyBolt(390, 844, seeded(9))).toEqual(skyBolt(390, 844, seeded(9)));
   });
 });

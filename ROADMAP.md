@@ -116,9 +116,8 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       DJ headphones, one in each margin (`npm run art:y2k -- man woman`). Built from MakeHuman's
       CC0 base mesh and body targets by `tools/y2k-art/bodies.py`. They replace the HUD panels'
       boxes: the HUD is now bare glowing text in the corner, so nothing looks like something to tap
-- [x] Lightning around the chrome DJs: every few seconds a bolt strikes the headphones from above,
-      crackles over the head, jumps from a hand to the floor, runs between the feet or slants
-      across the figure, and the figure glows with it (`ui/Y2KLightning.tsx`, bolts in
+- [x] Lightning in the backdrop: every few seconds one or two forked bolts come down from the
+      top of the screen, over the orb and behind the chrome DJs (`ui/Y2KLightning.tsx`, bolts in
       `ui/lightning.ts`). Under three flashes a second; still bolts with reduced motion; paused
       in a hidden tab
 - [x] Headings and flavour text in your own font file (e.g. Xylem, which can't be shipped), picked
