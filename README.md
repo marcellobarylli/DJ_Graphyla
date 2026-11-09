@@ -45,7 +45,7 @@ snapshot with its date stamp). DJ pictures turn into pixelated, overexposed digi
 Y2K only: big stretched italic caps and song titles in Anybody (ExtraExpanded), body text in Anybody,
 numbers and badges in the Silkscreen pixel font, and the crate name in Pirata One blackletter.
 *Y2K Futurism* is dark mode with a rendered liquid-glass orb behind the page, chrome objects, sparkles and flavour text
-at the edges, and chrome buttons. Every text element follows its type scheme: headings and big song
+at the edges, two full-body chrome DJs (a man and a woman, built from MakeHuman's CC0 assets) beside the page on wide screens, and chrome buttons. Every text element follows its type scheme: headings and big song
 titles in chrome, in your own font file (for example your copy of Xylem, which the app can't ship:
 its licence doesn't allow that; pick it in the look panel) or else Orbitron; buttons, labels,
 badges and numbers in Orbitron; everything else, graph labels included, in Oxanium.

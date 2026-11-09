@@ -2,7 +2,8 @@
  * Renders the Y2K Futurism pictures (tools/y2k-art/render.js) in headless
  * Chromium and writes them to src/assets/y2k/ as WebP.
  *
- *   npm run art:y2k
+ *   npm run art:y2k            (all of them)
+ *   npm run art:y2k -- man     (only the named scenes)
  *
  * Needs Playwright with Chromium on the machine (it is not a project
  * dependency): `npm i -g playwright && npx playwright install chromium`.
@@ -15,7 +16,9 @@ import { createServer } from 'vite';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const outDir = join(root, 'src', 'assets', 'y2k');
-const SCENES = ['orb-portrait', 'orb-landscape', 'torus', 'blob'];
+const ALL = ['orb-portrait', 'orb-landscape', 'torus', 'blob', 'man', 'woman'];
+// `npm run art:y2k -- man woman` renders only the named scenes.
+const SCENES = process.argv.length > 2 ? process.argv.slice(2) : ALL;
 
 function loadPlaywright() {
   const require = createRequire(import.meta.url);

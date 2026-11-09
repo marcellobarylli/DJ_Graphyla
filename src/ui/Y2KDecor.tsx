@@ -1,5 +1,6 @@
 import { stats } from '../domain/graph';
 import { useStore } from '../state/store';
+import { Y2KLightning } from './Y2KLightning';
 
 /** Four-point "sparkle" star in chrome. */
 function Sparkle({ className }: { className: string }) {
@@ -12,15 +13,19 @@ function Sparkle({ className }: { className: string }) {
 
 /**
  * Side decorations of the Y2K Futurism look: rendered chrome objects at the
- * screen edges, sparkles, flavour text running up the page margins, and HUD
- * panels beside the page on wide screens. Purely decorative: it sits behind
- * the page, takes no taps, and is hidden from screen readers.
+ * screen edges, sparkles, flavour text running up the page margins, and on
+ * wide screens two full-body chrome DJs (a man and a woman, one in each
+ * margin) and a HUD readout; lightning strikes from above behind it all. The readout is bare glowing text, not a panel,
+ * so it doesn't look like a button. Purely decorative: it sits behind the
+ * page, takes no taps, and is hidden from screen readers.
  */
 export function Y2KDecor() {
   const { graph, activeCrate } = useStore();
   const s = stats(graph);
   return (
     <div className="y2k-decor" aria-hidden="true">
+      {/* First, so the bolts sit over the orb backdrop and under everything else here. */}
+      <Y2KLightning />
       <svg className="y2k-defs" width="0" height="0">
         <defs>
           <linearGradient id="y2k-chrome-fill" x1="0" y1="0" x2="0" y2="1">
@@ -33,27 +38,21 @@ export function Y2KDecor() {
       </svg>
       <span className="y2k-chrome y2k-chrome-blob" />
       <span className="y2k-chrome y2k-chrome-torus" />
+      <span className="y2k-chrome y2k-chrome-dj y2k-chrome-man" />
+      <span className="y2k-chrome y2k-chrome-dj y2k-chrome-woman" />
       <Sparkle className="y2k-sparkle y2k-sparkle-1" />
       <Sparkle className="y2k-sparkle y2k-sparkle-2" />
       <Sparkle className="y2k-sparkle y2k-sparkle-3" />
       <p className="y2k-rail y2k-rail-left">◆ Graphyla//2000 ◆ millennium ready ◆ bpm sync online ◆ enter the new millennium ◆</p>
       <p className="y2k-rail y2k-rail-right">system online ◆ y2k compliant ◆ v{__APP_VERSION__}</p>
-      <div className="y2k-hud y2k-hud-left">
-        <p className="y2k-hud-title">Graphyla OS 2000</p>
-        <p>&gt; crate link ······ ok</p>
-        <p>&gt; bpm engine ····· online</p>
-        <p>
-          &gt; nodes {s.songs} ◆ edges {s.transitions}
-        </p>
-        <p>&gt; millennium ready_</p>
-      </div>
-      <div className="y2k-hud y2k-hud-right">
+      <div className="y2k-hud">
         <p className="y2k-hud-title">Transmission</p>
         <p>welcome to the future of the mix</p>
         <p className="y2k-hud-crate">{activeCrate.name}</p>
         <p>
-          sets {s.sets} ◆ 00:00:00
+          nodes {s.songs} ◆ edges {s.transitions} ◆ sets {s.sets}
         </p>
+        <p>&gt; millennium ready_</p>
       </div>
     </div>
   );

@@ -2,9 +2,12 @@
  * Y2K Futurism art, rendered in the browser with three.js:
  *  - orb-portrait / orb-landscape: a liquid glass orb with water-like caustics
  *    over horizontal light streaks (late-90s CGI wallpaper style), dark;
- *  - torus / blob: chrome objects on a transparent background, for the edges.
- * Everything is procedural (no downloaded textures), so the pictures are ours
- * and ship under the repository's own terms.
+ *  - torus / blob: chrome objects on a transparent background, for the edges;
+ *  - man / woman: full-body chrome figures wearing DJ headphones, on a
+ *    transparent background (meshes from bodies.py, see figureScene).
+ * The orb, torus and blob are procedural (no downloaded textures), and the
+ * figures are built from MakeHuman's CC0 assets, so the pictures are ours and
+ * ship under the repository's own terms.
  *
  * ?scene=<name> picks the scene. The finished frame is exposed as
  * window.__art = { name, dataUrl } (WebP) for tools/y2k-art/render.mjs.
@@ -21,6 +24,8 @@ const SCENES = {
   'orb-landscape': { width: 1600, height: 1000, kind: 'orb', camZ: 5.6, orbX: 1.75, orbY: 0.2 },
   torus: { width: 560, height: 560, kind: 'torus' },
   blob: { width: 560, height: 560, kind: 'blob' },
+  man: { width: 560, height: 1300, kind: 'figure', turn: 0.38 },
+  woman: { width: 560, height: 1300, kind: 'figure', turn: -0.38 },
 };
 
 /** Small deterministic PRNG so every run draws the same picture. */
@@ -33,11 +38,12 @@ function rng(seed) {
  * Equirectangular environment. 'night' (behind the orb): deep navy sky with a
  * band of horizontal speed streaks at the horizon. 'chrome' (for the metal
  * objects): a bright silver-blue sky over a dark ground with a sharp horizon,
- * the classic liquid-chrome reflection. Both get a white "sun" and soft light
+ * the classic liquid-chrome reflection. 'figure' (for the people): a cloudy
+ * sky over a soft grey-blue ground, so no part of a body mirrors black. Both get a white "sun" and soft light
  * panels for highlights.
  */
 function environmentCanvas(kind) {
-  const chrome = kind === 'chrome';
+  const chrome = kind !== 'night';
   const W = 2048;
   const H = 1024;
   const c = document.createElement('canvas');
@@ -45,7 +51,9 @@ function environmentCanvas(kind) {
   c.height = H;
   const g = c.getContext('2d');
   const sky = g.createLinearGradient(0, 0, 0, H);
-  const stops = chrome
+  const stops = kind === 'figure'
+    ? [[0, '#ffffff'], [0.2, '#c9d7f2'], [0.45, '#7d96d4'], [0.6, '#3550a4'], [0.65, '#111a44'], [0.78, '#4d5878'], [1, '#8a91a8']]
+    : chrome
     ? [[0, '#f4f8ff'], [0.3, '#b9c9ea'], [0.47, '#7f97cf'], [0.5, '#0a1024'], [0.62, '#26324f'], [1, '#0b1020']]
     : [[0, '#000105'], [0.38, '#050d33'], [0.5, '#1c3bd0'], [0.56, '#071450'], [1, '#01020a']];
   for (const [at, color] of stops) sky.addColorStop(at, color);
@@ -53,6 +61,24 @@ function environmentCanvas(kind) {
   g.fillRect(0, 0, W, H);
 
   const rand = rng(2000);
+  if (kind === 'figure') {
+    // Soft cumulus over the sky, so the chrome has something to mirror.
+    for (let i = 0; i < 60; i++) {
+      const x = rand() * W;
+      const y = H * (0.08 + rand() * 0.58);
+      const r = 60 + rand() * 150;
+      const pick = rand();
+      const shade = pick < 0.42 ? '255,255,255' : pick < 0.68 ? '120,145,205' : '18,28,80';
+      g.filter = `blur(${24 + rand() * 30}px)`;
+      g.fillStyle = `rgba(${shade},${0.25 + rand() * 0.5})`;
+      for (const dx of [0, -W, W]) {
+        g.beginPath();
+        g.ellipse(x + dx, y, r * (1.6 + rand()), r * 0.55, 0, 0, Math.PI * 2);
+        g.fill();
+      }
+    }
+    g.filter = 'none';
+  }
   {
     for (let i = 0; i < (chrome ? 90 : 320); i++) {
       const y = H * (0.5 + (rand() - 0.5) * (chrome ? 0.5 : 0.3) * (0.3 + rand()));
@@ -171,10 +197,133 @@ function causticsMaterial() {
   });
 }
 
-function render() {
+/**
+ * A chrome DJ: a full-body human figure (tools/y2k-art/bodies, built from
+ * MakeHuman's CC0 base mesh by bodies.py) in mirror chrome, wearing
+ * blue-chrome headphones with dark glossy cushions. The figure is turned a
+ * little toward the page. Rendered at twice the size and scaled down.
+ */
+async function figureScene(name, cfg) {
+  const SS = 2;
+  const W = cfg.width * SS;
+  const H = cfg.height * SS;
+  const [bin, meta] = await Promise.all([
+    fetch(new URL(`./bodies/${name}.bin`, import.meta.url)).then((r) => r.arrayBuffer()),
+    fetch(new URL(`./bodies/${name}.json`, import.meta.url)).then((r) => r.json()),
+  ]);
+  const [nVerts, nIdx] = new Uint32Array(bin, 0, 2);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(bin, 8, nVerts * 3), 3));
+  geo.setIndex(new THREE.BufferAttribute(new Uint16Array(bin, 8 + nVerts * 12, nIdx), 1));
+  geo.computeVertexNormals();
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1);
+  renderer.setSize(W, H);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
+  renderer.setClearColor(0x000000, 0);
+
+  const scene = new THREE.Scene();
+  const envTex = new THREE.CanvasTexture(environmentCanvas('figure'));
+  envTex.mapping = THREE.EquirectangularReflectionMapping;
+  envTex.colorSpace = THREE.SRGBColorSpace;
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromEquirectangular(envTex).texture;
+
+  const chrome = new THREE.MeshPhysicalMaterial({
+    color: 0xf4f6fb,
+    metalness: 1,
+    roughness: 0.06,
+    iridescence: 0.3,
+    iridescenceIOR: 1.5,
+    iridescenceThicknessRange: [200, 500],
+    clearcoat: 1,
+    clearcoatRoughness: 0.05,
+    envMapIntensity: 1.2,
+  });
+  const blueChrome = chrome.clone();
+  blueChrome.color = new THREE.Color(0xa4bbff);
+  blueChrome.iridescence = 0.3;
+  const cushion = new THREE.MeshPhysicalMaterial({ color: 0x06080f, metalness: 0, roughness: 0.25, clearcoat: 1, clearcoatRoughness: 0.15 });
+
+  const figure = new THREE.Group();
+  figure.add(new THREE.Mesh(geo, chrome));
+
+  // Headphones in the head's own frame: x right, y up, z forward.
+  const { center, size, axes } = meta.head;
+  const phones = new THREE.Group();
+  const halfW = size[0] / 2;
+  const cupR = size[1] * 0.2;
+  const cupX = halfW + cupR * 0.3;
+  const cupY = -size[1] * 0.2;
+  const cupZ = -size[2] * 0.12;
+  for (const side of [-1, 1]) {
+    const cup = new THREE.Mesh(new THREE.CylinderGeometry(cupR, cupR * 0.94, cupR * 0.6, 64), blueChrome);
+    cup.rotation.z = Math.PI / 2;
+    cup.position.set(side * cupX, cupY, cupZ);
+    const cap = new THREE.Mesh(new THREE.TorusGeometry(cupR * 0.62, cupR * 0.07, 16, 64), blueChrome);
+    cap.rotation.y = Math.PI / 2;
+    cap.position.set(side * (cupX + cupR * 0.3), cupY, cupZ);
+    const pad = new THREE.Mesh(new THREE.TorusGeometry(cupR * 0.72, cupR * 0.26, 24, 64), cushion);
+    pad.rotation.y = Math.PI / 2;
+    pad.scale.set(1, 1, 0.75);
+    pad.position.set(side * (cupX - cupR * 0.36), cupY, cupZ);
+    phones.add(cup, cap, pad);
+  }
+  // Band: a half ellipse from the top of one cup over the skull to the other.
+  const baseY = cupY + cupR * 0.4;
+  const topY = size[1] * 0.56;
+  const arc = new THREE.CatmullRomCurve3(
+    Array.from({ length: 41 }, (_, i) => {
+      const a = Math.PI - (i / 40) * Math.PI;
+      return new THREE.Vector3(Math.cos(a) * cupX, baseY + Math.sin(a) * (topY - baseY), cupZ);
+    }),
+  );
+  const band = new THREE.Mesh(new THREE.TubeGeometry(arc, 160, size[1] * 0.035, 20), blueChrome);
+  band.scale.z = 2.2; // a flat strap, wider front to back
+  band.position.z = cupZ - cupZ * 2.2;
+  phones.add(band);
+  const frame = new THREE.Matrix4().set(
+    axes[0][0], axes[0][1], axes[0][2], center[0],
+    axes[1][0], axes[1][1], axes[1][2], center[1],
+    axes[2][0], axes[2][1], axes[2][2], center[2],
+    0, 0, 0, 1,
+  );
+  phones.applyMatrix4(frame);
+  figure.add(phones);
+
+  figure.rotation.y = cfg.turn;
+  scene.add(figure);
+
+  const fov = 18;
+  const camera = new THREE.PerspectiveCamera(fov, W / H, 1, 400);
+  const h = meta.height * 1.04;
+  const dist = h / 2 / Math.tan(THREE.MathUtils.degToRad(fov / 2));
+  camera.position.set(0, h * 0.52, dist);
+  camera.lookAt(0, h * 0.49, 0);
+
+  renderer.render(scene, camera);
+  const out = document.createElement('canvas');
+  out.width = cfg.width;
+  out.height = cfg.height;
+  const g = out.getContext('2d');
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(renderer.domElement, 0, 0, cfg.width, cfg.height);
+  document.body.appendChild(out);
+  renderer.domElement.remove();
+  return out.toDataURL('image/webp', 0.9);
+}
+
+async function render() {
   const name = new URLSearchParams(location.search).get('scene') ?? 'orb-portrait';
   const cfg = SCENES[name];
   if (!cfg) throw new Error(`Unknown scene ${name}`);
+  if (cfg.kind === 'figure') {
+    window.__art = { name, dataUrl: await figureScene(name, cfg) };
+    document.getElementById('status').textContent = `${name}: done`;
+    return;
+  }
   const alpha = cfg.kind !== 'orb';
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha, preserveDrawingBuffer: true });
@@ -268,9 +417,7 @@ function render() {
   document.getElementById('status').textContent = `${name}: done`;
 }
 
-try {
-  render();
-} catch (err) {
+render().catch((err) => {
   window.__art = { error: String(err) };
   document.getElementById('status').textContent = String(err);
-}
+});
