@@ -7,6 +7,7 @@
   --muted: #9298ad;
   --accent: #8b6cff;
   --accent-strong: #a48bff;
+  --on-accent: #ffffff; /* text on an accent-filled button or chip */
   --out: #ff8a4c;
   --in: #3dd6f5;
   --star: #ffc83d;
@@ -129,7 +130,7 @@ fieldset { margin: 0; min-width: 0; }
   margin-top: -18px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--out), var(--accent) 55%, var(--in));
-  box-shadow: 0 6px 20px rgb(139 108 255 / 0.45);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 45%, transparent);
   color: white;
 }
 .tab-add-btn svg { stroke-width: 2.6; }
@@ -165,7 +166,7 @@ fieldset { margin: 0; min-width: 0; }
   text-align: center;
 }
 .btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .btn-danger { background: transparent; border-color: color-mix(in srgb, var(--danger) 50%, transparent); color: var(--danger); }
 .btn-small { min-height: 34px; padding: 0 12px; font-size: 0.85rem; border-radius: 10px; }
 .btn-block { width: 100%; }
@@ -220,7 +221,7 @@ fieldset { margin: 0; min-width: 0; }
   font-size: 16px; /* ≥16px stops iOS from zooming on focus */
   outline: none;
 }
-.input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgb(139 108 255 / 0.25); }
+.input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
 .has-error .input { border-color: var(--danger); }
 .textarea { resize: vertical; min-height: 80px; font-family: inherit; }
 .select { width: auto; flex: none; }
@@ -553,7 +554,7 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 .input-suffix { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: var(--muted); pointer-events: none; }
 .presets { display: inline-flex; gap: 6px; }
 .presets .chip-btn { min-height: 36px; min-width: 40px; justify-content: center; }
-.chip-btn.on { background: var(--accent); border-color: var(--accent); color: white; }
+.chip-btn.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .badge-overlap { color: var(--text); }
 .hint-lines { flex-direction: column; align-items: flex-start; gap: 2px; }
 
@@ -617,7 +618,7 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 }
 .suggestion-text { overflow: hidden; text-overflow: ellipsis; white-space: pre; }
 .suggestion strong { color: var(--text); font-weight: 700; }
-.suggestion:active { background: var(--accent); color: white; }
+.suggestion:active { background: var(--accent); color: var(--on-accent); }
 
 .app-version { text-align: center; }
 .update-banner {
@@ -638,6 +639,201 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+/* ── look switch (issue #9) ──────────────────────────────── */
+/* A slim handle in the right page margin (16px), so it never covers content. */
+.theme-handle {
+  position: fixed;
+  top: 50%;
+  right: env(safe-area-inset-right, 0px);
+  z-index: 15;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 56px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-right: 0;
+  border-radius: 10px 0 0 10px;
+  background: color-mix(in srgb, var(--surface-2) 88%, transparent);
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+.theme-handle-track { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.theme-handle-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--muted); opacity: 0.45; }
+.theme-handle-dot.on { width: 6px; height: 6px; margin: -1px 0; background: var(--accent); opacity: 1; box-shadow: 0 0 6px var(--accent); }
+.theme-backdrop { position: fixed; inset: 0; z-index: 24; background: rgb(0 0 0 / 0.3); }
+.theme-panel {
+  position: fixed;
+  top: 50%;
+  right: calc(env(safe-area-inset-right, 0px) + 8px);
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(290px, calc(100vw - 32px));
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.55);
+  transform: translateY(-50%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .theme-panel { animation: theme-panel-in 160ms ease-out; }
+}
+@keyframes theme-panel-in {
+  from { opacity: 0; transform: translate(12px, -50%); }
+  to { opacity: 1; transform: translateY(-50%); }
+}
+.theme-panel .sheet-head { align-items: center; }
+.theme-panel-title { font-weight: 700; }
+.theme-options { display: flex; flex-direction: column; gap: 6px; }
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.theme-option:active { background: var(--surface-2); }
+.theme-option[aria-checked='true'] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.theme-option-text { display: flex; flex-direction: column; min-width: 0; }
+.theme-option-name { font-weight: 700; }
+.theme-option-hint { font-size: 0.8rem; color: var(--muted); }
+/* Each swatch and name previews its own look, whichever look is on. */
+.theme-swatch { flex: none; width: 42px; height: 42px; border-radius: 10px; border: 1px solid rgb(255 255 255 / 0.14); }
+.theme-swatch-graphyla { background: url('/icon.svg') center / cover no-repeat; }
+.theme-swatch-swag { background: url('./assets/cap.svg') center / 30px no-repeat, url('./assets/camo.svg') 0 0 / 120px 120px, #0b0b0c; }
+.theme-swatch-futurism {
+  background:
+    radial-gradient(circle at 44% 40%, #ffffff 0, #d6deea 3px, #8d9ab0 9px, #2a3550 14px, transparent 15px),
+    linear-gradient(rgb(143 211 255 / 0.14) 1px, transparent 1px) 0 0 / 7px 7px,
+    linear-gradient(90deg, rgb(143 211 255 / 0.14) 1px, transparent 1px) 0 0 / 7px 7px,
+    #05070d;
+}
+.theme-option-swag .theme-option-name { font-family: 'Jost', 'Futura', system-ui, sans-serif; font-style: italic; font-weight: 800; letter-spacing: 0.02em; }
+.theme-option-futurism .theme-option-name { font-family: 'Orbitron', system-ui, sans-serif; letter-spacing: 0.03em; }
+
+/* Both Y2K looks draw a backdrop behind the page; cards and bars stay solid
+   or blurred, so text never sits directly on the pattern. */
+:root:is([data-theme='swag'], [data-theme='futurism']) body { background: transparent; }
+:root:is([data-theme='swag'], [data-theme='futurism']) body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+:root:is([data-theme='swag'], [data-theme='futurism']) .toolbar {
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* ── look: SW4G 3R4 ──────────────────────────────────────────
+   Y2K camo, caps, Swag / Jerk era, hypebeast: black and white with pops of
+   teal, orange and box-logo red, a dark multi-colour camo backdrop, heavy
+   italic caps on headings, labels and buttons (song titles keep their case),
+   boxy corners, a snapback logo and a checkerboard strip under the header. */
+:root[data-theme='swag'] {
+  --bg: #0b0b0c;
+  --surface: #151517;
+  --surface-2: #1f1f23;
+  --border: #303036;
+  --text: #f5f5f4;
+  --muted: #a8a8b0;
+  --accent: #22e3d3;
+  --accent-strong: #5ff0e4;
+  --on-accent: #04110f;
+  --out: #ff8a1f;
+  --in: #c084fc;
+  --brand: #e5132b;
+  --radius: 6px;
+  --font-display: 'Jost', 'Futura', 'Trebuchet MS', system-ui, sans-serif;
+}
+[data-theme='swag'] body::before { background: url('./assets/camo.svg') 0 0 / 240px 240px; opacity: 0.75; }
+[data-theme='swag'] :is(.section-title, .play-label, .topbar-title, .tab, .btn, .chip-btn, .field-label, .side-legend, .picker-caption, .chart-title, .empty-title, .segmented button, .theme-panel-title) {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+[data-theme='swag'] :is(.btn, .input, .segmented, .segmented button, .variant, .picked, .gap, .theme-option, .theme-swatch) { border-radius: 4px; }
+[data-theme='swag'] .tab-add-btn {
+  border-radius: 4px;
+  background: var(--brand);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--brand) 40%, transparent);
+}
+[data-theme='swag'] .topbar-logo { border-radius: 0; background: url('./assets/cap.svg') center / contain no-repeat; }
+[data-theme='swag'] .topbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  background: repeating-conic-gradient(rgb(255 255 255 / 0.14) 0 25%, transparent 0 50%) 0 0 / 4px 4px;
+  pointer-events: none;
+}
+
+/* ── look: Y2K Futurism (dark) ───────────────────────────────
+   Late-90s / early-2000s tech optimism at night: near-black blue, chrome
+   (liquid-metal buttons, a chrome orb for Add), electric and ice blue with
+   neon pink, a faint terminal grid with soft glows, and a wide techno
+   display face (Orbitron) for headings and the bar clock. */
+:root[data-theme='futurism'] {
+  --bg: #05070d;
+  --surface: #0c1221;
+  --surface-2: #141c31;
+  --border: #29354f;
+  --text: #eaf2ff;
+  --muted: #93a2bf;
+  --accent: #3b9eff;
+  --accent-strong: #8fd3ff;
+  --on-accent: #03101f;
+  --out: #ff6ad5;
+  --in: #3fe6ff;
+  --radius: 16px;
+  --font-display: 'Orbitron', 'Eurostile', system-ui, sans-serif;
+}
+[data-theme='futurism'] body::before {
+  background:
+    radial-gradient(70% 45% at 0% 0%, rgb(59 158 255 / 0.18), transparent 70%),
+    radial-gradient(60% 40% at 100% 100%, rgb(255 106 213 / 0.1), transparent 70%),
+    linear-gradient(rgb(143 211 255 / 0.05) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(90deg, rgb(143 211 255 / 0.05) 1px, transparent 1px) 0 0 / 28px 28px;
+}
+[data-theme='futurism'] :is(.section-title, .play-label, .topbar-title, .tab, .chart-title, .empty-title, .picker-caption, .side-legend, .theme-panel-title, .clock-bar, .stats strong) {
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
+}
+[data-theme='futurism'] .tab { font-size: 0.62rem; letter-spacing: 0.05em; }
+[data-theme='futurism'] .tab.on { color: var(--accent-strong); text-shadow: 0 0 10px color-mix(in srgb, var(--accent-strong) 60%, transparent); }
+[data-theme='futurism'] .tab.on svg { filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent-strong) 70%, transparent)); }
+[data-theme='futurism'] :is(.card, .list, .group, .cue-song, .sheet) {
+  background-image: linear-gradient(180deg, rgb(160 205 255 / 0.06), transparent 56px);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07);
+}
+[data-theme='futurism'] .btn-primary {
+  background: linear-gradient(180deg, #f7faff 0%, #c9d3e2 42%, #8e9bb2 52%, #dfe6f1 100%);
+  border-color: #e3e9f3;
+  color: #07101f;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 0 16px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+[data-theme='futurism'] .tab-add-btn {
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #dbe3ee 22%, #93a0b7 58%, #3a4560 100%);
+  color: #07101f;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 50%, transparent), inset 0 -3px 6px rgb(0 0 0 / 0.35);
 }
 
 @media (min-width: 720px) {

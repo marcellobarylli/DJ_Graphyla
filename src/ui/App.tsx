@@ -10,6 +10,7 @@ import { SetView } from './SetView';
 import { SetsView } from './SetsView';
 import { SongForm } from './SongForm';
 import { SongView } from './SongView';
+import { ThemeSwitch } from './ThemeSwitch';
 import { TransitionForm } from './TransitionForm';
 import { EmptyState, TopBar } from './components';
 
@@ -100,6 +101,8 @@ export function App() {
     <div className={`app${isForm(route) ? ' is-form' : ''}${route.name === 'graph' ? ' is-graph' : ''}`}>
       <Screen route={route} />
       <UpdateBanner />
+      {/* The look switch sits with the tab bar; forms and play mode stay free of it. */}
+      {!isForm(route) && <ThemeSwitch />}
       {!isForm(route) && (
         <nav className="tabbar" aria-label="Main">
           <a className={`tab${tab === 'library' ? ' on' : ''}`} aria-current={tab === 'library' ? 'page' : undefined} {...linkTo(paths.library())}>

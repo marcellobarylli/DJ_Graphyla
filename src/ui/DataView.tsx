@@ -4,6 +4,7 @@ import { ImportError, exportJson, exportLibraryJson, parseBackupFile } from '../
 import { requestPersistentStorage } from '../storage/localStore';
 import { linkTo, paths } from '../state/router';
 import { useStore } from '../state/store';
+import { useTheme } from '../state/theme';
 import { TopBar } from './components';
 
 type ImportMode = 'merge' | 'replace' | 'new';
@@ -33,6 +34,7 @@ const IMPORT_HELP: Record<ImportMode, string> = {
 
 export function DataView() {
   const store = useStore();
+  const theme = useTheme();
   const crate = store.activeCrate;
   const s = stats(store.graph);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -190,7 +192,7 @@ export function DataView() {
           </button>
         </div>
 
-        <p className="app-version small muted">DJ Graphyla v{__APP_VERSION__}</p>
+        <p className="app-version small muted">{theme.appName} v{__APP_VERSION__}</p>
       </main>
     </>
   );

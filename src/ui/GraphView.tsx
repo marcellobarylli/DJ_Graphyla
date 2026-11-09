@@ -5,6 +5,8 @@
  * canvas colour); "doesn't work" uses the reserved critical red and a dashed
  * line, so it never relies on colour alone. A set can be overlaid as a
  * highlighted, numbered walk; everything else is dimmed.
+ * The look (theme) changes the canvas, nodes and labels only; the data
+ * colours of edges stay the same in every look.
  *
  * Loaded lazily, so Cytoscape only downloads when the Graph tab is opened.
  */
@@ -15,14 +17,12 @@ import { sortedSets } from '../domain/sets';
 import type { GraphData } from '../domain/types';
 import { linkTo, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
+import { useTheme, type ThemeInfo } from '../state/theme';
 import { BpmBadge, EmptyState, KeyBadge, TopBar, VariantRow } from './components';
 import { createAndOpenSet } from './SetsView';
 
+/** Data colours: identical in every look (all looks have a dark canvas). */
 const C = {
-  canvas: '#0e0f14',
-  node: '#1f2230',
-  nodeBorder: '#8b6cff',
-  text: '#eceef5',
   unrated: '#6b7086',
   bad: '#d03b3b',
   ramp: { 2: '#256abf', 3: '#3987e5', 4: '#6da7ec', 5: '#b7d3f6' } as Record<number, string>,
@@ -97,24 +97,25 @@ function buildElements(graph: GraphData): ElementDefinition[] {
   return [...nodes, ...edges];
 }
 
-const style: StylesheetJson = [
+/** Canvas, node and label colours come from the active look. */
+const graphStyle = (look: ThemeInfo['graph']): StylesheetJson => [
   {
     selector: 'node',
     style: {
-      'background-color': C.node,
+      'background-color': look.node,
       'border-width': 2,
-      'border-color': C.nodeBorder,
+      'border-color': look.nodeBorder,
       width: 'data(size)',
       height: 'data(size)',
       label: 'data(label)',
-      color: C.text,
+      color: look.text,
       'font-size': 13,
       'font-family': 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
       'text-valign': 'bottom',
       'text-margin-y': 5,
       'text-wrap': 'ellipsis',
       'text-max-width': '110px',
-      'text-outline-color': C.canvas,
+      'text-outline-color': look.canvas,
       'text-outline-width': 2,
       'min-zoomed-font-size': 7,
     },
@@ -148,18 +149,18 @@ const style: StylesheetJson = [
       'line-style': 'solid',
       width: 4,
       label: 'data(step)',
-      color: C.text,
+      color: look.text,
       'font-size': 11,
       'font-weight': 'bold',
-      'text-background-color': C.canvas,
+      'text-background-color': look.canvas,
       'text-background-opacity': 1,
       'text-background-padding': '2px',
       'text-background-shape': 'roundrectangle',
       'z-index': 10,
     },
   },
-  { selector: 'node:selected', style: { 'border-color': C.text, 'border-width': 3 } },
-  { selector: 'edge:selected', style: { 'overlay-color': C.text, 'overlay-opacity': 0.15, 'overlay-padding': 4 } },
+  { selector: 'node:selected', style: { 'border-color': look.text, 'border-width': 3 } },
+  { selector: 'edge:selected', style: { 'overlay-color': look.text, 'overlay-opacity': 0.15, 'overlay-padding': 4 } },
 ];
 
 type Selection = { kind: 'node'; id: string } | { kind: 'edge'; id: string } | null;
@@ -167,6 +168,7 @@ type Selection = { kind: 'node'; id: string } | { kind: 'edge'; id: string } | n
 export default function GraphView({ setId, focusId }: { setId?: string; focusId?: string }) {
   const store = useStore();
   const { graph } = store;
+  const theme = useTheme();
   const container = useRef<HTMLDivElement>(null);
   const cyRef = useRef<Core | null>(null);
   const [minRating, setMinRating] = useState<MinRating>(0);
@@ -190,7 +192,7 @@ export default function GraphView({ setId, focusId }: { setId?: string; focusId?
     if (!container.current) return;
     const cy = cytoscape({
       container: container.current,
-      style,
+      style: graphStyle(theme.graph),
       minZoom: 0.2,
       maxZoom: 3,
       boxSelectionEnabled: false,
@@ -208,6 +210,11 @@ export default function GraphView({ setId, focusId }: { setId?: string; focusId?
       cyRef.current = null;
     };
   }, [isEmpty]);
+
+  // Switching the look restyles the canvas in place (positions and zoom stay).
+  useEffect(() => {
+    cyRef.current?.style(graphStyle(theme.graph));
+  }, [theme.id, isEmpty]);
 
   // (Re)load elements and lay out new nodes.
   useEffect(() => {
