@@ -1069,7 +1069,7 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
      1. headings and big song titles: the person's own font file (e.g. Xylem)
         or Orbitron, in chrome with a blue glow;
      2. interface text (labels, buttons, badges, numbers, the bar clock): Orbitron;
-     3. everything else (lists, notes, inputs, hints, graph labels): Exo 2.
+     3. everything else (lists, notes, inputs, hints, graph labels): Oxanium.
    3D pictures: tools/y2k-art. */
 :root[data-theme='futurism'] {
   --bg: #05070d;
@@ -1084,7 +1084,7 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
   --out: #ff6ad5;
   --in: #3fe6ff;
   --radius: 16px;
-  --font-body: 'Exo 2 Variable', 'Exo 2', system-ui, sans-serif;
+  --font-body: 'Oxanium Variable', 'Oxanium', system-ui, sans-serif;
   --font-display: 'Orbitron Variable', 'Orbitron', 'Eurostile', system-ui, sans-serif;
   /* 'Graphyla Heading' is the font file picked in the look panel (state/lookFont.ts);
      an installed Xylem is used next, then Orbitron. */
@@ -1104,7 +1104,7 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
     var(--y2k-art) center top / cover no-repeat,
     var(--bg);
 }
-/* Tier 3, body: Exo 2 everywhere by default (set on :root above); form fields inherit it too. */
+/* Tier 3, body: Oxanium everywhere by default (set on :root above); form fields inherit it too. */
 [data-theme='futurism'] :is(input, select, textarea, option) { font-family: inherit; }
 [data-theme='futurism'] .input::placeholder { color: color-mix(in srgb, var(--muted) 85%, transparent); }
 [data-theme='futurism'] :is(.song-title, .picker-option, .choice-text) { letter-spacing: 0.01em; }

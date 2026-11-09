@@ -61,7 +61,7 @@ describe('themes', () => {
 
   it('gives the graph a label font Cytoscape accepts (no single quotes)', () => {
     for (const t of THEMES) expect(t.graph.font).toMatch(/^[\w\- ",]+$/);
-    expect(themeInfo('futurism').graph.font).toContain('"Exo 2 Variable"');
+    expect(themeInfo('futurism').graph.font).toContain('"Oxanium Variable"');
   });
 });
 

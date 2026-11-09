@@ -12,8 +12,8 @@ import '@fontsource-variable/anybody/wdth.css';
 import '@fontsource-variable/anybody/wdth-italic.css';
 import '@fontsource/silkscreen/latin-400.css';
 import '@fontsource/pirata-one/latin-400.css';
-// Y2K Futurism: Exo 2 and Orbitron.
-import '@fontsource-variable/exo-2/wght.css';
+// Y2K Futurism: Oxanium and Orbitron.
+import '@fontsource-variable/oxanium/wght.css';
 import '@fontsource-variable/orbitron/wght.css';
 import './styles.css';
 

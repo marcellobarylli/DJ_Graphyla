@@ -81,7 +81,7 @@ export const THEMES: readonly ThemeInfo[] = [
     appName: 'DJ Graphyla',
     themeColor: '#05070d',
     scheme: 'dark',
-    graph: { canvas: '#05070d', node: '#141c31', nodeBorder: '#b9c6dc', text: '#eaf2ff', font: '"Exo 2 Variable", system-ui, sans-serif' },
+    graph: { canvas: '#05070d', node: '#141c31', nodeBorder: '#b9c6dc', text: '#eaf2ff', font: '"Oxanium Variable", system-ui, sans-serif' },
   },
 ];
 
