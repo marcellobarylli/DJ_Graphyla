@@ -48,7 +48,7 @@ numbers and badges in the Silkscreen pixel font, and the crate name in Pirata On
 at the edges, and chrome buttons. Every text element follows its type scheme: headings and big song
 titles in chrome, in your own font file (for example your copy of Xylem, which the app can't ship:
 its licence doesn't allow that; pick it in the look panel) or else Orbitron; buttons, labels,
-badges and numbers in Orbitron; everything else, graph labels included, in Exo 2.
+badges and numbers in Orbitron; everything else, graph labels included, in Oxanium.
 Backgrounds stay behind the cards, so buttons and text read the same in every look. The graph's
 rating colours keep their meaning in every look (one blue, stronger for a better rating; red dashed
 for "doesn't work"); on the light canvas they are stepped darker so they still read. The look and

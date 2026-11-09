@@ -116,7 +116,7 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       in the look panel and kept on the device; Orbitron otherwise
 - [x] v0.6.1: every text element in Y2K Futurism follows the type scheme. Headings and big song
       titles in chrome (own font / Orbitron), interface text (buttons, labels, badges, numbers,
-      the bar clock) in Orbitron, everything else in Exo 2: lists, notes, inputs, the graph's labels
+      the bar clock) in Orbitron, everything else in Oxanium: lists, notes, inputs, the graph's labels
 - [x] Readability first: cards stay solid over the patterns, song titles keep their case, and the
       graph's edge colours (ratings) are the same in every look
 - [x] The look is a device setting (saved next to the crates, not in backups); display fonts are
