@@ -7,7 +7,12 @@ import { App } from './ui/App';
 import { watchForUpdates } from './updates';
 // Display fonts of the Y2K looks. Bundled for offline use; browsers download a
 // face only when a look that uses it is on screen.
-import '@fontsource/jost/latin-800-italic.css';
+// SW4G 3R4: Anybody (width axis, for stretched type), Silkscreen (pixel), Pirata One (blackletter).
+import '@fontsource-variable/anybody/wdth.css';
+import '@fontsource-variable/anybody/wdth-italic.css';
+import '@fontsource/silkscreen/latin-400.css';
+import '@fontsource/pirata-one/latin-400.css';
+// Y2K Futurism: Exo 2 and Orbitron.
 import '@fontsource-variable/exo-2/wght.css';
 import '@fontsource-variable/orbitron/wght.css';
 import './styles.css';

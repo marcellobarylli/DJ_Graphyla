@@ -11,6 +11,7 @@ import { FreeWalkView, PlayView } from './PlayView';
 import { SetView } from './SetView';
 import { SetsView } from './SetsView';
 import { ShopView } from './ShopView';
+import { SwagDecor } from './SwagDecor';
 import { SongForm } from './SongForm';
 import { SongView } from './SongView';
 import { ThemeSwitch } from './ThemeSwitch';
@@ -109,6 +110,7 @@ export function App() {
   return (
     <div className={`app${isForm(route) ? ' is-form' : ''}${route.name === 'graph' ? ' is-graph' : ''}`}>
       {theme.id === 'futurism' && <Y2KDecor />}
+      {theme.id === 'swag' && <SwagDecor />}
       <Screen route={route} />
       <UpdateBanner />
       {/* The look switch sits with the tab bar; forms and play mode stay free of it. */}

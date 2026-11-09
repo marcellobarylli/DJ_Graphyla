@@ -19,12 +19,36 @@ export interface ThemeInfo {
   appName: string;
   /** Browser / status bar colour: the page background. */
   themeColor: string;
+  /** Light or dark page; picks the graph's edge colours (see EDGE_COLORS). */
+  scheme: 'dark' | 'light';
   /**
    * Cytoscape cannot read CSS variables, so the graph canvas gets its colours and label font here.
    * Cytoscape only accepts double quotes around font names.
    */
   graph: { canvas: string; node: string; nodeBorder: string; text: string; font: string };
 }
+
+export interface EdgeColors {
+  unrated: string;
+  /** Rating 1, "doesn't work": the critical red (also drawn dashed). */
+  bad: string;
+  /** Ratings 2–5: one blue, an ordinal ramp that stands out more from the canvas as the rating rises. */
+  ramp: Record<2 | 3 | 4 | 5, string>;
+  /** A set's walk drawn over the graph. */
+  set: string;
+}
+
+/**
+ * The graph's data colours. Their meaning is the same in every look: grey dotted
+ * for unrated, red dashed for "doesn't work", one blue getting stronger with the
+ * rating, amber for a set. Only the steps differ, so they read on a dark or a
+ * light canvas (both ramps validated for monotone lightness, visible steps and
+ * at least 2:1 against the canvas at the weak end).
+ */
+export const EDGE_COLORS: Record<ThemeInfo['scheme'], EdgeColors> = {
+  dark: { unrated: '#6b7086', bad: '#d03b3b', ramp: { 2: '#256abf', 3: '#3987e5', 4: '#6da7ec', 5: '#b7d3f6' }, set: '#c98500' },
+  light: { unrated: '#8b8f9e', bad: '#d03b3b', ramp: { 2: '#6da7ec', 3: '#3987e5', 4: '#256abf', 5: '#104281' }, set: '#a86b00' },
+};
 
 const SYSTEM_FONT = 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
 
@@ -36,16 +60,18 @@ export const THEMES: readonly ThemeInfo[] = [
     hint: 'The original dark look',
     appName: 'DJ Graphyla',
     themeColor: '#0e0f14',
+    scheme: 'dark',
     graph: { canvas: '#0e0f14', node: '#1f2230', nodeBorder: '#8b6cff', text: '#eceef5', font: SYSTEM_FONT },
   },
   {
     id: 'swag',
     name: 'SW4G 3R4',
     spokenName: 'Swag Era',
-    hint: 'Y2K camo, caps, hypebeast',
+    hint: 'Light: hypebeast, soft camo, Y2K type',
     appName: 'DJ GR4PHYL4',
-    themeColor: '#0b0b0c',
-    graph: { canvas: '#0b0b0c', node: '#1f1f23', nodeBorder: '#22e3d3', text: '#f5f5f4', font: SYSTEM_FONT },
+    themeColor: '#f4f4f1',
+    scheme: 'light',
+    graph: { canvas: '#f4f4f1', node: '#ffffff', nodeBorder: '#0b0b0b', text: '#0b0b0b', font: '"Anybody Variable", Verdana, system-ui, sans-serif' },
   },
   {
     id: 'futurism',
@@ -54,6 +80,7 @@ export const THEMES: readonly ThemeInfo[] = [
     hint: 'Chrome and electric blue, dark',
     appName: 'DJ Graphyla',
     themeColor: '#05070d',
+    scheme: 'dark',
     graph: { canvas: '#05070d', node: '#141c31', nodeBorder: '#b9c6dc', text: '#eaf2ff', font: '"Exo 2 Variable", system-ui, sans-serif' },
   },
 ];

@@ -31,15 +31,22 @@ back. *Not the same* keeps them apart for good. *Data → Duplicate songs* check
 own songs, transitions and sets. Switch crates from the header.
 
 **Looks**: the slim handle on the right edge of the screen switches between three looks. *Graphyla*
-is the original. *SW4G 3R4* is Y2K camo, caps and hypebeast (Swag / Jerk era). *Y2K Futurism* is
-dark mode with a rendered liquid-glass orb behind the page, chrome objects, sparkles and flavour text
+is the original. *SW4G 3R4* (Swag Era) is the light look: the hypebeast and swag era of the 2000s and
+2010s, updated for 2026. An overexposed white page over soft digital camo, black and white with
+box-logo red, square corners with hard black shadows, a checkerboard strip, and tribal flourishes,
+stars, a safety pin and pixel flavour text at the edges (on wide screens also a hang tag and a digicam
+snapshot with its date stamp). DJ pictures turn into pixelated, overexposed digicam shots. Its type is
+Y2K only: big stretched italic caps and song titles in Anybody (ExtraExpanded), body text in Anybody,
+numbers and badges in the Silkscreen pixel font, and the crate name in Pirata One blackletter.
+*Y2K Futurism* is dark mode with a rendered liquid-glass orb behind the page, chrome objects, sparkles and flavour text
 at the edges, and chrome buttons. Every text element follows its type scheme: headings and big song
 titles in chrome, in your own font file (for example your copy of Xylem, which the app can't ship:
 its licence doesn't allow that; pick it in the look panel) or else Orbitron; buttons, labels,
 badges and numbers in Orbitron; everything else, graph labels included, in Exo 2.
-Backgrounds stay behind the cards, so buttons and text read the same in every look, and the
-graph's rating colours never change. The look and the font are saved per device and are not part
-of backups.
+Backgrounds stay behind the cards, so buttons and text read the same in every look. The graph's
+rating colours keep their meaning in every look (one blue, stronger for a better rating; red dashed
+for "doesn't work"); on the light canvas they are stepped darker so they still read. The look and
+the font are saved per device and are not part of backups.
 
 See [ROADMAP.md](ROADMAP.md) for what's built and what's next.
 
@@ -168,6 +175,7 @@ npm run typecheck
 npm run build      # production build in dist/
 npm run preview    # serve the production build
 npm run art:y2k    # re-render the Y2K Futurism 3D pictures (needs Playwright + Chromium)
+npm run art:swag   # re-draw the SW4G 3R4 digital camo (src/assets/camo-digital.svg)
 npm run icons      # re-draw the app icon (public/graphyla-icon*; needs Playwright + Chromium)
 ```
 
@@ -175,14 +183,16 @@ Code layout:
 
 ```text
 src/
-  domain/    pure, tested logic: graph (songs/transitions), sets (walks, tempo track), crates, positions, tempo, backup format
+  domain/    pure, tested logic: graph (songs/transitions), sets (walks, tempo track), crates, positions, tempo, backup format,
+             digicam (the overexposed picture treatment of SW4G 3R4)
   storage/   localStorage persistence, one entry per crate (swappable for a sync backend later);
              githubShop: uploads to the record shop through the GitHub API
   state/     React store, tiny hash router, looks (themes)
-  ui/        screens: library, song page, song/transition cards, graph (Cytoscape, lazy-loaded), sets, data, look switch
-  assets/    camo pattern and cap logo (SW4G 3R4); y2k/ = rendered 3D pictures (Y2K Futurism)
+  ui/        screens: library, song page, song/transition cards, graph (Cytoscape, lazy-loaded), sets, data, look switch,
+             edge decorations of the Y2K looks (SwagDecor, Y2KDecor)
+  assets/    SW4G 3R4: digital camo, cap logo, flourish, safety pin, snapshot; y2k/ = rendered 3D pictures (Y2K Futurism)
 public/      PWA manifest, service worker, icons
-tools/       y2k-art: three.js scenes that render the Y2K Futurism pictures; icon: the app icon
+tools/       y2k-art: three.js scenes that render the Y2K Futurism pictures; swag-art: the digital camo; icon: the app icon
 record-shop/ crates shared from the app; published with the site by vite.config.ts
 ```
 

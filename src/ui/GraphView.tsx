@@ -5,8 +5,8 @@
  * canvas colour); "doesn't work" uses the reserved critical red and a dashed
  * line, so it never relies on colour alone. A set can be overlaid as a
  * highlighted, numbered walk; everything else is dimmed.
- * The look (theme) changes the canvas, nodes and labels only; the data
- * colours of edges stay the same in every look.
+ * The look (theme) changes the canvas, nodes and labels; the edges keep their
+ * meaning in every look, stepped for a dark or a light canvas (EDGE_COLORS).
  *
  * Loaded lazily, so Cytoscape only downloads when the Graph tab is opened.
  */
@@ -17,18 +17,12 @@ import { sortedSets } from '../domain/sets';
 import type { GraphData } from '../domain/types';
 import { linkTo, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
-import { useTheme, type ThemeInfo } from '../state/theme';
+import { EDGE_COLORS, useTheme, type ThemeInfo } from '../state/theme';
 import { BpmBadge, EmptyState, KeyBadge, TopBar, VariantRow } from './components';
 import { createAndOpenSet } from './SetsView';
 
-/** Data colours: identical in every look (all looks have a dark canvas). */
-const C = {
-  unrated: '#6b7086',
-  bad: '#d03b3b',
-  ramp: { 2: '#256abf', 3: '#3987e5', 4: '#6da7ec', 5: '#b7d3f6' } as Record<number, string>,
-  width: { 0: 1.5, 1: 1.5, 2: 2, 3: 2.5, 4: 3.25, 5: 4 } as Record<number, number>,
-  set: '#c98500',
-};
+/** Edge width by rating (the rating is also in the colour, so it never relies on colour alone). */
+const WIDTH: Record<number, number> = { 0: 1.5, 1: 1.5, 2: 2, 3: 2.5, 4: 3.25, 5: 4 };
 
 type MinRating = 0 | 3 | 4;
 
@@ -97,71 +91,75 @@ function buildElements(graph: GraphData): ElementDefinition[] {
   return [...nodes, ...edges];
 }
 
-/** Canvas, node and label colours come from the active look. */
-const graphStyle = (look: ThemeInfo['graph']): StylesheetJson => [
-  {
-    selector: 'node',
-    style: {
-      'background-color': look.node,
-      'border-width': 2,
-      'border-color': look.nodeBorder,
-      width: 'data(size)',
-      height: 'data(size)',
-      label: 'data(label)',
-      color: look.text,
-      'font-size': 13,
-      'font-family': look.font,
-      'text-valign': 'bottom',
-      'text-margin-y': 5,
-      'text-wrap': 'ellipsis',
-      'text-max-width': '110px',
-      'text-outline-color': look.canvas,
-      'text-outline-width': 2,
-      'min-zoomed-font-size': 7,
+/** Canvas, node and label colours come from the active look; edge colours from its scheme. */
+const graphStyle = (theme: ThemeInfo): StylesheetJson => {
+  const look = theme.graph;
+  const C = EDGE_COLORS[theme.scheme];
+  return [
+    {
+      selector: 'node',
+      style: {
+        'background-color': look.node,
+        'border-width': 2,
+        'border-color': look.nodeBorder,
+        width: 'data(size)',
+        height: 'data(size)',
+        label: 'data(label)',
+        color: look.text,
+        'font-size': 13,
+        'font-family': look.font,
+        'text-valign': 'bottom',
+        'text-margin-y': 5,
+        'text-wrap': 'ellipsis',
+        'text-max-width': '110px',
+        'text-outline-color': look.canvas,
+        'text-outline-width': 2,
+        'min-zoomed-font-size': 7,
+      },
     },
-  },
-  {
-    selector: 'edge',
-    style: {
-      'curve-style': 'bezier',
-      'control-point-step-size': 22,
-      'target-arrow-shape': 'triangle',
-      'arrow-scale': 0.9,
-      width: 2,
-      'line-color': C.unrated,
-      'target-arrow-color': C.unrated,
+    {
+      selector: 'edge',
+      style: {
+        'curve-style': 'bezier',
+        'control-point-step-size': 22,
+        'target-arrow-shape': 'triangle',
+        'arrow-scale': 0.9,
+        width: 2,
+        'line-color': C.unrated,
+        'target-arrow-color': C.unrated,
+      },
     },
-  },
-  { selector: 'edge[rating = 0]', style: { 'line-style': 'dotted', width: C.width[0]! } },
-  { selector: 'edge[rating = 1]', style: { 'line-color': C.bad, 'target-arrow-color': C.bad, 'line-style': 'dashed', width: C.width[1]! } },
-  ...[2, 3, 4, 5].map((r) => ({
-    selector: `edge[rating = ${r}]`,
-    style: { 'line-color': C.ramp[r]!, 'target-arrow-color': C.ramp[r]!, width: C.width[r]! },
-  })),
-  { selector: '.hidden', style: { display: 'none' } },
-  { selector: '.dim', style: { opacity: 0.14 } },
-  { selector: 'node.in-set', style: { 'border-color': C.set, 'border-width': 3 } },
-  {
-    selector: 'edge.in-set',
-    style: {
-      'line-color': C.set,
-      'target-arrow-color': C.set,
-      'line-style': 'solid',
-      width: 4,
-      label: 'data(step)',
-      color: look.text,
-      'font-size': 11,
-      'font-weight': 'bold',
-      'text-background-color': look.canvas,
-      'text-background-opacity': 1,
-      'text-background-padding': '2px',
-      'text-background-shape': 'roundrectangle',
-      'z-index': 10,
+    { selector: 'edge[rating = 0]', style: { 'line-style': 'dotted', width: WIDTH[0]! } },
+    { selector: 'edge[rating = 1]', style: { 'line-color': C.bad, 'target-arrow-color': C.bad, 'line-style': 'dashed', width: WIDTH[1]! } },
+    ...([2, 3, 4, 5] as const).map((r) => ({
+      selector: `edge[rating = ${r}]`,
+      style: { 'line-color': C.ramp[r], 'target-arrow-color': C.ramp[r], width: WIDTH[r]! },
+    })),
+    { selector: '.hidden', style: { display: 'none' } },
+    { selector: '.dim', style: { opacity: 0.14 } },
+    { selector: 'node.in-set', style: { 'border-color': C.set, 'border-width': 3 } },
+    {
+      selector: 'edge.in-set',
+      style: {
+        'line-color': C.set,
+        'target-arrow-color': C.set,
+        'line-style': 'solid',
+        width: 4,
+        label: 'data(step)',
+        color: look.text,
+        'font-size': 11,
+        'font-weight': 'bold',
+        'text-background-color': look.canvas,
+        'text-background-opacity': 1,
+        'text-background-padding': '2px',
+        'text-background-shape': 'roundrectangle',
+        'z-index': 10,
+      },
     },
-  },
-  { selector: 'node:selected', style: { 'border-color': look.text, 'border-width': 3 } },
-  { selector: 'edge:selected', style: { 'overlay-color': look.text, 'overlay-opacity': 0.15, 'overlay-padding': 4 } },
-];
+    { selector: 'node:selected', style: { 'border-color': look.text, 'border-width': 3 } },
+    { selector: 'edge:selected', style: { 'overlay-color': look.text, 'overlay-opacity': 0.15, 'overlay-padding': 4 } },
+  ];
+};
 
 type Selection = { kind: 'node'; id: string } | { kind: 'edge'; id: string } | null;
 
@@ -192,7 +190,7 @@ export default function GraphView({ setId, focusId }: { setId?: string; focusId?
     if (!container.current) return;
     const cy = cytoscape({
       container: container.current,
-      style: graphStyle(theme.graph),
+      style: graphStyle(theme),
       minZoom: 0.2,
       maxZoom: 3,
       boxSelectionEnabled: false,
@@ -214,11 +212,11 @@ export default function GraphView({ setId, focusId }: { setId?: string; focusId?
   // Switching the look restyles the canvas in place (positions and zoom stay).
   // Canvas text doesn't swap fonts by itself, so restyle again once the look's font has loaded.
   useEffect(() => {
-    cyRef.current?.style(graphStyle(theme.graph));
+    cyRef.current?.style(graphStyle(theme));
     let live = true;
     void document.fonts
       ?.load(`13px ${theme.graph.font}`)
-      .then(() => live && cyRef.current?.style(graphStyle(theme.graph)))
+      .then(() => live && cyRef.current?.style(graphStyle(theme)))
       .catch(() => undefined);
     return () => {
       live = false;
@@ -369,6 +367,7 @@ export default function GraphView({ setId, focusId }: { setId?: string; focusId?
 }
 
 function Legend({ showSet }: { showSet: boolean }) {
+  const C = EDGE_COLORS[useTheme().scheme];
   const key = (color: string, width: number, dash?: string) => (
     <svg width="22" height="8" aria-hidden="true">
       <line x1="1" y1="4" x2="21" y2="4" stroke={color} strokeWidth={width} strokeDasharray={dash} strokeLinecap="round" />
@@ -376,13 +375,13 @@ function Legend({ showSet }: { showSet: boolean }) {
   );
   return (
     <ul className="legend" aria-label="Edge legend">
-      {[2, 3, 4, 5].map((r) => (
+      {([2, 3, 4, 5] as const).map((r) => (
         <li key={r}>
-          {key(C.ramp[r]!, C.width[r]!)}★{r}
+          {key(C.ramp[r], WIDTH[r]!)}★{r}
         </li>
       ))}
-      <li>{key(C.bad, C.width[1]!, '5 3')}doesn't work</li>
-      <li>{key(C.unrated, C.width[0]!, '1.5 3')}unrated</li>
+      <li>{key(C.bad, WIDTH[1]!, '5 3')}doesn't work</li>
+      <li>{key(C.unrated, WIDTH[0]!, '1.5 3')}unrated</li>
       {showSet && <li>{key(C.set, 4)}set (numbered)</li>}
     </ul>
   );

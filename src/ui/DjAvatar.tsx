@@ -1,5 +1,13 @@
-/** A DJ's profile picture in the record shop, or their initials when there is none. */
+import { digicamCells } from '../domain/digicam';
+import { useTheme } from '../state/theme';
+import { useDigicam } from './useDigicam';
+
+/**
+ * A DJ's profile picture in the record shop, or their initials when there is none.
+ * In SW4G 3R4 the picture shows as a pixelated, overexposed digicam shot.
+ */
 export function DjAvatar({ name, src, size = 36 }: { name: string; src?: string | null; size?: number }) {
+  const shot = useDigicam(src, digicamCells(size), useTheme().id === 'swag');
   const initials =
     name
       .trim()
@@ -8,8 +16,16 @@ export function DjAvatar({ name, src, size = 36 }: { name: string; src?: string 
       .slice(0, 2)
       .map((w) => [...w][0]!.toUpperCase())
       .join('') || '?';
-  return src ? (
-    <img className="dj-avatar" src={src} alt="" width={size} height={size} style={{ width: size, height: size }} loading="lazy" />
+  return shot.src ? (
+    <img
+      className={`dj-avatar${shot.pixelated ? ' is-digicam' : ''}`}
+      src={shot.src}
+      alt=""
+      width={size}
+      height={size}
+      style={{ width: size, height: size }}
+      loading="lazy"
+    />
   ) : (
     <span className="dj-avatar dj-avatar-initials" aria-hidden="true" style={{ width: size, height: size, fontSize: size * 0.38 }}>
       {initials}
