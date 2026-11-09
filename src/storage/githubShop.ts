@@ -6,7 +6,7 @@
  * part of backups. Browsing the shop needs no token: the site publishes the
  * files itself (see vite.config.ts).
  */
-import { SHOP_DIR, toBase64 } from '../domain/recordShop';
+import { SHOP_DIR, fromBase64, parseShopPath, shopFilePath, toBase64 } from '../domain/recordShop';
 
 /** The repo that holds the record shop. Change this in a fork. */
 export const SHOP_REPO = { owner: 'marcellobarylli', repo: 'DJ_Graphyla', branch: 'main' } as const;
@@ -53,12 +53,12 @@ const API = 'https://api.github.com';
 const repoPath = `/repos/${SHOP_REPO.owner}/${SHOP_REPO.repo}`;
 const contentsPath = (path: string) => `${repoPath}/contents/${[SHOP_DIR, ...path.split('/')].map(encodeURIComponent).join('/')}`;
 
-async function gh(path: string, token: string, init: RequestInit, fetchFn: Fetch): Promise<Response> {
+async function gh(path: string, token: string, init: RequestInit, fetchFn: Fetch, accept = 'application/vnd.github+json'): Promise<Response> {
   try {
     return await fetchFn(`${API}${path}`, {
       ...init,
       headers: {
-        Accept: 'application/vnd.github+json',
+        Accept: accept,
         'X-GitHub-Api-Version': '2022-11-28',
         Authorization: `Bearer ${token.trim()}`,
         ...(init.body ? { 'Content-Type': 'application/json' } : {}),
@@ -112,29 +112,89 @@ async function currentSha(account: ShopAccount, path: string, fetchFn: Fetch): P
   return ((await res.json()) as { sha: string }).sha;
 }
 
-/** Creates or replaces `path` (inside record-shop/) with `content`, as one commit on the main branch. */
-export async function uploadToShop(
+/** A shop file's text and blob sha, or null if it doesn't exist. */
+export async function readShopFile(account: ShopAccount, path: string, fetchFn: Fetch = fetch): Promise<{ sha: string; text: string } | null> {
+  const url = `${contentsPath(path)}?ref=${SHOP_REPO.branch}`;
+  const res = await gh(url, account.token, {}, fetchFn);
+  if (res.status === 404) return null;
+  if (!res.ok) throw errorFor(res.status, account.login);
+  const file = (await res.json()) as { sha: string; content?: string; encoding?: string };
+  if (file.encoding === 'base64' && file.content) return { sha: file.sha, text: fromBase64(file.content) };
+  // Files over 1 MB come without content in the JSON answer; ask for the raw file.
+  const raw = await gh(url, account.token, {}, fetchFn, 'application/vnd.github.raw+json');
+  if (!raw.ok) throw errorFor(raw.status, account.login);
+  return { sha: file.sha, text: await raw.text() };
+}
+
+/**
+ * Where the shop keeps `crateId`, whoever shared it: looks through the repo's
+ * file list (current, so it also sees uploads the site hasn't published yet).
+ * `hints` are paths the published index lists for this crate. Null if the
+ * crate isn't in the shop.
+ */
+export async function findCrateFile(account: ShopAccount, crateId: string, hints: string[], fetchFn: Fetch = fetch): Promise<string | null> {
+  const res = await gh(`${repoPath}/git/trees/${SHOP_REPO.branch}?recursive=1`, account.token, {}, fetchFn);
+  if (!res.ok) return hints[0] ?? null; // can't list: trust the published index
+  const { tree } = (await res.json()) as { tree?: { path: string; type: string }[] };
+  const prefix = `${SHOP_DIR}/`;
+  const files = new Set(
+    (tree ?? [])
+      .filter((f) => f.type === 'blob' && f.path.startsWith(prefix))
+      .map((f) => f.path.slice(prefix.length))
+      .filter((path) => parseShopPath(path) !== null),
+  );
+  const byName = [...files].filter((path) => path.endsWith(`/${crateId}.json`));
+  const own = byName.find((path) => path.toLowerCase().startsWith(`${account.login.toLowerCase()}/`));
+  return hints.find((h) => files.has(h)) ?? own ?? byName[0] ?? null;
+}
+
+/**
+ * Shares a crate so that the shop keeps one entry per crate: if the crate is
+ * already in the shop (shared by anyone), its file is read, `build` merges it
+ * with the local crate, and the same file is updated; otherwise a new file is
+ * created in the sharer's folder. If someone else writes the file meanwhile,
+ * it reads and merges again.
+ */
+export async function syncCrateToShop(
   account: ShopAccount,
-  file: { path: string; content: string; message: string },
+  opts: {
+    crateId: string;
+    /** Paths the published index lists for this crate. */
+    hints: string[];
+    /** Builds the file to write from the shop's current copy (null if none). */
+    build: (existingText: string | null) => string;
+    message: (update: boolean) => string;
+  },
   fetchFn: Fetch = fetch,
-): Promise<{ created: boolean; htmlUrl: string }> {
+): Promise<{ path: string; created: boolean; htmlUrl: string }> {
+  const own = shopFilePath(account.login, opts.crateId);
   for (let attempt = 0; ; attempt++) {
-    const sha = await currentSha(account, file.path, fetchFn);
+    let path = (await findCrateFile(account, opts.crateId, opts.hints, fetchFn)) ?? own;
+    let existing = await readShopFile(account, path, fetchFn);
+    if (!existing && path !== own) {
+      path = own; // the listed file is gone
+      existing = await readShopFile(account, own, fetchFn);
+    }
     const res = await gh(
-      contentsPath(file.path),
+      contentsPath(path),
       account.token,
       {
         method: 'PUT',
-        body: JSON.stringify({ message: file.message, content: toBase64(file.content), branch: SHOP_REPO.branch, ...(sha ? { sha } : {}) }),
+        body: JSON.stringify({
+          message: opts.message(existing !== null),
+          content: toBase64(opts.build(existing?.text ?? null)),
+          branch: SHOP_REPO.branch,
+          ...(existing ? { sha: existing.sha } : {}),
+        }),
       },
       fetchFn,
     );
     if (res.ok) {
       const body = (await res.json()) as { content?: { html_url?: string } };
-      return { created: res.status === 201, htmlUrl: body.content?.html_url ?? `${SHOP_REPO_URL}/tree/${SHOP_REPO.branch}/${SHOP_DIR}` };
+      return { path, created: existing === null, htmlUrl: body.content?.html_url ?? `${SHOP_REPO_URL}/tree/${SHOP_REPO.branch}/${SHOP_DIR}` };
     }
-    // Someone else changed the file between reading and writing: read again once.
-    if ((res.status === 409 || res.status === 422) && attempt === 0) continue;
+    // Someone else changed the file between reading and writing: read and merge again.
+    if ((res.status === 409 || res.status === 422) && attempt < 2) continue;
     throw errorFor(res.status, account.login);
   }
 }

@@ -31,7 +31,7 @@ function versionFile(): Plugin {
  */
 async function collectShop(root: string, warn: (msg: string) => void): Promise<{ index: ShopIndex; files: Map<string, string> }> {
   const { module: shop } = await runnerImport<ShopModule>(join(root, 'src/domain/recordShop.ts'), { configFile: false, logLevel: 'error' });
-  const { MAX_SHOP_FILE_BYTES, sortShopEntries, summarizeShopFile } = shop;
+  const { MAX_SHOP_FILE_BYTES, dedupeShopEntries, summarizeShopFile } = shop;
   const dir = join(root, SHOP_DIR);
   const files = new Map<string, string>();
   const entries: ShopEntry[] = [];
@@ -56,7 +56,10 @@ async function collectShop(root: string, warn: (msg: string) => void): Promise<{
     }
   };
   if (existsSync(dir)) walk(dir);
-  return { index: { generatedAt: new Date().toISOString(), entries: sortShopEntries(entries) }, files };
+  // One entry per crate (sharing a crate again syncs its file); list the newest copy of any duplicate.
+  const unique = dedupeShopEntries(entries);
+  for (const h of unique.hidden) warn(`record shop: ${h.path} is another copy of crate “${h.name}”; listing the newest copy only`);
+  return { index: { generatedAt: new Date().toISOString(), entries: unique.entries }, files };
 }
 
 /** Publishes the record shop with the site: record-shop/index.json plus every crate file. */

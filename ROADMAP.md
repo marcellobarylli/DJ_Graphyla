@@ -126,8 +126,11 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
 A public crate collection in the GitHub repo, before real accounts and sync (chunk 3).
 
 - [x] **Share to record shop**: upload the open crate (songs, transitions, sets) to
-      `record-shop/<github-login>/<crate-id>.json` with your GitHub token and a DJ name; sharing
-      again replaces it; remove your own uploads
+      `record-shop/<github-login>/<crate-id>.json` with your GitHub token and a DJ name; remove
+      your own uploads
+- [x] **One entry per crate**: sharing a crate that's already in the shop (by anyone) syncs it.
+      Both copies are merged into the same file (newer edits win, nothing deleted), your crate
+      gets the shop's additions, and the entry shows who synced it last
 - [x] **Browse and download** without an account: newest first, search by crate, DJ or set name;
       *Add to my crates*, or *Update my copy* (merge, newer edits win)
 - [x] The site publishes the shop (index + files) on every deploy; broken or oversized uploads are

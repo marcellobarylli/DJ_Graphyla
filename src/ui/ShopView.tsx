@@ -2,10 +2,11 @@
  * The record shop: crates other DJs shared to the GitHub repo. Anyone can
  * browse and download; people with write access to the repo can share the
  * open crate (and remove their own uploads) with their GitHub token.
+ * A crate that is already in the shop is synced, not added again.
  */
 import { useEffect, useId, useState, type FormEvent } from 'react';
 import { stats } from '../domain/graph';
-import { SHOP_DIR, buildShopFile, filterShopEntries, parseShopIndex, shopFilePath, type ShopEntry } from '../domain/recordShop';
+import { SHOP_DIR, filterShopEntries, parseShopIndex, prepareShopUpload, type ShopEntry, type ShopUpload } from '../domain/recordShop';
 import { ImportError, parseBackupFile } from '../domain/serialize';
 import { navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
@@ -18,7 +19,7 @@ import {
   loadAccount,
   removeFromShop,
   saveAccount,
-  uploadToShop,
+  syncCrateToShop,
   type ShopAccount,
 } from '../storage/githubShop';
 import { EmptyState, Field, TextField, TopBar } from './components';
@@ -36,6 +37,12 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 const day = (iso: string) => (iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '');
 const message = (err: unknown) => (err instanceof ShopError || err instanceof ImportError || err instanceof Error ? err.message : String(err));
 const fileUrl = (path: string) => `./${SHOP_DIR}/${path.split('/').map(encodeURIComponent).join('/')}`;
+
+/** "3 songs, 1 set" — only the non-zero parts. */
+function listCounts(c: { songs: number; transitions: number; sets: number }): string {
+  const parts = [c.songs && plural(c.songs, 'song'), c.transitions && plural(c.transitions, 'transition'), c.sets && plural(c.sets, 'set')].filter(Boolean);
+  return parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}` : String(parts[0] ?? '');
+}
 
 async function fetchListing(): Promise<ShopEntry[]> {
   const res = await fetch(`./${SHOP_DIR}/index.json`, { cache: 'no-cache' });
@@ -63,6 +70,8 @@ export function ShopView() {
   };
   useEffect(refresh, []);
 
+  const inShop = listing.state === 'ready' ? listing.entries.find((e) => e.crateId === crate.id) : undefined;
+
   const share = async () => {
     if (!account) return;
     const s = stats(store.graph);
@@ -71,18 +80,38 @@ export function ShopView() {
       return;
     }
     const what = `${plural(s.songs, 'song')}, ${plural(s.transitions, 'transition')}, ${plural(s.sets, 'set')}`;
-    if (!confirm(`Share “${crate.name}” (${what}) to the public record shop as ${account.djName}?\n\nAnyone can download it. Sharing it again replaces your copy in the shop.`)) return;
+    const question = inShop
+      ? `Sync “${crate.name}” with the record shop?\n\nYour crate and the shop copy (shared by ${inShop.by}) are merged: newer edits win and nothing is deleted. The shop entry is updated, and your crate gets anything new from it.`
+      : `Share “${crate.name}” (${what}) to the public record shop as ${account.djName}?\n\nAnyone can download it. Sharing it again later syncs it.`;
+    if (!confirm(question)) return;
     setBusy('share');
     setNotice(null);
     try {
-      const r = await uploadToShop(account, {
-        path: shopFilePath(account.login, crate.id),
-        content: buildShopFile(store.graph, crate, account.djName),
-        message: `Record shop: “${crate.name}” by ${account.djName} (${what})`,
+      const local = store.graph;
+      const label = { id: crate.id, name: crate.name };
+      let prep: ShopUpload | null = null;
+      const r = await syncCrateToShop(account, {
+        crateId: crate.id,
+        hints: listing.state === 'ready' ? listing.entries.filter((e) => e.crateId === crate.id).map((e) => e.path) : [],
+        build: (existingText) => {
+          prep = prepareShopUpload(local, label, account.djName, existingText);
+          return prep.content;
+        },
+        message: (update) => (update ? `Record shop: sync “${crate.name}” (${account.djName}; ${what})` : `Record shop: “${crate.name}” by ${account.djName} (${what})`),
       });
+      const done = prep as ShopUpload | null;
+      // Two-way: whatever the shop copy had that this crate didn't comes back into the crate.
+      let pulled = '';
+      if (done?.remote && done.fromShop) {
+        const { added, updated } = done.fromShop;
+        pulled = listCounts({ songs: added.songs + updated.songs, transitions: added.transitions + updated.transitions, sets: added.sets + updated.sets });
+        if (pulled) store.restoreCrates([{ id: crate.id, name: crate.name, graph: done.remote }]);
+      }
       setNotice({
         kind: 'ok',
-        text: `${r.created ? 'Shared' : 'Updated'} “${crate.name}”. It shows up in the shop in a minute or two, once the site has updated.`,
+        text: r.created
+          ? `Shared “${crate.name}”. It shows up in the shop in a minute or two, once the site has updated.`
+          : `Synced “${crate.name}” with the record shop${done && done.sharedBy !== account.djName ? ` (shared by ${done.sharedBy})` : ''}: the same entry is updated, no new one added.${pulled ? ` Your crate got ${pulled} from the shop copy.` : ''} The shop shows the update in a minute or two.`,
         link: r.htmlUrl,
       });
     } catch (err) {
@@ -144,15 +173,24 @@ export function ShopView() {
       <TopBar title="Record shop" back={paths.data()} />
       <main className="page">
         <section className="card stack">
-          <h3 className="section-title">Share “{crate.name}”</h3>
-          <p className="small muted">
-            Puts a copy of this crate (songs, transitions and sets) in the public record shop, so other DJs can download it. Sharing it
-            again replaces your copy in the shop.
-          </p>
+          <h3 className="section-title">
+            {inShop ? 'Sync' : 'Share'} “{crate.name}”
+          </h3>
+          {inShop ? (
+            <p className="small muted">
+              Already in the shop (shared by {inShop.by}). Sharing again syncs it: your crate and the shop copy are merged (newer edits
+              win, nothing is deleted) into the same entry, and your crate gets anything new from the shop.
+            </p>
+          ) : (
+            <p className="small muted">
+              Puts a copy of this crate (songs, transitions and sets) in the public record shop, so other DJs can download it. Sharing
+              it again later syncs it instead of adding it twice.
+            </p>
+          )}
           {account ? (
             <>
               <button type="button" className="btn btn-primary btn-block" disabled={busy !== null} onClick={share}>
-                {busy === 'share' ? 'Sharing…' : `Share “${crate.name}” to the record shop`}
+                {busy === 'share' ? (inShop ? 'Syncing…' : 'Sharing…') : inShop ? `Sync “${crate.name}” with the record shop` : `Share “${crate.name}” to the record shop`}
               </button>
               <p className="small muted">
                 Sharing as <strong>{account.djName}</strong> (GitHub @{account.login}) ·{' '}
@@ -235,6 +273,7 @@ export function ShopView() {
                     by <strong>{e.by}</strong>
                     {e.uploadedAt && ` · ${day(e.uploadedAt)}`}
                     {mine && ' · shared by you'}
+                    {e.updatedAt && e.updatedAt !== e.uploadedAt && ` · synced ${day(e.updatedAt)}${e.updatedBy !== e.by ? ` by ${e.updatedBy}` : ''}`}
                   </p>
                   <div className="row tight">
                     <span className="badge">{plural(e.songs, 'song')}</span>

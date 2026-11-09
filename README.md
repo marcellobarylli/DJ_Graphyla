@@ -71,9 +71,16 @@ The record shop is a public collection of crates (with their sets) in this repo'
   you already have shows *Update my copy*, which merges the shop's version in (newer edits win,
   nothing is deleted).
 - **Share:** *Share “…” to the record shop* uploads the open crate as
-  `record-shop/<github-login>/<crate-id>.json`. Sharing it again replaces it; *Remove from shop*
-  deletes your own uploads. Each upload is a commit to `main`, so the site redeploys and the
-  crate appears in the shop a minute or two later.
+  `record-shop/<github-login>/<crate-id>.json`. *Remove from shop* deletes your own uploads. Each
+  upload is a commit to `main`, so the site redeploys and the crate appears in the shop a minute
+  or two later.
+- **One entry per crate (sync):** a crate is identified by its id, which stays the same when
+  someone downloads it from the shop. If the crate is already in the shop, whoever shared it,
+  the button reads *Sync “…” with the record shop*: the shop copy and your crate are merged
+  (newer edits win, nothing is deleted, as in *Import → Merge*) into the **same** file, and your
+  crate gets anything new from the shop copy. The entry keeps who shared it first and shows who
+  synced it last. A crate imported as *New crate* from a file gets a new id, so it counts as a
+  different crate.
 - **Who can share:** anyone with write access to the repo, using their own GitHub token. The token
   is stored on their device only and sent only to `api.github.com`.
 

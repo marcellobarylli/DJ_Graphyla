@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import { addSong, updateSong } from './graph';
 import { buildSampleGraph } from './sample';
 import { exportLibraryJson, parseBackupFile } from './serialize';
 import {
   buildShopFile,
+  dedupeShopEntries,
   filterShopEntries,
+  fromBase64,
   parseShopIndex,
   parseShopPath,
+  prepareShopUpload,
   shopFilePath,
   sortShopEntries,
   summarizeShopFile,
@@ -84,6 +88,8 @@ describe('shop index', () => {
     name: 'Crate',
     by: 'DJ',
     uploadedAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    updatedBy: 'DJ',
     songs: 1,
     transitions: 0,
     sets: 0,
@@ -103,6 +109,29 @@ describe('shop index', () => {
     expect(parseShopIndex(null).entries).toEqual([]);
   });
 
+  it('lists a recent sync before older shares', () => {
+    const sorted = sortShopEntries([
+      entry({ name: 'Shared later', crateId: 'b', uploadedAt: '2026-05-01T00:00:00.000Z', updatedAt: '2026-05-01T00:00:00.000Z' }),
+      entry({ name: 'Synced now', crateId: 'a', updatedAt: '2026-11-09T00:00:00.000Z' }),
+    ]);
+    expect(sorted.map((e) => e.name)).toEqual(['Synced now', 'Shared later']);
+  });
+
+  it('keeps one entry per crate: the most recently updated copy', () => {
+    const { entries, hidden } = dedupeShopEntries([
+      entry({ path: `marcello/${crate.id}.json`, updatedAt: '2026-11-01T00:00:00.000Z' }),
+      entry({ path: `kat-ko/${crate.id}.json`, updatedAt: '2026-11-09T00:00:00.000Z' }),
+      entry({ path: 'kat-ko/other.json', crateId: 'other' }),
+    ]);
+    expect(entries.map((e) => e.path)).toEqual([`kat-ko/${crate.id}.json`, 'kat-ko/other.json']);
+    expect(hidden.map((e) => e.path)).toEqual([`marcello/${crate.id}.json`]);
+    // The published index is deduplicated the same way, and old indexes get the new fields.
+    const { updatedAt: _u, updatedBy: _b, ...old } = entry({ path: `marcello/${crate.id}.json` });
+    const index = parseShopIndex({ entries: [old, entry({ path: `kat-ko/${crate.id}.json`, updatedAt: '2026-11-09T00:00:00.000Z' })] });
+    expect(index.entries).toHaveLength(1);
+    expect(parseShopIndex({ entries: [old] }).entries[0]).toMatchObject({ updatedAt: old.uploadedAt, updatedBy: old.by });
+  });
+
   it('filters by crate, DJ, login or set name', () => {
     const all = [entry({ name: 'Deep Cuts', by: 'DJ Kat', login: 'kat-ko', setNames: ['Sunrise'] }), entry({ name: 'Peak Time' })];
     expect(filterShopEntries(all, 'kat').map((e) => e.name)).toEqual(['Deep Cuts']);
@@ -111,9 +140,74 @@ describe('shop index', () => {
   });
 });
 
-describe('toBase64', () => {
+describe('base64', () => {
   it('encodes UTF-8 text the way GitHub decodes it', () => {
     const text = 'Café “Ünïcode” ✨ ⇄ 128 BPM';
     expect(Buffer.from(toBase64(text), 'base64').toString('utf8')).toBe(text);
+  });
+
+  it('decodes GitHub’s line-wrapped base64', () => {
+    const text = 'Café ✨ '.repeat(20);
+    const wrapped = Buffer.from(text, 'utf8').toString('base64').replace(/.{60}/g, '$&\n');
+    expect(fromBase64(wrapped)).toBe(text);
+  });
+});
+
+describe('prepareShopUpload (share = create or sync)', () => {
+  const t0 = '2026-11-01T10:00:00.000Z';
+  const base = buildSampleGraph(t0);
+  const label = { id: crate.id, name: 'Deep Cuts' };
+  const songId = Object.keys(base.songs)[0]!;
+
+  it('creates a new shop file when the crate isn’t in the shop', () => {
+    const r = prepareShopUpload(base, label, 'Marcello', null, '2026-11-09T12:00:00.000Z');
+    expect(r.remote).toBeNull();
+    expect(r.fromShop).toBeNull();
+    expect(JSON.parse(r.content).shop).toEqual({ by: 'Marcello', uploadedAt: '2026-11-09T12:00:00.000Z' });
+  });
+
+  it('syncs into the existing shop copy: both sides’ changes end up in one file', () => {
+    // Kat shared the crate, then added a song in the shop copy …
+    const katCopy = addSong(base, { title: 'Kat’s Find', artist: '', bpm: 125, key: '', tags: [], notes: '' }, { now: '2026-11-05T10:00:00.000Z' }).graph;
+    const shopText = buildShopFile(katCopy, label, 'DJ Kat', '2026-11-05T10:00:00.000Z');
+    // … while Marcello renamed a song locally.
+    const mine = updateSong(base, songId, { title: 'Neon Tide (Edit)' }, '2026-11-08T10:00:00.000Z');
+
+    const r = prepareShopUpload(mine, label, 'Marcello', shopText, '2026-11-09T12:00:00.000Z');
+    const synced = parseBackupFile(r.content);
+    if (synced.kind !== 'crate') throw new Error('expected a crate');
+    const titles = Object.values(synced.graph.songs).map((s) => s.title);
+    expect(titles).toContain('Kat’s Find');
+    expect(titles).toContain('Neon Tide (Edit)');
+    expect(titles).not.toContain('Neon Tide');
+    expect(synced.crate).toEqual(label);
+    // Who shared it first is kept; the sync is recorded.
+    expect(JSON.parse(r.content).shop).toEqual({
+      by: 'DJ Kat',
+      uploadedAt: '2026-11-05T10:00:00.000Z',
+      updatedAt: '2026-11-09T12:00:00.000Z',
+      updatedBy: 'Marcello',
+    });
+    expect(r.sharedBy).toBe('DJ Kat');
+    // What the local crate gets back from the shop copy: Kat's new song.
+    expect(r.fromShop!.added).toEqual({ songs: 1, transitions: 0, sets: 0 });
+    expect(Object.keys(r.remote!.songs)).toHaveLength(Object.keys(katCopy.songs).length);
+  });
+
+  it('summarises a synced file with who updated it', () => {
+    const shopText = buildShopFile(base, label, 'DJ Kat', t0);
+    const r = prepareShopUpload(base, label, 'Marcello', shopText, '2026-11-09T12:00:00.000Z');
+    expect(summarizeShopFile(`kat-ko/${crate.id}.json`, r.content)).toMatchObject({
+      by: 'DJ Kat',
+      uploadedAt: t0,
+      updatedAt: '2026-11-09T12:00:00.000Z',
+      updatedBy: 'Marcello',
+    });
+  });
+
+  it('replaces an unreadable shop copy with the local crate', () => {
+    const r = prepareShopUpload(base, label, 'Marcello', '{broken', '2026-11-09T12:00:00.000Z');
+    expect(r.remote).toBeNull();
+    expect(parseBackupFile(r.content).kind).toBe('crate');
   });
 });
