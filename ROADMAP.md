@@ -148,8 +148,8 @@ A public crate collection in the GitHub repo, before real accounts and sync (chu
 
 ## ✅ Chunk 2.9: App icon & DJ profiles (this release)
 
-- [x] **App icon**: a small graph drawn as an acid-house smiley: on a yellow disc, the eyes are two
-      nodes and the smile is a path of five nodes joined by edges (a walk, like a set). Acid yellow
+- [x] **App icon**: a small graph drawn as an acid-house smiley: on a yellow disc, the eyes and a
+      five-node smile are joined by edges into one walk (eye → smile → eye), like a set. Acid yellow
       on black. Home screen, Android (maskable) and browser sizes, made by `npm run icons`
 - [x] **DJ profiles** in the record shop: a DJ name and profile picture per GitHub account
       (`record-shop/<login>/profile.json`), created on connect, editable, shown with every crate

@@ -1,8 +1,8 @@
 /**
  * The app icon: a small graph drawn as an acid-house smiley. The yellow
  * smiley became the emblem of acid house in 1988; here its face is a graph,
- * the app's own idea: the eyes are two nodes and the smile is a path of
- * nodes joined by edges (a walk, like a DJ set). Acid yellow on black.
+ * the app's own idea: the eyes and the smile are nodes joined by edges into
+ * one walk (eye → smile → eye), like a DJ set. Acid yellow on black.
  *
  *   npm run icons     writes public/graphyla-icon*.{svg,png}
  *
@@ -21,23 +21,27 @@ export const INK = '#0a0a0a';
 
 /** @param {{ rounded: boolean; scale?: number }} o */
 export function iconSvg({ rounded, scale = 1 }) {
-  const f = (n) => Math.round(n * 10) / 10;
-  // The face: a disc; the smile: 5 nodes on an arc, joined by straight edges.
-  const disc = 200;
-  const centre = [256, 236];
-  const R = 112;
-  const smile = [24, 57, 90, 123, 156].map((a) => [centre[0] + R * Math.cos((a * Math.PI) / 180), centre[1] + R * Math.sin((a * Math.PI) / 180)]);
+  const f = (n) => Math.round(n);
+  // The smile: 5 nodes on an arc. The eyes: 2 bigger nodes. One walk joins them all.
+  const centre = [256, 238];
+  const R = 118;
+  const smile = [28, 59, 90, 121, 152].map((a) => [centre[0] + R * Math.cos((a * Math.PI) / 180), centre[1] + R * Math.sin((a * Math.PI) / 180)]);
   const eyes = [
-    [200, 200],
-    [312, 200],
+    [198, 196],
+    [314, 196],
   ];
+  const walk = [eyes[1], ...smile, eyes[0]];
+  // The face sits on a yellow disc; `face` scales it within the disc.
+  const face = 0.82;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" ${rounded ? 'rx="112"' : ''} fill="${INK}"/>
   <g transform="translate(256 256) scale(${scale}) translate(-256 -256)">
-    <circle cx="256" cy="256" r="${disc}" fill="${ACID}"/>
-    <polyline points="${smile.map(([x, y]) => `${f(x)},${f(y)}`).join(' ')}" fill="none" stroke="${INK}" stroke-width="13" stroke-linejoin="round" stroke-linecap="round"/>
-    ${smile.map(([x, y]) => `<circle cx="${f(x)}" cy="${f(y)}" r="17" fill="${INK}"/>`).join('\n    ')}
-    ${eyes.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="27" fill="${INK}"/>`).join('\n    ')}
+    <circle cx="256" cy="256" r="196" fill="${ACID}"/>
+    <g transform="translate(256 256) scale(${face}) translate(-256 -256)" fill="${INK}">
+      <polyline points="${walk.map(([x, y]) => `${f(x)},${f(y)}`).join(' ')}" fill="none" stroke="${INK}" stroke-width="12" stroke-linejoin="round" stroke-linecap="round"/>
+      ${smile.map(([x, y]) => `<circle cx="${f(x)}" cy="${f(y)}" r="16"/>`).join('\n      ')}
+      ${eyes.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="24"/>`).join('\n      ')}
+    </g>
   </g>
 </svg>
 `;
