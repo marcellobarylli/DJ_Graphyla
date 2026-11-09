@@ -4,7 +4,7 @@ import { join, relative, sep } from 'node:path';
 import { defineConfig, runnerImport, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import pkg from './package.json' with { type: 'json' };
-import type { ShopEntry, ShopIndex } from './src/domain/recordShop.ts';
+import type { ShopEntry, ShopIndex, ShopProfileEntry } from './src/domain/recordShop.ts';
 
 type ShopModule = typeof import('./src/domain/recordShop.ts');
 const SHOP_DIR = 'record-shop';
@@ -29,12 +29,13 @@ function versionFile(): Plugin {
  * Files that aren't valid crates are skipped with a warning, so one broken
  * upload never stops a deploy.
  */
-async function collectShop(root: string, warn: (msg: string) => void): Promise<{ index: ShopIndex; files: Map<string, string> }> {
+async function collectShop(root: string, warn: (msg: string) => void): Promise<{ index: ShopIndex; files: Map<string, string | Uint8Array> }> {
   const { module: shop } = await runnerImport<ShopModule>(join(root, 'src/domain/recordShop.ts'), { configFile: false, logLevel: 'error' });
-  const { MAX_SHOP_FILE_BYTES, dedupeShopEntries, summarizeShopFile } = shop;
+  const { MAX_SHOP_FILE_BYTES, PROFILE_FILE, avatarParts, dedupeShopEntries, parseProfileFile, summarizeShopFile } = shop;
   const dir = join(root, SHOP_DIR);
-  const files = new Map<string, string>();
+  const files = new Map<string, string | Uint8Array>();
   const entries: ShopEntry[] = [];
+  const profiles: ShopProfileEntry[] = [];
   const walk = (folder: string) => {
     for (const name of readdirSync(folder)) {
       const full = join(folder, name);
@@ -47,6 +48,16 @@ async function collectShop(root: string, warn: (msg: string) => void): Promise<{
         }
         const text = readFileSync(full, 'utf8');
         try {
+          const login = /^([^/]+)\/[^/]+$/.exec(path)?.[1];
+          if (name === PROFILE_FILE && login) {
+            // A DJ profile: list the name, publish the picture as an image file.
+            const profile = parseProfileFile(text);
+            const pic = profile.avatar ? avatarParts(profile.avatar) : null;
+            const avatar = pic ? `${login}/avatar.${pic.ext}` : null;
+            if (pic && avatar) files.set(avatar, Buffer.from(pic.base64, 'base64'));
+            profiles.push({ login, djName: profile.djName, avatar, updatedAt: profile.updatedAt });
+            continue;
+          }
           entries.push(summarizeShopFile(path, text));
           files.set(path, text);
         } catch (err) {
@@ -59,10 +70,10 @@ async function collectShop(root: string, warn: (msg: string) => void): Promise<{
   // One entry per crate (sharing a crate again syncs its file); list the newest copy of any duplicate.
   const unique = dedupeShopEntries(entries);
   for (const h of unique.hidden) warn(`record shop: ${h.path} is another copy of crate “${h.name}”; listing the newest copy only`);
-  return { index: { generatedAt: new Date().toISOString(), entries: unique.entries }, files };
+  return { index: { generatedAt: new Date().toISOString(), entries: unique.entries, profiles }, files };
 }
 
-/** Publishes the record shop with the site: record-shop/index.json plus every crate file. */
+/** Publishes the record shop with the site: record-shop/index.json, every crate file and the DJs' pictures. */
 function recordShop(): Plugin {
   let root = process.cwd();
   return {
@@ -76,7 +87,8 @@ function recordShop(): Plugin {
         collectShop(root, (m) => server.config.logger.warn(m)).then(({ index, files }) => {
           const body = path === 'index.json' ? JSON.stringify(index) : files.get(path);
           if (body === undefined) return next();
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          const type = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' }[path.split('.').pop() ?? ''];
+          res.setHeader('Content-Type', type ?? 'application/json; charset=utf-8');
           res.end(body);
         }, next);
       });

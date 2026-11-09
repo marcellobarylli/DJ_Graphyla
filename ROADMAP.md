@@ -121,7 +121,7 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
 - [x] The look is a device setting (saved next to the crates, not in backups); display fonts are
       bundled, so every look works offline
 
-## ✅ Chunk 2.8: Record shop (this release)
+## ✅ Chunk 2.8: Record shop
 
 A public crate collection in the GitHub repo, before real accounts and sync (chunk 3).
 
@@ -145,6 +145,15 @@ A public crate collection in the GitHub repo, before real accounts and sync (chu
       *Data → Duplicate songs* checks a whole crate
 - [ ] Ratings or comments on shop crates
 - [ ] Preview a shop crate's graph before downloading
+
+## ✅ Chunk 2.9: App icon & DJ profiles (this release)
+
+- [x] **App icon**: a small graph drawn as an acid-house smiley: on a yellow disc, the eyes and a
+      five-node smile are joined by edges into one walk (eye → smile → eye), like a set. Acid yellow
+      on black. Home screen, Android (maskable) and browser sizes, made by `npm run icons`
+- [x] **DJ profiles** in the record shop: a DJ name and profile picture per GitHub account
+      (`record-shop/<login>/profile.json`), created on connect, editable, shown with every crate
+      and in a row of DJs at the top of the shop (tap to filter)
 
 ## Chunk 3: Sync & multiple devices
 

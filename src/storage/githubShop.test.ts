@@ -4,9 +4,11 @@ import {
   connectAccount,
   findCrateFile,
   loadAccount,
+  loadProfile,
   readShopFile,
   removeFromShop,
   saveAccount,
+  saveProfile,
   syncCrateToShop,
   type ShopAccount,
 } from './githubShop';
@@ -207,5 +209,33 @@ describe('account storage', () => {
     expect(loadAccount(store)).toEqual(account);
     data.set(ACCOUNT_KEY, '{"token":1}');
     expect(loadAccount(store)).toBeNull();
+  });
+});
+
+describe('DJ profiles', () => {
+  const profileUrl = `${API}/contents/record-shop/marcello/profile.json`;
+  const profileText = JSON.stringify({ app: 'dj-graphyla', kind: 'dj-profile', djName: 'Marcello', avatar: null, updatedAt: 'x' });
+
+  it('loads the profile from the DJ’s folder', async () => {
+    const { fn } = fakeGitHub((c) => (c.url === `${profileUrl}?ref=main` ? file('p1', profileText) : [404, {}]));
+    expect(await loadProfile(account, fn)).toEqual({ djName: 'Marcello', avatar: null, updatedAt: 'x' });
+  });
+
+  it('is null when there is no profile (or it is unreadable)', async () => {
+    expect(await loadProfile(account, fakeGitHub(() => [404, {}]).fn)).toBeNull();
+    expect(await loadProfile(account, fakeGitHub(() => file('p', '{broken')).fn)).toBeNull();
+  });
+
+  it('creates, then updates, the profile file', async () => {
+    const created = fakeGitHub((c) => (c.method === 'PUT' ? [201, {}] : [404, {}]));
+    await saveProfile(account, { djName: 'DJ M', avatar: null }, created.fn);
+    const put = created.calls.find((c) => c.method === 'PUT')!;
+    expect(put.url).toBe(profileUrl);
+    expect(put.body!.sha).toBeUndefined();
+    expect(JSON.parse(Buffer.from(String(put.body!.content), 'base64').toString('utf8'))).toMatchObject({ kind: 'dj-profile', djName: 'DJ M' });
+
+    const updated = fakeGitHub((c) => (c.method === 'PUT' ? [200, {}] : file('old-sha', profileText)));
+    await saveProfile(account, { djName: 'DJ M', avatar: null }, updated.fn);
+    expect(updated.calls.find((c) => c.method === 'PUT')!.body!.sha).toBe('old-sha');
   });
 });

@@ -58,6 +58,9 @@ and works offline.
    running is shown at the bottom of the *Data* tab.
 5. Want to look around first? *Crates → Add sample crate* adds made-up songs, transitions and
    two sets without touching your own crates.
+6. **New icon (v0.8):** the app icon is now a small graph drawn as an acid-house smiley. An iPhone keeps the
+   icon it saved when the app was added, so to see the new one, remove the app from the home
+   screen and *Add to Home Screen* again (your data stays: it belongs to the website, not the icon).
 
 ## Share a crate
 
@@ -90,6 +93,12 @@ The record shop is a public collection of crates (with their sets) in this repo'
   different crate.
 - **Who can share:** anyone with write access to the repo, using their own GitHub token. The token
   is stored on their device only and sent only to `api.github.com`.
+- **DJ profiles:** every GitHub account that shares has a profile, `record-shop/<github-login>/profile.json`:
+  a DJ name and a profile picture, shown with every crate they shared and in the row of DJs at the
+  top of the shop (tap a DJ to see only their crates). Connecting creates the profile with the DJ
+  name you entered (or loads the one you already have, e.g. from another device); edit it under
+  *Record shop → Your DJ profile*. Pictures are cropped to a square and stored small (256×256
+  JPEG). Profiles are public, like the shop.
 
 Setting up a friend:
 
@@ -159,6 +168,7 @@ npm run typecheck
 npm run build      # production build in dist/
 npm run preview    # serve the production build
 npm run art:y2k    # re-render the Y2K Futurism 3D pictures (needs Playwright + Chromium)
+npm run icons      # re-draw the app icon (public/graphyla-icon*; needs Playwright + Chromium)
 ```
 
 Code layout:
@@ -172,7 +182,7 @@ src/
   ui/        screens: library, song page, song/transition cards, graph (Cytoscape, lazy-loaded), sets, data, look switch
   assets/    camo pattern and cap logo (SW4G 3R4); y2k/ = rendered 3D pictures (Y2K Futurism)
 public/      PWA manifest, service worker, icons
-tools/       y2k-art: three.js scenes that render the Y2K Futurism pictures
+tools/       y2k-art: three.js scenes that render the Y2K Futurism pictures; icon: the app icon
 record-shop/ crates shared from the app; published with the site by vite.config.ts
 ```
 

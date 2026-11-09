@@ -4,9 +4,9 @@
  * open crate (and remove their own uploads) with their GitHub token.
  * A crate that is already in the shop is synced, not added again.
  */
-import { useEffect, useId, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { stats } from '../domain/graph';
-import { SHOP_DIR, filterShopEntries, parseShopIndex, prepareShopUpload, type ShopEntry, type ShopUpload } from '../domain/recordShop';
+import { SHOP_DIR, filterShopEntries, parseShopIndex, prepareShopUpload, type ShopEntry, type ShopIndex, type ShopUpload } from '../domain/recordShop';
 import { ImportError, parseBackupFile } from '../domain/serialize';
 import { navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
@@ -18,14 +18,17 @@ import {
   connectAccount,
   forgetAccount,
   loadAccount,
+  loadProfile,
   removeFromShop,
   saveAccount,
+  saveProfile,
   syncCrateToShop,
   type ShopAccount,
 } from '../storage/githubShop';
 import { EmptyState, Field, TextField, TopBar } from './components';
+import { DjAvatar, pictureToAvatar } from './DjAvatar';
 
-type Listing = { state: 'loading' } | { state: 'error'; message: string } | { state: 'ready'; entries: ShopEntry[] };
+type Listing = { state: 'loading' } | { state: 'error'; message: string } | ({ state: 'ready' } & Pick<ShopIndex, 'entries' | 'profiles'>);
 interface Notice {
   kind: 'ok' | 'error';
   text: string;
@@ -47,11 +50,11 @@ function listCounts(c: { songs: number; transitions: number; sets: number }): st
   return parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}` : String(parts[0] ?? '');
 }
 
-async function fetchListing(): Promise<ShopEntry[]> {
+async function fetchListing(): Promise<ShopIndex> {
   const res = await fetch(`./${SHOP_DIR}/index.json`, { cache: 'no-cache' });
-  if (res.status === 404) return [];
+  if (res.status === 404) return { generatedAt: '', entries: [], profiles: [] };
   if (!res.ok) throw new Error(`The record shop could not be loaded (${res.status}).`);
-  return parseShopIndex(await res.json()).entries;
+  return parseShopIndex(await res.json());
 }
 
 export function ShopView() {
@@ -60,13 +63,15 @@ export function ShopView() {
   const [listing, setListing] = useState<Listing>({ state: 'loading' });
   const [account, setAccount] = useState<ShopAccount | null>(() => loadAccount());
   const [query, setQuery] = useState('');
+  /** Show only this DJ's crates (GitHub login). */
+  const [djFilter, setDjFilter] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
 
   const refresh = () => {
     setListing({ state: 'loading' });
     fetchListing()
-      .then((entries) => setListing({ state: 'ready', entries }))
+      .then(({ entries, profiles }) => setListing({ state: 'ready', entries, profiles }))
       .catch((err) =>
         setListing({ state: 'error', message: navigator.onLine ? message(err) : 'You are offline. The record shop needs a connection.' }),
       );
@@ -176,7 +181,22 @@ export function ShopView() {
     setAccount(null);
   };
 
-  const entries = listing.state === 'ready' ? filterShopEntries(listing.entries, query) : [];
+  /** The DJ behind a GitHub login: their profile name and picture (your own from this device, so edits show at once). */
+  const dj = (login: string, fallbackName: string): { name: string; src: string | null } => {
+    if (account && login.toLowerCase() === account.login.toLowerCase()) return { name: account.djName, src: account.avatar ?? null };
+    const p = listing.state === 'ready' ? listing.profiles.find((x) => x.login.toLowerCase() === login.toLowerCase()) : undefined;
+    return { name: p?.djName ?? fallbackName, src: p?.avatar ? `${fileUrl(p.avatar)}?v=${encodeURIComponent(p.updatedAt)}` : null };
+  };
+  const djs =
+    listing.state === 'ready'
+      ? [...new Map(listing.entries.map((e) => [e.login.toLowerCase(), e])).values()]
+          .map((e) => ({ login: e.login, ...dj(e.login, e.by), crates: listing.entries.filter((x) => x.login.toLowerCase() === e.login.toLowerCase()).length }))
+          .sort((a, b) => b.crates - a.crates || a.name.localeCompare(b.name))
+      : [];
+  const entries =
+    listing.state === 'ready'
+      ? filterShopEntries(listing.entries, query).filter((e) => !djFilter || e.login.toLowerCase() === djFilter.toLowerCase())
+      : [];
   const owned = new Set(store.crates.map((c) => c.id));
 
   return (
@@ -189,7 +209,7 @@ export function ShopView() {
           </h3>
           {inShop ? (
             <p className="small muted">
-              Already in the shop (shared by {inShop.by}). Sharing again syncs it: your crate and the shop copy are merged (newer edits
+              Already in the shop (shared by {dj(inShop.login, inShop.by).name}). Sharing again syncs it: your crate and the shop copy are merged (newer edits
               win, nothing is deleted) into the same entry, and your crate gets anything new from the shop.
             </p>
           ) : (
@@ -203,11 +223,8 @@ export function ShopView() {
               <button type="button" className="btn btn-primary btn-block" disabled={busy !== null} onClick={share}>
                 {busy === 'share' ? (inShop ? 'Syncing…' : 'Sharing…') : inShop ? `Sync “${crate.name}” with the record shop` : `Share “${crate.name}” to the record shop`}
               </button>
-              <p className="small muted">
-                Sharing as <strong>{account.djName}</strong> (GitHub @{account.login}) ·{' '}
-                <button type="button" className="link-btn" onClick={disconnect}>
-                  Disconnect
-                </button>
+              <p className="small muted dj-line">
+                <DjAvatar name={account.djName} src={account.avatar} size={22} /> Sharing as <strong>{account.djName}</strong>
               </p>
             </>
           ) : (
@@ -219,6 +236,17 @@ export function ShopView() {
             />
           )}
         </section>
+
+        {account && (
+          <ProfileCard
+            account={account}
+            onSaved={(a) => {
+              saveAccount(a);
+              setAccount(a);
+            }}
+            onDisconnect={disconnect}
+          />
+        )}
 
         {notice && (
           <div className={notice.kind === 'ok' ? 'notice stack' : 'field-error'} role="status">
@@ -274,6 +302,23 @@ export function ShopView() {
               Refresh
             </button>
           </div>
+          {djs.length > 0 && (
+            <div className="dj-strip" role="group" aria-label="DJs in the shop">
+              {djs.map((d) => (
+                <button
+                  key={d.login}
+                  type="button"
+                  className={`dj-chip${djFilter?.toLowerCase() === d.login.toLowerCase() ? ' on' : ''}`}
+                  aria-pressed={djFilter?.toLowerCase() === d.login.toLowerCase()}
+                  onClick={() => setDjFilter((f) => (f?.toLowerCase() === d.login.toLowerCase() ? null : d.login))}
+                >
+                  <DjAvatar name={d.name} src={d.src} size={48} />
+                  <span className="dj-chip-name">{d.name}</span>
+                  <span className="dj-chip-count">{plural(d.crates, 'crate')}</span>
+                </button>
+              ))}
+            </div>
+          )}
           {listing.state === 'ready' && listing.entries.length > 3 && (
             <input
               className="input"
@@ -298,11 +343,14 @@ export function ShopView() {
                     <span className="song-title">{e.name}</span>
                     {have && <span className="badge badge-active">in your crates</span>}
                   </div>
-                  <p className="small muted">
-                    by <strong>{e.by}</strong>
-                    {e.uploadedAt && ` · ${day(e.uploadedAt)}`}
+                  <p className="small muted dj-line">
+                    <DjAvatar name={dj(e.login, e.by).name} src={dj(e.login, e.by).src} size={22} />
+                    <span>
+                      by <strong>{dj(e.login, e.by).name}</strong>
+                      {e.uploadedAt && ` · ${day(e.uploadedAt)}`}
                     {mine && ' · shared by you'}
-                    {e.updatedAt && e.updatedAt !== e.uploadedAt && ` · synced ${day(e.updatedAt)}${e.updatedBy !== e.by ? ` by ${e.updatedBy}` : ''}`}
+                      {e.updatedAt && e.updatedAt !== e.uploadedAt && ` · synced ${day(e.updatedAt)}${e.updatedBy !== e.by ? ` by ${e.updatedBy}` : ''}`}
+                    </span>
                   </p>
                   <div className="row tight">
                     <span className="badge">{plural(e.songs, 'song')}</span>
@@ -338,6 +386,104 @@ export function ShopView() {
   );
 }
 
+/** Your DJ profile in the shop: the name and picture shown with every crate you share. */
+function ProfileCard({ account, onSaved, onDisconnect }: { account: ShopAccount; onSaved: (a: ShopAccount) => void; onDisconnect: () => void }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(account.djName);
+  const [avatar, setAvatar] = useState<string | null>(account.avatar ?? null);
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const picker = useRef<HTMLInputElement>(null);
+
+  const edit = () => {
+    setName(account.djName);
+    setAvatar(account.avatar ?? null);
+    setError('');
+    setSaved(false);
+    setEditing(true);
+  };
+  const pick = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setError('');
+    try {
+      setAvatar(await pictureToAvatar(file));
+    } catch (err) {
+      setError(message(err));
+    }
+  };
+  const save = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      const djName = name.trim() || account.login;
+      await saveProfile(account, { djName, avatar });
+      onSaved({ ...account, djName, avatar });
+      setEditing(false);
+      setSaved(true);
+    } catch (err) {
+      setError(message(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <section className="card stack">
+      <h3 className="section-title">Your DJ profile</h3>
+      <div className="dj-profile">
+        <DjAvatar name={editing ? name || account.login : account.djName} src={editing ? avatar : account.avatar} size={64} />
+        <span className="dj-profile-main">
+          <span className="song-title">{editing ? name || account.login : account.djName}</span>
+          <span className="small muted">GitHub @{account.login}</span>
+        </span>
+      </div>
+      {editing ? (
+        <>
+          <TextField label="DJ name" value={name} onChange={setName} placeholder={account.login} />
+          <div className="row tight">
+            <button type="button" className="btn btn-small" onClick={() => picker.current?.click()}>
+              {avatar ? 'Change picture' : 'Add a picture'}
+            </button>
+            {avatar && (
+              <button type="button" className="btn btn-small" onClick={() => setAvatar(null)}>
+                Remove picture
+              </button>
+            )}
+          </div>
+          <input ref={picker} type="file" accept="image/*" hidden onChange={pick} />
+          <p className="small muted">The picture is cropped to a square and made small. Your profile is public, like the shop.</p>
+          {error && <p className="field-error">{error}</p>}
+          <div className="row tight">
+            <button type="button" className="btn btn-small btn-primary" disabled={saving} onClick={save}>
+              {saving ? 'Saving…' : 'Save profile'}
+            </button>
+            <button type="button" className="btn btn-small" disabled={saving} onClick={() => setEditing(false)}>
+              Cancel
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="small muted">
+            Shown with every crate you share.{saved && ' Saved: other DJs see it in a minute or two, once the site has updated.'}
+          </p>
+          <div className="row tight">
+            <button type="button" className="btn btn-small" onClick={edit}>
+              Edit profile
+            </button>
+            <button type="button" className="link-btn small" onClick={onDisconnect}>
+              Disconnect
+            </button>
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
 /** First-time setup for sharing: a DJ name and a GitHub token with write access to the repo. */
 function ConnectForm({ onConnected }: { onConnected: (account: ShopAccount) => void }) {
   const tokenId = useId();
@@ -353,7 +499,11 @@ function ConnectForm({ onConnected }: { onConnected: (account: ShopAccount) => v
     setChecking(true);
     try {
       const { login } = await connectAccount(token);
-      onConnected({ token: token.trim(), login, djName: djName.trim() || login });
+      const base: ShopAccount = { token: token.trim(), login, djName: djName.trim() || login, avatar: null };
+      // A profile already in the shop (e.g. from another device) wins; otherwise create one with this DJ name.
+      const profile = await loadProfile(base);
+      if (!profile) await saveProfile(base, { djName: base.djName, avatar: null }).catch(() => undefined);
+      onConnected(profile ? { ...base, djName: profile.djName, avatar: profile.avatar } : base);
     } catch (err) {
       setError(message(err));
     } finally {
