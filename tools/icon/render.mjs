@@ -1,10 +1,10 @@
 /**
- * The app icon: a lowercase “g” drawn the way Paul Nicholson built his
- * Xylem lettering, from circles and straight lines on a circular grid
- * (an original drawing, not the Xylem font): a circular bowl, a stem
- * tangent to it, and a hook that is an arc of the same circle. Its ends are
- * graph nodes, so the letter is also a little walk through the graph. The
- * construction circles stay faintly visible behind it.
+ * The app icon: an abstract, alien lowercase “g” in the spirit of Paul
+ * Nicholson's Xylem lettering, which is built from circles on a circular
+ * grid (an original drawing, not the Xylem font). Two crescents, each a
+ * circle with an offset circle cut out of it, make the bowl and the hook;
+ * a hairline stem joins them and ends in a single node. One colour on
+ * black, with a faint glow.
  *
  *   npm run icons     writes public/graphyla-g*.{svg,png}
  *
@@ -18,51 +18,44 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const out = (name) => join(root, 'public', name);
 
-/** @param {{ rounded: boolean; scale?: number }} o */
-export function iconSvg({ rounded, scale = 1 }) {
-  // Construction (512 grid): bowl circle C1 and hook circle C2 share radius R.
-  const R = 90;
-  const W = 46; // stroke
-  const c1 = [240, 212];
-  const c2 = [240, 330];
-  const stemX = c1[0] + R;
-  const top = c1[1] - R;
-  const hookEnd = 158; // degrees along C2, clockwise from 3 o'clock
-  const rad = (d) => (d * Math.PI) / 180;
-  const end = [c2[0] + R * Math.cos(rad(hookEnd)), c2[1] + R * Math.sin(rad(hookEnd))];
-  const node = 30;
-  // Centre the glyph (with its nodes) on the canvas.
-  const box = { x0: Math.min(c1[0] - R - W / 2, end[0] - node), x1: stemX + node, y0: top - node, y1: c2[1] + R + W / 2 };
-  const dx = 256 - (box.x0 + box.x1) / 2;
-  const dy = 256 - (box.y0 + box.y1) / 2;
-  const f = (n) => Math.round(n * 10) / 10;
+/** @param {{ rounded: boolean; scale?: number; ink?: string; glow?: string }} o */
+export function iconSvg({ rounded, scale = 1, ink = '#e9eef8', glow = '#8fd8ff' }) {
+  // Construction on the 512 grid: each crescent = outer circle minus an offset inner circle.
+  const bowl = { outer: [250, 206, 96], inner: [274, 199, 88] };
+  const hook = { outer: [250, 326, 104], inner: [247, 299, 98] };
+  const stem = { x: 340.5, top: 150, bottom: 352, width: 6 };
+  const node = { x: 340.5, y: 128, r: 10 };
+  // Centre the glyph (bounds measured from the shapes above).
+  const dx = 256 - 250;
+  const dy = 256 - (node.y - node.r + hook.outer[1] + hook.outer[2]) / 2;
+  const c = ([x, y, r]) => `cx="${x}" cy="${y}" r="${r}"`;
   const glyph = `
-    <g transform="translate(256 256) scale(${scale}) translate(${f(dx - 256)} ${f(dy - 256)})">
-      <g fill="none" stroke="#ffffff" stroke-opacity="0.07" stroke-width="2">
-        <circle cx="${c1[0]}" cy="${c1[1]}" r="${R}"/>
-        <circle cx="${c2[0]}" cy="${c2[1]}" r="${R}"/>
-        <circle cx="${c1[0]}" cy="${c1[1]}" r="${R + W / 2 + 26}" stroke-dasharray="4 10"/>
-        <path d="M${c1[0] - R - 60} ${c1[1]}H${stemX + 60}M${c1[0] - R - 60} ${c2[1]}H${stemX + 60}M${stemX} ${top - 60}V${c2[1] + R + 50}M${c1[0]} ${top - 60}V${c2[1] + R + 50}"/>
-      </g>
-      <g fill="none" stroke="url(#ink)" stroke-width="${W}" stroke-linecap="round">
-        <circle cx="${c1[0]}" cy="${c1[1]}" r="${R}"/>
-        <path d="M${stemX} ${top}V${c2[1]}A${R} ${R} 0 0 1 ${f(end[0])} ${f(end[1])}"/>
-      </g>
-      <circle cx="${stemX}" cy="${top}" r="${node}" fill="#3dd6f5"/>
-      <circle cx="${f(end[0])}" cy="${f(end[1])}" r="${node}" fill="#ff8a4c"/>
-      <circle cx="${stemX}" cy="${top}" r="${node - 13}" fill="#0b0c14"/>
-      <circle cx="${f(end[0])}" cy="${f(end[1])}" r="${node - 13}" fill="#0b0c14"/>
-    </g>`;
+      <circle ${c(bowl.outer)} mask="url(#cut-bowl)"/>
+      <circle ${c(hook.outer)} mask="url(#cut-hook)"/>
+      <rect x="${stem.x - stem.width / 2}" y="${stem.top}" width="${stem.width}" height="${stem.bottom - stem.top}" rx="${stem.width / 2}"/>
+      <circle cx="${node.x}" cy="${node.y}" r="${node.r}"/>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <radialGradient id="bg" cx="0.42" cy="0.32" r="0.85">
-      <stop offset="0" stop-color="#1d1f38"/><stop offset="1" stop-color="#0b0c14"/>
+    <radialGradient id="bg" cx="0.45" cy="0.35" r="0.9">
+      <stop offset="0" stop-color="#0d1020"/><stop offset="1" stop-color="#040508"/>
     </radialGradient>
-    <linearGradient id="ink" gradientUnits="userSpaceOnUse" x1="360" y1="110" x2="150" y2="440">
-      <stop offset="0" stop-color="#3dd6f5"/><stop offset="0.5" stop-color="#8b6cff"/><stop offset="1" stop-color="#ff8a4c"/>
-    </linearGradient>
+    <mask id="cut-bowl" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
+      <rect width="512" height="512" fill="#fff"/><circle ${c(bowl.inner)} fill="#000"/>
+    </mask>
+    <mask id="cut-hook" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
+      <rect width="512" height="512" fill="#fff"/><circle ${c(hook.inner)} fill="#000"/>
+    </mask>
+    <filter id="haze" filterUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
   </defs>
-  <rect width="512" height="512" ${rounded ? 'rx="112"' : ''} fill="url(#bg)"/>${glyph}
+  <rect width="512" height="512" ${rounded ? 'rx="112"' : ''} fill="url(#bg)"/>
+  <g transform="translate(256 256) scale(${scale}) translate(${dx - 256} ${dy - 256})">
+    <g fill="${glow}" opacity="0.45" filter="url(#haze)">${glyph}
+    </g>
+    <g fill="${ink}">${glyph}
+    </g>
+  </g>
 </svg>
 `;
 }

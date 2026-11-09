@@ -148,10 +148,11 @@ A public crate collection in the GitHub repo, before real accounts and sync (chu
 
 ## ✅ Chunk 2.9: App icon & DJ profiles (this release)
 
-- [x] **App icon**: a lowercase “g” drawn the way Paul Nicholson built his Xylem lettering, from
-      circles and straight lines on a circular grid (an original drawing, not the font). The bowl is
-      a circle, the stem is tangent to it, the hook is an arc of the same circle, and the ends are
-      graph nodes. Home screen, Android (maskable) and browser sizes, made by `npm run icons`
+- [x] **App icon**: an abstract, alien, minimal lowercase “g” in the spirit of Paul Nicholson's Xylem
+      lettering, which is built from circles (an original drawing, not the font): two crescents,
+      each a circle with an offset circle cut out, joined by a hairline that ends in one node, in
+      silver on black with a faint glow. Home screen, Android (maskable) and browser sizes, made by
+      `npm run icons`
 - [x] **DJ profiles** in the record shop: a DJ name and profile picture per GitHub account
       (`record-shop/<login>/profile.json`), created on connect, editable, shown with every crate
       and in a row of DJs at the top of the shop (tap to filter)
