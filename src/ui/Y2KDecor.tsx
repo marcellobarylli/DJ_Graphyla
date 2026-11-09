@@ -12,9 +12,11 @@ function Sparkle({ className }: { className: string }) {
 
 /**
  * Side decorations of the Y2K Futurism look: rendered chrome objects at the
- * screen edges, sparkles, flavour text running up the page margins, and HUD
- * panels beside the page on wide screens. Purely decorative: it sits behind
- * the page, takes no taps, and is hidden from screen readers.
+ * screen edges, sparkles, flavour text running up the page margins, and on
+ * wide screens a chrome DJ bust and a HUD readout beside the page. The readout
+ * is bare glowing text, not a panel, so it doesn't look like a button. Purely
+ * decorative: it sits behind the page, takes no taps, and is hidden from
+ * screen readers.
  */
 export function Y2KDecor() {
   const { graph, activeCrate } = useStore();
@@ -33,27 +35,20 @@ export function Y2KDecor() {
       </svg>
       <span className="y2k-chrome y2k-chrome-blob" />
       <span className="y2k-chrome y2k-chrome-torus" />
+      <span className="y2k-chrome y2k-chrome-head" />
       <Sparkle className="y2k-sparkle y2k-sparkle-1" />
       <Sparkle className="y2k-sparkle y2k-sparkle-2" />
       <Sparkle className="y2k-sparkle y2k-sparkle-3" />
       <p className="y2k-rail y2k-rail-left">◆ Graphyla//2000 ◆ millennium ready ◆ bpm sync online ◆ enter the new millennium ◆</p>
       <p className="y2k-rail y2k-rail-right">system online ◆ y2k compliant ◆ v{__APP_VERSION__}</p>
-      <div className="y2k-hud y2k-hud-left">
-        <p className="y2k-hud-title">Graphyla OS 2000</p>
-        <p>&gt; crate link ······ ok</p>
-        <p>&gt; bpm engine ····· online</p>
-        <p>
-          &gt; nodes {s.songs} ◆ edges {s.transitions}
-        </p>
-        <p>&gt; millennium ready_</p>
-      </div>
-      <div className="y2k-hud y2k-hud-right">
+      <div className="y2k-hud">
         <p className="y2k-hud-title">Transmission</p>
         <p>welcome to the future of the mix</p>
         <p className="y2k-hud-crate">{activeCrate.name}</p>
         <p>
-          sets {s.sets} ◆ 00:00:00
+          nodes {s.songs} ◆ edges {s.transitions} ◆ sets {s.sets}
         </p>
+        <p>&gt; millennium ready_</p>
       </div>
     </div>
   );

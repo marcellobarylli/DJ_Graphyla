@@ -1189,6 +1189,12 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
   background-image: url('./assets/y2k/torus.webp');
   opacity: 0.9;
 }
+/* Chrome DJ bust (tools/y2k-art, scene 'head'), beside the page on wide screens. */
+.y2k-chrome-head {
+  display: none;
+  background-image: url('./assets/y2k/head.webp');
+  filter: drop-shadow(0 0 24px rgb(59 158 255 / 0.4));
+}
 .y2k-chrome-blob {
   right: -54px;
   top: calc(var(--safe-top) + 96px);
@@ -1219,30 +1225,27 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 .y2k-rail-left { left: 2px; top: calc(var(--safe-top) + 84px); bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 24px); transform: rotate(180deg); }
 /* Right rail: between the look handle (mid-screen) and the sparkle above the tab bar. */
 .y2k-rail-right { right: 2px; top: calc(50% + 40px); bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 96px); }
-/* HUD panels beside the page column on wide screens. */
+/* HUD readout beside the page column on wide screens: bare glowing text with
+   no frame or fill, so it reads as part of the backdrop, not as a button. */
 .y2k-hud {
   position: absolute;
   display: none;
   width: 250px;
-  padding: 12px 14px;
-  border: 1px solid color-mix(in srgb, var(--accent-strong) 30%, transparent);
-  border-radius: 14px;
-  background: rgb(8 14 30 / 0.55);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 24px rgb(59 158 255 / 0.12);
-  color: color-mix(in srgb, var(--accent-strong) 80%, var(--muted));
+  color: color-mix(in srgb, var(--accent-strong) 70%, var(--muted));
   font-size: 11px;
   line-height: 1.7;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  text-shadow: 0 0 8px rgb(5 7 13 / 0.95), 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 .y2k-hud p { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .y2k-hud-title { margin-bottom: 6px !important; font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.06em; color: var(--text); text-shadow: 0 0 10px rgb(143 211 255 / 0.6); }
 .y2k-hud-crate { color: var(--text); }
 @media (min-width: 1100px) {
   .y2k-hud { display: block; }
-  /* Left: HUD over a chrome torus. Right: the orb (backdrop), a HUD above it and a blob below. */
-  .y2k-hud-left { left: calc(50% - 320px - 300px); top: calc(var(--safe-top) + 120px); }
-  .y2k-hud-right { right: calc(50% - 320px - 300px); top: calc(var(--safe-top) + 120px); }
+  /* Left: the chrome bust over a chrome torus. Right: the orb (backdrop), the HUD readout above it and a blob below. */
+  .y2k-chrome-head { display: block; left: calc(50% - 320px - 330px); top: calc(var(--safe-top) + 60px); width: 300px; height: 356px; }
+  .y2k-hud { right: calc(50% - 320px - 300px); top: calc(var(--safe-top) + 120px); }
   .y2k-chrome-torus { left: calc(50% - 320px - 340px); width: 300px; height: 300px; bottom: calc(var(--tabbar-h) + 50px); }
   .y2k-chrome-blob { top: auto; right: calc(50% - 320px - 250px); bottom: calc(var(--tabbar-h) + 40px); width: 190px; height: 190px; }
   .y2k-sparkle-3 { right: calc(50% - 320px - 60px); top: calc(var(--safe-top) + 300px); width: 28px; height: 28px; }
