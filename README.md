@@ -23,6 +23,15 @@ something else. No set? *▶ Free walk* starts at any song and shows every way o
 **Crates** keep libraries apart, like Obsidian vaults: one per genre or label, each with its
 own songs, transitions and sets. Switch crates from the header.
 
+**Looks**: the slim handle on the right edge of the screen switches between three looks. *Graphyla*
+is the original. *SW4G 3R4* is Y2K camo, caps and hypebeast (Swag / Jerk era). *Y2K Futurism* is
+dark mode with a rendered liquid-glass orb behind the page, chrome objects, sparkles and flavour text
+at the edges, and chrome buttons. Its headings can use your own font file, for example your copy
+of Xylem (the app can't ship Xylem: its licence doesn't allow that); pick it in the look panel.
+Backgrounds stay behind the cards, so buttons and text read the same in every look, and the
+graph's rating colours never change. The look and the font are saved per device and are not part
+of backups.
+
 See [ROADMAP.md](ROADMAP.md) for what's built and what's next.
 
 ## Use it on your phone
@@ -98,6 +107,7 @@ npm test           # unit tests (Vitest)
 npm run typecheck
 npm run build      # production build in dist/
 npm run preview    # serve the production build
+npm run art:y2k    # re-render the Y2K Futurism 3D pictures (needs Playwright + Chromium)
 ```
 
 Code layout:
@@ -106,9 +116,11 @@ Code layout:
 src/
   domain/    pure, tested logic: graph (songs/transitions), sets (walks, tempo track), crates, positions, tempo, backup format
   storage/   localStorage persistence, one entry per crate (swappable for a sync backend later)
-  state/     React store + tiny hash router
-  ui/        screens: library, song page, song/transition cards, graph (Cytoscape, lazy-loaded), sets, data
+  state/     React store, tiny hash router, looks (themes)
+  ui/        screens: library, song page, song/transition cards, graph (Cytoscape, lazy-loaded), sets, data, look switch
+  assets/    camo pattern and cap logo (SW4G 3R4); y2k/ = rendered 3D pictures (Y2K Futurism)
 public/      PWA manifest, service worker, icons
+tools/       y2k-art: three.js scenes that render the Y2K Futurism pictures
 ```
 
 ## Deploy

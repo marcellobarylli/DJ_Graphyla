@@ -74,7 +74,7 @@ Goal: explore the graph and build sets from it.
 - [x] Graph turns its layout to match the screen's shape (fills tall phone screens)
 - [ ] Copy or move songs (with their transitions) between crates
 
-## ✅ Chunk 2.6: Play mode (this release)
+## ✅ Chunk 2.6: Play mode
 
 A live companion screen while DJing a set (the app plays no audio; the songs play on the decks).
 
@@ -95,6 +95,28 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       *▶ Free walk from here* on a song, or from the graph); every way out of the current song is
       listed, best rated first and pre-selected; jump to any song when you hit a dead end; save the
       walk as a set afterwards
+
+## ✅ Chunk 2.7: Looks (this release)
+
+- [x] **Look switch** (issue #9): a slim handle on the right screen edge (in the page margin, hidden
+      in play mode and forms) opens a panel with three looks; picking one applies it at once
+- [x] *Graphyla*: the original dark look
+- [x] *SW4G 3R4*: Y2K camo, caps, leet name, Swag / Jerk era and hypebeast. Black and white with
+      teal, orange and box-logo red, a dark multi-colour camo backdrop, heavy italic caps on
+      headings, labels and buttons, a snapback logo and a checkerboard strip under the header
+- [x] *Y2K Futurism* (dark): chrome buttons and a chrome orb for *Add*, electric and ice blue with
+      neon pink, a faint grid, Orbitron for labels and the bar clock
+- [x] Real 3D art for Y2K Futurism, rendered with three.js (`npm run art:y2k`, all procedural, so
+      the pictures are the project's own): a liquid-glass orb with water caustics over light streaks
+      behind the page (portrait and landscape versions, darkened), plus chrome torus and blob
+- [x] Y2K side elements: flavour text running up the page margins, chrome objects and sparkles at
+      the edges; HUD panels (with the crate's node/edge counts) beside the page on wide screens
+- [x] Headings and flavour text in your own font file (e.g. Xylem, which can't be shipped), picked
+      in the look panel and kept on the device; Orbitron otherwise
+- [x] Readability first: cards stay solid over the patterns, song titles keep their case, and the
+      graph's edge colours (ratings) are the same in every look
+- [x] The look is a device setting (saved next to the crates, not in backups); display fonts are
+      bundled, so every look works offline
 
 ## Chunk 3: Sync & multiple devices
 

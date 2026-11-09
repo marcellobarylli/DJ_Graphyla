@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { UPDATE_EVENT } from '../updates';
 import { linkTo, paths, useRoute, type Route } from '../state/router';
+import { useTheme } from '../state/theme';
 import { AddView } from './AddView';
 import { CratesView } from './CratesView';
 import { DataView } from './DataView';
@@ -10,7 +11,9 @@ import { SetView } from './SetView';
 import { SetsView } from './SetsView';
 import { SongForm } from './SongForm';
 import { SongView } from './SongView';
+import { ThemeSwitch } from './ThemeSwitch';
 import { TransitionForm } from './TransitionForm';
+import { Y2KDecor } from './Y2KDecor';
 import { EmptyState, TopBar } from './components';
 
 // Cytoscape is only downloaded when the Graph tab is opened.
@@ -90,6 +93,7 @@ function UpdateBanner() {
 
 export function App() {
   const route = useRoute();
+  const theme = useTheme();
   const tab =
     route.name === 'add' ? 'add'
     : route.name === 'data' ? 'data'
@@ -98,8 +102,11 @@ export function App() {
     : 'library';
   return (
     <div className={`app${isForm(route) ? ' is-form' : ''}${route.name === 'graph' ? ' is-graph' : ''}`}>
+      {theme.id === 'futurism' && <Y2KDecor />}
       <Screen route={route} />
       <UpdateBanner />
+      {/* The look switch sits with the tab bar; forms and play mode stay free of it. */}
+      {!isForm(route) && <ThemeSwitch />}
       {!isForm(route) && (
         <nav className="tabbar" aria-label="Main">
           <a className={`tab${tab === 'library' ? ' on' : ''}`} aria-current={tab === 'library' ? 'page' : undefined} {...linkTo(paths.library())}>
