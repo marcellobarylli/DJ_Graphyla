@@ -105,7 +105,14 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       teal, orange and box-logo red, a dark multi-colour camo backdrop, heavy italic caps on
       headings, labels and buttons, a snapback logo and a checkerboard strip under the header
 - [x] *Y2K Futurism* (dark): chrome buttons and a chrome orb for *Add*, electric and ice blue with
-      neon pink, a faint grid with soft glows, a techno display face for headings and the bar clock
+      neon pink, a faint grid, Orbitron for labels and the bar clock
+- [x] Real 3D art for Y2K Futurism, rendered with three.js (`npm run art:y2k`, all procedural, so
+      the pictures are the project's own): a liquid-glass orb with water caustics over light streaks
+      behind the page (portrait and landscape versions, darkened), plus chrome torus and blob
+- [x] Y2K side elements: flavour text running up the page margins, chrome objects and sparkles at
+      the edges; HUD panels (with the crate's node/edge counts) beside the page on wide screens
+- [x] Headings and flavour text in your own font file (e.g. Xylem, which can't be shipped), picked
+      in the look panel and kept on the device; Orbitron otherwise
 - [x] Readability first: cards stay solid over the patterns, song titles keep their case, and the
       graph's edge colours (ratings) are the same in every look
 - [x] The look is a device setting (saved next to the crates, not in backups); display fonts are

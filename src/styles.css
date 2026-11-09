@@ -787,10 +787,12 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 }
 
 /* ── look: Y2K Futurism (dark) ───────────────────────────────
-   Late-90s / early-2000s tech optimism at night: near-black blue, chrome
-   (liquid-metal buttons, a chrome orb for Add), electric and ice blue with
-   neon pink, a faint terminal grid with soft glows, and a wide techno
-   display face (Orbitron) for headings and the bar clock. */
+   Late-90s / early-2000s tech optimism at night: a rendered liquid-glass orb
+   over light streaks behind the page (darkened), chrome objects, sparkles and
+   flavour text at the edges (Y2KDecor), chrome buttons and a chrome orb for
+   Add, electric and ice blue with neon pink, a faint terminal grid, Orbitron
+   for labels and the bar clock, and headings in the person's own font file
+   (e.g. Xylem) when they pick one. 3D pictures: tools/y2k-art. */
 :root[data-theme='futurism'] {
   --bg: #05070d;
   --surface: #0c1221;
@@ -805,16 +807,28 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
   --in: #3fe6ff;
   --radius: 16px;
   --font-display: 'Orbitron', 'Eurostile', system-ui, sans-serif;
+  /* 'Graphyla Heading' is the font file picked in the look panel (state/lookFont.ts);
+     an installed Xylem is used next, then Orbitron. */
+  --font-heading: 'Graphyla Heading', 'Xylem', 'AF Xylem', 'Orbitron', 'Eurostile', system-ui, sans-serif;
+  --y2k-art: url('./assets/y2k/orb-portrait.webp');
+}
+@media (min-aspect-ratio: 4/3) {
+  :root[data-theme='futurism'] { --y2k-art: url('./assets/y2k/orb-landscape.webp'); }
 }
 [data-theme='futurism'] body::before {
   background:
-    radial-gradient(70% 45% at 0% 0%, rgb(59 158 255 / 0.18), transparent 70%),
-    radial-gradient(60% 40% at 100% 100%, rgb(255 106 213 / 0.1), transparent 70%),
-    linear-gradient(rgb(143 211 255 / 0.05) 1px, transparent 1px) 0 0 / 28px 28px,
-    linear-gradient(90deg, rgb(143 211 255 / 0.05) 1px, transparent 1px) 0 0 / 28px 28px;
+    linear-gradient(rgb(143 211 255 / 0.04) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(90deg, rgb(143 211 255 / 0.04) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(180deg, rgb(5 7 13 / 0.58), rgb(5 7 13 / 0.68) 45%, rgb(5 7 13 / 0.86)),
+    var(--y2k-art) center top / cover no-repeat,
+    var(--bg);
 }
-[data-theme='futurism'] :is(.section-title, .play-label, .topbar-title, .tab, .chart-title, .empty-title, .picker-caption, .side-legend, .theme-panel-title, .clock-bar, .stats strong) {
+[data-theme='futurism'] :is(.play-label, .tab, .picker-caption, .side-legend, .clock-bar, .stats strong) {
   font-family: var(--font-display);
+  letter-spacing: 0.03em;
+}
+[data-theme='futurism'] :is(.topbar-title, .section-title, .chart-title, .empty-title, .theme-panel-title) {
+  font-family: var(--font-heading);
   letter-spacing: 0.03em;
 }
 [data-theme='futurism'] .tab { font-size: 0.62rem; letter-spacing: 0.05em; }
@@ -824,6 +838,12 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
   background-image: linear-gradient(180deg, rgb(160 205 255 / 0.06), transparent 56px);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07);
 }
+/* Cards are slightly see-through, so the darkened 3D art glows behind them. */
+[data-theme='futurism'] :is(.card, .list, .group:not(.group-flat), .cue-song) { background-color: color-mix(in srgb, var(--surface) 86%, transparent); }
+[data-theme='futurism'] .card.choice:active { background-color: var(--surface-2); }
+/* Text that sits on the backdrop itself gets a dark halo; the graph's filter strip a dark band. */
+[data-theme='futurism'] :is(.section-title, .empty, .legend, .app-version, .topbar-stat) { text-shadow: 0 0 8px rgb(5 7 13 / 0.95), 0 0 2px rgb(5 7 13 / 0.9); }
+[data-theme='futurism'] :is(.graph-filters, .legend) { background: color-mix(in srgb, var(--bg) 80%, transparent); }
 [data-theme='futurism'] .btn-primary {
   background: linear-gradient(180deg, #f7faff 0%, #c9d3e2 42%, #8e9bb2 52%, #dfe6f1 100%);
   border-color: #e3e9f3;
@@ -835,6 +855,79 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
   color: #07101f;
   box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 50%, transparent), inset 0 -3px 6px rgb(0 0 0 / 0.35);
 }
+
+/* ── Y2K Futurism side decorations (ui/Y2KDecor.tsx) ───────── */
+.y2k-decor { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.y2k-defs { position: absolute; }
+.y2k-chrome { position: absolute; background: center / contain no-repeat; filter: drop-shadow(0 0 18px rgb(59 158 255 / 0.35)); }
+.y2k-chrome-torus {
+  left: -78px;
+  bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 12px);
+  width: 210px;
+  height: 210px;
+  background-image: url('./assets/y2k/torus.webp');
+  opacity: 0.9;
+}
+.y2k-chrome-blob {
+  right: -54px;
+  top: calc(var(--safe-top) + 96px);
+  width: 150px;
+  height: 150px;
+  background-image: url('./assets/y2k/blob.webp');
+  opacity: 0.85;
+}
+.y2k-sparkle { position: absolute; filter: drop-shadow(0 0 6px rgb(143 211 255 / 0.9)); }
+.y2k-sparkle-1 { left: 3px; top: calc(var(--safe-top) + 66px); width: 10px; height: 10px; }
+.y2k-sparkle-2 { right: 2px; bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 70px); width: 12px; height: 12px; }
+.y2k-sparkle-3 { right: 64px; top: calc(var(--safe-top) + 90px); width: 22px; height: 22px; }
+/* Flavour text in the 16px page margins, reading up (left) and down (right). */
+.y2k-rail {
+  position: absolute;
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-heading);
+  font-size: 9px;
+  line-height: 12px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+  color: color-mix(in srgb, var(--accent-strong) 60%, transparent);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+.y2k-rail-left { left: 2px; top: calc(var(--safe-top) + 84px); bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 24px); transform: rotate(180deg); }
+/* Right rail: between the look handle (mid-screen) and the sparkle above the tab bar. */
+.y2k-rail-right { right: 2px; top: calc(50% + 40px); bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 96px); }
+/* HUD panels beside the page column on wide screens. */
+.y2k-hud {
+  position: absolute;
+  display: none;
+  width: 250px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent-strong) 30%, transparent);
+  border-radius: 14px;
+  background: rgb(8 14 30 / 0.55);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 24px rgb(59 158 255 / 0.12);
+  color: color-mix(in srgb, var(--accent-strong) 80%, var(--muted));
+  font: 11px/1.7 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.y2k-hud p { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.y2k-hud-title { margin-bottom: 6px !important; font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.06em; color: var(--text); text-shadow: 0 0 10px rgb(143 211 255 / 0.6); }
+.y2k-hud-crate { color: var(--text); }
+@media (min-width: 1100px) {
+  .y2k-hud { display: block; }
+  /* Left: HUD over a chrome torus. Right: the orb (backdrop), a HUD above it and a blob below. */
+  .y2k-hud-left { left: calc(50% - 320px - 300px); top: calc(var(--safe-top) + 120px); }
+  .y2k-hud-right { right: calc(50% - 320px - 300px); top: calc(var(--safe-top) + 120px); }
+  .y2k-chrome-torus { left: calc(50% - 320px - 340px); width: 300px; height: 300px; bottom: calc(var(--tabbar-h) + 50px); }
+  .y2k-chrome-blob { top: auto; right: calc(50% - 320px - 250px); bottom: calc(var(--tabbar-h) + 40px); width: 190px; height: 190px; }
+  .y2k-sparkle-3 { right: calc(50% - 320px - 60px); top: calc(var(--safe-top) + 300px); width: 28px; height: 28px; }
+}
+/* The look panel's heading-font row. */
+.theme-font { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid var(--border); }
+.theme-font-name { font-family: var(--font-heading, inherit); letter-spacing: 0.03em; }
 
 @media (min-width: 720px) {
   .page { padding-top: 20px; }

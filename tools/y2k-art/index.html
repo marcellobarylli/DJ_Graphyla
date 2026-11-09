@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Y2K Futurism art renderer</title>
+    <style>
+      html, body { margin: 0; background: #05070d; color: #eaf2ff; font: 14px system-ui, sans-serif; }
+      canvas { display: block; max-width: 100%; height: auto; }
+      p { margin: 8px; }
+    </style>
+  </head>
+  <body>
+    <!--
+      Renders the 3D pictures of the Y2K Futurism look with three.js.
+      Run `npm run art:y2k` to write them to src/assets/y2k/, or open
+      /tools/y2k-art/?scene=orb-portrait in `npm run dev` to look at one.
+    -->
+    <p id="status">Rendering…</p>
+    <script type="module" src="./render.js"></script>
+  </body>
+</html>

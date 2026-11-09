@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type ChangeEvent } from 'react';
+import { clearLookFont, setLookFontFile, useLookFont } from '../state/lookFont';
 import { THEMES, setTheme, useTheme } from '../state/theme';
 
 /**
@@ -75,9 +76,52 @@ export function ThemeSwitch() {
                 </button>
               ))}
             </div>
+            {theme.id === 'futurism' && <HeadingFont />}
           </div>
         </>
       )}
     </>
+  );
+}
+
+/**
+ * Y2K Futurism headings use Orbitron unless the person picks their own font
+ * file (e.g. their copy of Xylem, which the app can't ship).
+ */
+function HeadingFont() {
+  const font = useLookFont();
+  const input = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const onPick = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setError(null);
+    try {
+      await setLookFontFile(file);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+  return (
+    <div className="theme-font">
+      <p className="small">
+        Headings: <strong className="theme-font-name">{font ? font.name : 'Orbitron'}</strong>
+        <span className="muted">{font ? ' (your file)' : ' (built in)'}</span>
+      </p>
+      <div className="row tight">
+        <button type="button" className="btn btn-small" onClick={() => input.current?.click()}>
+          {font ? 'Other font file…' : 'Use a font file…'}
+        </button>
+        {font && (
+          <button type="button" className="btn btn-small" onClick={clearLookFont}>
+            Back to Orbitron
+          </button>
+        )}
+      </div>
+      <p className="small muted">E.g. your copy of Xylem (.ttf, .otf, .woff). It stays on this device.</p>
+      {error && <p className="field-error">{error}</p>}
+      <input ref={input} type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden onChange={onPick} />
+    </div>
   );
 }
