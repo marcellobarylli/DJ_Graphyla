@@ -44,9 +44,9 @@ function useSheets(wanted: boolean): boolean {
 
 /**
  * The two chrome DJs of the Y2K Futurism look, beside the page on wide
- * screens. While play mode is open they dance (state/dance.ts): a loop of
- * two beats to the tempo of the song that is on, on its beat once the bar
- * clock runs, and a spin when the next song is mixed in. The frames come
+ * screens. In play mode, once the bar clock runs, they dance
+ * (state/dance.ts): a loop of two beats to the tempo of the song that is on,
+ * on its beat, and a spin when the next song is mixed in. The frames come
  * from two sprite sheets (ui/djSheet.ts), downloaded the first time they
  * dance; until then, and on narrow screens, they stand still. They dance
  * even when the device asks for reduced motion: dancing is what they are

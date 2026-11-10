@@ -1,17 +1,17 @@
 /**
- * The dance floor of the Y2K Futurism chrome DJs (ui/Y2KDancers.tsx): while
- * play mode is open (a set or a free walk) they dance to the tempo of the
- * song that is on, on its beat once the bar clock runs, and when the next
- * song is mixed in they spin. Runtime state only: nothing is saved.
+ * The dance floor of the Y2K Futurism chrome DJs (ui/Y2KDancers.tsx): in play
+ * mode (a set or a free walk) they dance while the bar clock runs, to the
+ * tempo of the song that is on and on its beat, and when the next song is
+ * mixed in they spin. Runtime state only: nothing is saved.
  */
 import { useSyncExternalStore } from 'react';
 
 export interface DanceFloor {
-  /** Play mode is open. */
+  /** Play mode is open and its bar clock runs. */
   on: boolean;
   /** The tempo they dance to, in the dance range (see danceBpm). */
   bpm: number;
-  /** Epoch ms of a beat; the dance loop starts on it. */
+  /** Epoch ms of a beat (when the bar clock started, on a bar); the dance loop starts on it. */
   beatAt: number;
   /** Epoch ms of the last song change, which starts a spin; null for none. */
   spinAt: number | null;
@@ -67,9 +67,14 @@ function update(change: Partial<DanceFloor>) {
 
 export const getDanceFloor = (): DanceFloor => floor;
 
-/** Play mode opened: they start dancing, on the beat from now until the bar clock says otherwise. */
-export function startDancing(now = Date.now()): void {
-  update({ on: true, beatAt: now, spinAt: null });
+/**
+ * Play mode's bar clock: they dance to `bpm` from `beatAt` (when the clock
+ * started) while it runs, and stand still while it is off (`beatAt` null).
+ */
+export function setDanceClock(bpm: number | null, beatAt: number | null): void {
+  const next = { on: beatAt !== null, bpm: danceBpm(bpm), beatAt: beatAt ?? floor.beatAt };
+  if (next.on === floor.on && next.bpm === floor.bpm && next.beatAt === floor.beatAt) return;
+  update(next);
 }
 
 /** Play mode closed: they stand still again. */
@@ -77,16 +82,12 @@ export function stopDancing(): void {
   update({ on: false, spinAt: null });
 }
 
-/** The song's tempo, and a beat from the bar clock if it runs (null keeps the beat they have). */
-export function setDanceTempo(bpm: number | null, beatAt: number | null): void {
-  const next = danceBpm(bpm);
-  if (next === floor.bpm && (beatAt === null || beatAt === floor.beatAt)) return;
-  update({ bpm: next, ...(beatAt === null ? {} : { beatAt }) });
-}
-
-/** The next song was mixed in: they spin. */
+/**
+ * The next song was mixed in: they spin. Mixing in also starts the bar
+ * clock, so this counts even if they were not dancing yet.
+ */
 export function danceSpin(now = Date.now()): void {
-  if (floor.on) update({ spinAt: now });
+  update({ spinAt: now });
 }
 
 function subscribe(listener: () => void): () => void {

@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import * as L from '../domain/live';
 import { formatBpm } from '../domain/tempo';
 import type { DjSet, GraphData, SongId } from '../domain/types';
-import { danceSpin, setDanceTempo, startDancing, stopDancing } from '../state/dance';
+import { danceSpin, setDanceClock, stopDancing } from '../state/dance';
 import { goBack, linkTo, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
 import { BpmBadge, EmptyState, KeyBadge, SongSearch, TopBar, VariantRow } from './components';
@@ -89,16 +89,15 @@ function useWakeLock() {
 }
 
 /**
- * Gets the Y2K Futurism chrome DJs dancing while play mode is open
- * (state/dance.ts): to the tempo of the song that is on, and on its beat once
- * the bar clock runs (the clock starts at a bar, so on a downbeat).
+ * Gets the Y2K Futurism chrome DJs dancing (state/dance.ts) once the bar
+ * clock runs: to the tempo of the song that is on, on its beat (the clock
+ * starts at a bar, so on a downbeat). Without a running clock (not started
+ * yet, a step back, a song without BPM) they stand still, and leaving play
+ * mode stops them.
  */
-function useDancers(bpm: number | null, beatAt: number | null) {
-  useEffect(() => {
-    startDancing();
-    return stopDancing;
-  }, []);
-  useEffect(() => setDanceTempo(bpm, beatAt), [bpm, beatAt]);
+function useDancers(bpm: number | null, clockStartedAt: number | null) {
+  useEffect(() => setDanceClock(bpm, bpm === null ? null : clockStartedAt), [bpm, clockStartedAt]);
+  useEffect(() => stopDancing, []);
 }
 
 const mmss = (s: number) => {
@@ -279,7 +278,7 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
     const at = Date.now();
     setLive({ session: L.advance(session, upNext), clock: { startBar: upNext.transition?.toBar ?? 1, startedAt: at } });
     setNow(at);
-    // The DJs spin for two beats from the same moment, so they land on the new song's beat.
+    // The DJs spin for two beats from the moment the clock restarts, so they land on the new song's beat.
     danceSpin(at);
     setChosen(null);
     setShowOthers(false);

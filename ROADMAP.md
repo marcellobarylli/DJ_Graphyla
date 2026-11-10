@@ -129,11 +129,11 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
 - [x] Lightning setting in the look panel (Y2K Futurism): *Flashing* or *Still*, and in still
       mode ‹ › through eight patterns (Strike, Twin, Storm, Fork, Crossfire, Flank, Downpour,
       Glancing). Kept on the device; reduced motion always shows the still pattern
-- [x] **Dancing DJs** in play mode (Y2K Futurism, wide screens): as soon as a set or a free walk
-      is playing, the chrome man and woman dance and keep dancing until play mode ends. The man
+- [x] **Dancing DJs** in play mode (Y2K Futurism, wide screens): once the bar clock is started
+      (in a set or a free walk), the chrome man and woman dance while it runs. The man
       bounces on every beat with alternating hand pumps, the woman sways her hips with her hands
       up. They dance to the playing song's tempo (folded into 75–150 BPM, so drum & bass goes half
-      time), on the beat once the bar clock runs; mixing in the next song makes them spin for two
+      time), on the clock's beat; mixing in the next song (which restarts the clock) makes them spin for two
       beats, landing on the new song's beat. Real poses, not a wobble: `tools/y2k-art/pose.js`
       skins the MakeHuman figures (`bodies.py` now exports the skeleton and skin weights) and
       `npm run art:y2k -- man-dance woman-dance` renders two 24-frame sprite sheets, downloaded only

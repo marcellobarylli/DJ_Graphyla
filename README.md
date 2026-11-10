@@ -48,8 +48,8 @@ Y2K only: big stretched italic caps and song titles in Anybody (ExtraExpanded), 
 numbers and badges in the Silkscreen pixel font, and the crate name in Pirata One blackletter.
 *Y2K Futurism* is dark mode with a rendered liquid-glass orb behind the page, chrome objects, sparkles and flavour text
 at the edges, two full-body chrome DJs (a man and a woman, built from MakeHuman's CC0 assets) beside the page on wide screens, and chrome buttons.
-The DJs dance while play mode is on (a set or a free walk), to the tempo of the song that is playing and on its beat once
-the bar clock runs, and spin when you mix in the next song (also with reduced motion, which only calms the lightning). Every text element follows its type scheme: headings and big song
+The DJs dance in play mode (a set or a free walk) once you start the bar clock, to the tempo of the song that is playing
+and on its beat, and spin when you mix in the next song (also with reduced motion, which only calms the lightning). Every text element follows its type scheme: headings and big song
 titles in chrome, in your own font file (for example your copy of Xylem, which the app can't ship:
 its licence doesn't allow that; pick it in the look panel) or else Orbitron; buttons, labels,
 badges and numbers in Orbitron; everything else, graph labels included, in Oxanium.
