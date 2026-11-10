@@ -3,21 +3,10 @@ import manDance from '../assets/y2k/man-dance.webp';
 import womanDance from '../assets/y2k/woman-dance.webp';
 import { danceFrame, getDanceFloor, useDanceFloor } from '../state/dance';
 import { DJ_SHEET } from './djSheet';
+import { useMedia } from './useMedia';
 
 /** Where the chrome DJs are shown (styles.css, .y2k-chrome-dj). */
 const WIDE = '(min-width: 1100px)';
-
-function useMedia(query: string): boolean {
-  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
-  useEffect(() => {
-    const list = window.matchMedia(query);
-    const change = () => setMatches(list.matches);
-    change();
-    list.addEventListener('change', change);
-    return () => list.removeEventListener('change', change);
-  }, [query]);
-  return matches;
-}
 
 /** Downloads and decodes both dance sheets; true once they are ready. */
 function useSheets(wanted: boolean): boolean {

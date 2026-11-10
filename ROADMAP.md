@@ -124,11 +124,12 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       boxes: the HUD is now bare glowing text in the corner, so nothing looks like something to tap
 - [x] Lightning in the backdrop: every few seconds one or two forked bolts come down from the
       top of the screen, over the orb and behind the chrome DJs (`ui/Y2KLightning.tsx`, bolts in
-      `ui/lightning.ts`). Under three flashes a second; still bolts with reduced motion; paused
-      in a hidden tab
+      `ui/lightning.ts`). Under three flashes a second; still bolts with reduced motion (until
+      Flashing is picked); paused in a hidden tab
 - [x] Lightning setting in the look panel (Y2K Futurism): *Flashing* or *Still*, and in still
       mode ‹ › through eight patterns (Strike, Twin, Storm, Fork, Crossfire, Flank, Downpour,
-      Glancing). Kept on the device; reduced motion always shows the still pattern
+      Glancing). Kept on the device; until one is picked it follows the device (still with
+      reduced motion), and picking Flashing turns the strikes on even then
 - [x] **Dancing DJs** in play mode (Y2K Futurism, wide screens): as soon as a set or a free walk
       is playing, the chrome man and woman dance and keep dancing until play mode ends. The man
       bounces on every beat with alternating hand pumps, the woman sways her hips with her hands

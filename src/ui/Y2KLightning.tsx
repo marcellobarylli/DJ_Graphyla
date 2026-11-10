@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { useLightning } from '../state/lightningSetting';
+import { isStill, useLightning } from '../state/lightningSetting';
 import { type Bolt, patternBolts, skyBolt } from './lightning';
+import { REDUCED_MOTION, useMedia } from './useMedia';
 
 const FLASH_MS = 420;
 /** Gap between strikes. With two flickers per strike this stays well under
@@ -20,24 +21,25 @@ function draw(svg: SVGSVGElement, group: SVGGElement, bolts: Bolt[]) {
  * Lightning in the Y2K Futurism backdrop. Flashing: every few seconds one or
  * two bolts come down from the top of the screen, flicker and fade. Still:
  * the pattern picked in the look panel stays up. It sits above the orb
- * backdrop and below the chrome DJs (Y2KDecor puts it first). When reduced
- * motion is asked for it is always still, and fainter unless still was
- * picked; flashing pauses while the tab is hidden.
+ * backdrop and below the chrome DJs (Y2KDecor puts it first). Until a mode
+ * is picked it follows the device: still and fainter when reduced motion is
+ * asked for. Flashing pauses while the tab is hidden.
  */
 export function Y2KLightning() {
   const svgRef = useRef<SVGSVGElement>(null);
   const group = useRef<SVGGElement>(null);
-  const { still, pattern } = useLightning();
+  const { motion, pattern } = useLightning();
+  const still = isStill(motion, useMedia(REDUCED_MOTION));
+  const picked = motion === 'still';
 
   useEffect(() => {
     const svg = svgRef.current;
     const g = group.current;
     if (!svg || !g) return;
-    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (still || calm) {
+    if (still) {
       const show = () => draw(svg, g, patternBolts(pattern, svg.clientWidth, svg.clientHeight));
       show();
-      g.style.opacity = still ? '0.8' : '0.45';
+      g.style.opacity = picked ? '0.8' : '0.45';
       window.addEventListener('resize', show);
       return () => {
         window.removeEventListener('resize', show);
@@ -60,7 +62,7 @@ export function Y2KLightning() {
       window.clearTimeout(timer);
       g.innerHTML = '';
     };
-  }, [still, pattern]);
+  }, [still, picked, pattern]);
 
   return (
     <svg ref={svgRef} className="y2k-lightning">
