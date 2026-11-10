@@ -1,7 +1,8 @@
 /**
  * Play mode: a live companion screen while DJing. Shows the song that is on,
- * what comes next and how to mix it, a bar clock estimated from the tempo,
- * and the ways out of the current song. Two modes share this screen:
+ * what comes next and how to mix it, and the ways out of the current song.
+ * There is no live bar counter: a tapped clock drifts from the decks, which
+ * show the real position. Two modes share this screen:
  *  - set play: follow a saved set, with the option to leave the plan;
  *  - free walk: no set; start at any song and pick from every continuation.
  * The app plays no audio; the songs play on the decks.
@@ -10,15 +11,19 @@ import { useEffect, useState } from 'react';
 import * as L from '../domain/live';
 import { formatBpm } from '../domain/tempo';
 import type { DjSet, GraphData, SongId } from '../domain/types';
-import { danceSpin, setDanceTempo, startDancing, stopDancing } from '../state/dance';
+import { danceSpin, setDanceStart, stopDancing } from '../state/dance';
 import { goBack, linkTo, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
 import { BpmBadge, EmptyState, KeyBadge, SongSearch, TopBar, VariantRow } from './components';
+import { useDancersShown } from './Y2KDancers';
 
+/**
+ * When the set got going: the tap on "Get the DJs dancing", or the last
+ * mix-in. Only the Y2K Futurism DJs use it, as the beat they dance on.
+ * (Saved sessions from the bar clock days also carry a startBar; ignored.)
+ */
 interface Clock {
-  /** Bar the song was at when the clock started. */
-  startBar: number;
-  /** Epoch ms when it was at that bar. */
+  /** Epoch ms. */
   startedAt: number;
 }
 
@@ -45,7 +50,7 @@ function loadLive(graph: GraphData, plan: DjSet, key: string): LiveState | null 
     const session = L.restoreLive(graph, plan, raw?.session ?? null);
     if (!session) return null;
     const c = raw?.clock;
-    const clock = c && typeof c.startBar === 'number' && typeof c.startedAt === 'number' ? c : null;
+    const clock = c && typeof c.startedAt === 'number' ? { startedAt: c.startedAt } : null;
     return { session, clock };
   } catch {
     return null;
@@ -89,22 +94,14 @@ function useWakeLock() {
 }
 
 /**
- * Gets the Y2K Futurism chrome DJs dancing while play mode is open
- * (state/dance.ts): to the tempo of the song that is on, and on its beat once
- * the bar clock runs (the clock starts at a bar, so on a downbeat).
+ * Gets the Y2K Futurism chrome DJs dancing (state/dance.ts) once the set got
+ * going (`startedAt`), to the tempo of the song that is on. Until then, and
+ * after a restart, they stand still; leaving play mode stops them.
  */
-function useDancers(bpm: number | null, beatAt: number | null) {
-  useEffect(() => {
-    startDancing();
-    return stopDancing;
-  }, []);
-  useEffect(() => setDanceTempo(bpm, beatAt), [bpm, beatAt]);
+function useDancers(bpm: number | null, startedAt: number | null) {
+  useEffect(() => setDanceStart(bpm, startedAt), [bpm, startedAt]);
+  useEffect(() => stopDancing, []);
 }
-
-const mmss = (s: number) => {
-  const t = Math.max(0, Math.round(s));
-  return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
-};
 
 const shortDate = () => new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 
@@ -202,7 +199,7 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
   const [showOthers, setShowOthers] = useState(false);
   const [jumping, setJumping] = useState(false);
   const [savedAs, setSavedAs] = useState<{ id: string; name: string } | null>(null);
-  const [now, setNow] = useState(() => Date.now());
+  const dancersShown = useDancersShown();
   useWakeLock();
 
   useEffect(() => {
@@ -212,12 +209,6 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
       /* progress just won't survive a reload */
     }
   }, [live, mode.storageKey]);
-
-  useEffect(() => {
-    if (!live.clock) return;
-    const t = setInterval(() => setNow(Date.now()), 250);
-    return () => clearInterval(t);
-  }, [live.clock]);
 
   const { session, clock } = live;
   const step = L.currentStep(session);
@@ -233,15 +224,10 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
 
   const playingBpm = via?.toBpm ?? song?.bpm ?? null;
   useDancers(playingBpm, clock?.startedAt ?? null);
-  const bar = clock && playingBpm ? L.barAt(clock.startBar, clock.startedAt, now, playingBpm) : null;
-  const target = nextT?.fromBar ?? null;
-  const toGo = bar !== null && target !== null && playingBpm ? L.secondsUntilBar(bar, target, playingBpm) : null;
-  const barsToGo = bar !== null && target !== null ? target - bar : null;
-  // A full-song overlap has no end bar: both songs keep playing together.
+  // A full-song overlap: both songs keep playing together.
   const fullOverlap = via?.overlapBars === 'full';
-  const overlapEnd = typeof via?.overlapBars === 'number' ? (via.toBar ?? 1) + via.overlapBars : null;
-  const inOverlap = bar !== null && overlapEnd !== null && bar < overlapEnd;
   const ride = nextT?.fromBpm != null && playingBpm !== null ? Math.round((nextT.fromBpm - playingBpm) * 10) / 10 : null;
+  const readyAt = L.getReadyBar(nextT?.fromBar ?? null);
   const offPlan = !free && L.leftThePlan(plan, session);
   const position = free
     ? `${session.steps.length} played`
@@ -264,8 +250,7 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
             ? `back to the set at song ${upNext.rejoinsAt + 1}`
             : 'off plan';
 
-  const startClock = () => setLive({ ...live, clock: { startBar: via?.toBar ?? 1, startedAt: Date.now() } });
-  const nudge = (bars: number) => clock && setLive({ ...live, clock: { ...clock, startBar: clock.startBar + bars } });
+  const startDancing = () => setLive({ ...live, clock: { startedAt: Date.now() } });
 
   const pick = (option: L.NextOption) => {
     setChosen(option);
@@ -277,9 +262,8 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
   const mixIn = () => {
     if (!upNext) return;
     const at = Date.now();
-    setLive({ session: L.advance(session, upNext), clock: { startBar: upNext.transition?.toBar ?? 1, startedAt: at } });
-    setNow(at);
-    // The DJs spin for two beats from the same moment, so they land on the new song's beat.
+    setLive({ session: L.advance(session, upNext), clock: { startedAt: at } });
+    // The DJs (start dancing if they weren't and) spin for two beats from this moment, landing on their new beat.
     danceSpin(at);
     setChosen(null);
     setShowOthers(false);
@@ -287,7 +271,8 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
   };
 
   const back = () => {
-    setLive({ session: L.stepBack(session), clock: null });
+    // The music is still playing: the DJs keep dancing.
+    setLive({ session: L.stepBack(session), clock });
     setChosen(null);
   };
 
@@ -334,44 +319,14 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
             {offPlan && <span className="badge badge-tag">off plan</span>}
           </div>
 
-          <div className="clock">
-            {!playingBpm ? (
-              <p className="small muted">Add a BPM to this song to get a bar clock.</p>
-            ) : bar === null ? (
-              <button type="button" className="btn btn-block" onClick={startClock}>
-                ▶ Start bar clock {via?.toBar ? `at bar ${via.toBar}` : 'at bar 1'}
+          {fullOverlap && <p className="play-status">Both playing: full song overlap</p>}
+          {dancersShown && !clock && (
+            <div className="play-start">
+              <button type="button" className="btn btn-block" onClick={startDancing}>
+                ▶ Get the DJs dancing
               </button>
-            ) : (
-              <>
-                <div className="clock-row">
-                  <span className="clock-bar" aria-label={`About bar ${Math.floor(bar)}`}>
-                    <span className="clock-approx">≈ bar</span> {Math.floor(bar)}
-                  </span>
-                  <span className="row tight">
-                    <button type="button" className="chip-btn chip-btn-flush" onClick={() => nudge(-1)} aria-label="One bar back">
-                      −1
-                    </button>
-                    <button type="button" className="chip-btn chip-btn-flush" onClick={() => nudge(1)} aria-label="One bar forward">
-                      +1
-                    </button>
-                  </span>
-                </div>
-                {fullOverlap && <p className="clock-status overlap">Both playing: full song overlap</p>}
-                {inOverlap && overlapEnd !== null && (
-                  <p className="clock-status overlap">Both playing: previous song out in {Math.ceil(overlapEnd - bar)} bars</p>
-                )}
-                {target !== null && barsToGo !== null && toGo !== null && (
-                  <p className={`clock-status${barsToGo <= 0 ? ' now' : barsToGo <= 8 ? ' soon' : ''}`}>
-                    {barsToGo <= 0
-                      ? `Mix now: past bar ${target}`
-                      : barsToGo <= 8
-                        ? `Get ready: mix out at bar ${target} in ${Math.ceil(barsToGo)} bars`
-                        : `Mix out at bar ${target} · in ${mmss(toGo)}`}
-                  </p>
-                )}
-              </>
-            )}
-          </div>
+            </div>
+          )}
         </section>
 
         {upNext ? (
@@ -382,6 +337,11 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
             {nextT ? (
               <>
                 <VariantRow transition={nextT} fromSong={song} toSong={nextSong} hideNotes />
+                {readyAt !== null && (
+                  <p className="get-ready small">
+                    Get ready at bar <strong>{readyAt}</strong> · {L.GET_READY_BARS} bars before the mix-out
+                  </p>
+                )}
                 {ride !== null && ride !== 0 && (
                   <p className="pitch small">
                     Ride the tempo {ride > 0 ? '+' : '−'}

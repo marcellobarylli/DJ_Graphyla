@@ -2,16 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { addSong, addTransition, createEmptyGraph } from './graph';
 import {
   advance,
-  barAt,
   currentStep,
   freePlan,
+  GET_READY_BARS,
+  getReadyBar,
   jumpTo,
   leftThePlan,
   otherOptions,
   plannedNext,
   restoreLive,
   saveLiveAsSet,
-  secondsUntilBar,
   startFreeWalk,
   startLive,
   stepBack,
@@ -129,16 +129,17 @@ describe('play mode', () => {
   });
 });
 
-describe('bar clock', () => {
-  it('counts bars from the tempo (4/4)', () => {
-    // 120 BPM = 2 beats/s = 0.5 bars/s
-    expect(barAt(1, 0, 10_000, 120)).toBe(6);
-    expect(barAt(97, 5_000, 4_000, 128)).toBe(97); // clock never runs backwards
+describe('getting ready', () => {
+  it('is one phrase (16 bars) before the mix-out', () => {
+    expect(GET_READY_BARS).toBe(16);
+    expect(getReadyBar(97)).toBe(81);
+    expect(getReadyBar(17)).toBe(1);
   });
 
-  it('gives the time until a bar', () => {
-    expect(secondsUntilBar(113, 129, 128)).toBe(30);
-    expect(secondsUntilBar(130, 129, 120)).toBe(-2);
+  it('is bar 1 when the mix-out comes in the first phrase, and absent without a mix-out bar', () => {
+    expect(getReadyBar(9)).toBe(1);
+    expect(getReadyBar(1)).toBe(1);
+    expect(getReadyBar(null)).toBeNull();
   });
 });
 

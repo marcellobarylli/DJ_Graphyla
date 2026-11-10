@@ -241,6 +241,9 @@ fieldset { margin: 0; min-width: 0; }
   font-size: 0.85rem;
 }
 .pitch { color: var(--star); font-weight: 600; }
+/* Play mode: the bar to get ready at, one phrase before the mix-out. */
+.get-ready { color: var(--muted); }
+.get-ready strong { color: var(--text); }
 
 .stars { display: flex; align-items: center; gap: 2px; }
 .star {
@@ -582,18 +585,9 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 .play-now { display: flex; flex-direction: column; gap: 8px; border-color: color-mix(in srgb, var(--out) 45%, var(--border)); }
 .play-title { font-size: 1.9rem; line-height: 1.1; overflow-wrap: anywhere; }
 .play-artist { color: var(--muted); font-size: 1.05rem; }
-.clock { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--border); }
-.clock-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.clock-bar { font-size: 2.4rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
-.clock-approx { font-size: 0.9rem; font-weight: 600; color: var(--muted); }
-.clock-status { font-size: 0.95rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-.clock-status.overlap { color: var(--in); }
-.clock-status.soon { color: var(--star); font-weight: 700; }
-.clock-status.now { color: var(--bg); background: var(--star); font-weight: 700; padding: 6px 10px; border-radius: 8px; }
-@media (prefers-reduced-motion: no-preference) {
-  .clock-status.now { animation: pulse 1s ease-in-out infinite alternate; }
-}
-@keyframes pulse { from { opacity: 1; } to { opacity: 0.6; } }
+/* "Both playing: full song overlap", and the Y2K Futurism DJs' start button. */
+.play-status { font-size: 0.95rem; color: var(--in); }
+.play-start { margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--border); }
 .up-next { display: flex; flex-direction: column; gap: 8px; border-color: color-mix(in srgb, var(--in) 45%, var(--border)); }
 .up-next.is-off { border-style: dashed; }
 .up-next-title { font-size: 1.4rem; line-height: 1.15; overflow-wrap: anywhere; }
@@ -875,7 +869,7 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 /* Tier 1: stretched heavy italic caps; headings widest, controls and labels less so they fit a phone. */
 [data-theme='swag'] :is(
   .section-title, .chart-title, .theme-panel-title, .btn, .chip-btn, .link-btn, .tab, .segmented button,
-  .field-label, .side-legend, .side-label, .play-label, .picker-caption, .picker-new, .clock-status, .legend, .stars-label
+  .field-label, .side-legend, .side-label, .play-label, .picker-caption, .picker-new, .play-status, .legend, .stars-label
 ) {
   font-stretch: 118%;
   font-style: italic;
@@ -897,7 +891,7 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 [data-theme='swag'] :is(.song-title, .choice-title) { font-stretch: 115%; font-weight: 700; }
 /* Tier 3: pixel numbers and badges. */
 [data-theme='swag'] :is(
-  .badge, .count, .cue-num, .degree, .stats strong, .clock-bar, .clock-approx, .mixpoint-time, .gap-count,
+  .badge, .count, .cue-num, .degree, .stats strong, .mixpoint-time, .gap-count,
   .topbar-stat, .app-version, .input-suffix, .chart-tick, .theme-font-name, .dj-avatar-initials
 ) {
   font-family: var(--font-pixel);
@@ -905,7 +899,6 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
   letter-spacing: 0;
 }
 [data-theme='swag'] :is(.badge, .degree, .topbar-stat, .app-version, .count) { font-size: 0.72rem; }
-[data-theme='swag'] .clock-bar { font-size: 2.5rem; }
 [data-theme='swag'] .stats strong { font-size: 1.5rem; }
 /* Tier 4: blackletter for the crate name and empty-state titles. */
 [data-theme='swag'] :is(.crate-pill-name, .empty-title) {
@@ -1121,8 +1114,8 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 /* Tier 2, interface: Orbitron for controls, labels, badges and every number. */
 [data-theme='futurism'] :is(
   .btn, .chip-btn, .link-btn, .segmented button, .tab, .suggestion, .picker-new, .badge, .count, .cue-num,
-  .stats strong, .stats span, .clock-bar, .clock-status, .clock-approx, .mixpoint-time, .mixpoint-bpm,
-  .pitch, .degree, .tempo-line, .topbar-stat, .app-version, .input-suffix, .stars-label, .gap-count,
+  .stats strong, .stats span, .play-status, .mixpoint-time, .mixpoint-bpm,
+  .pitch, .get-ready, .degree, .tempo-line, .topbar-stat, .app-version, .input-suffix, .stars-label, .gap-count,
   .chart-tick, .chart-label, .chart-tooltip strong, .legend, .side-legend, .side-label, .field-label,
   .play-label, .picker-caption, .chart-axis-note, .theme-font-name, .y2k-hud
 ) {

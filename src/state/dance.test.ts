@@ -7,8 +7,7 @@ import {
   danceSpin,
   getDanceFloor,
   loopMs,
-  setDanceTempo,
-  startDancing,
+  setDanceStart,
   stopDancing,
 } from './dance';
 
@@ -66,37 +65,46 @@ describe('danceFrame', () => {
 });
 
 describe('the dance floor', () => {
-  it('dances while play mode is open and spins only then', () => {
+  it('dances once the set got going, not before', () => {
     stopDancing();
-    danceSpin(1_000);
-    expect(getDanceFloor().spinAt).toBeNull();
+    expect(getDanceFloor().on).toBe(false);
+    // Play mode open, the set not going yet: still.
+    setDanceStart(124, null);
+    expect(getDanceFloor().on).toBe(false);
 
-    startDancing(5_000);
-    expect(getDanceFloor()).toMatchObject({ on: true, beatAt: 5_000, spinAt: null });
-    danceSpin(6_000);
-    expect(getDanceFloor().spinAt).toBe(6_000);
+    setDanceStart(124, 5_000);
+    expect(getDanceFloor()).toMatchObject({ on: true, bpm: 124, beatAt: 5_000 });
+
+    // A restart: still again, until it gets going again.
+    setDanceStart(124, null);
+    expect(getDanceFloor().on).toBe(false);
+    setDanceStart(124, 8_000);
+    expect(getDanceFloor()).toMatchObject({ on: true, beatAt: 8_000 });
 
     stopDancing();
     expect(getDanceFloor()).toMatchObject({ on: false, spinAt: null });
   });
 
-  it('follows the tempo and the bar clock, keeping its beat when the clock is off', () => {
-    startDancing(5_000);
-    setDanceTempo(174, null);
-    expect(getDanceFloor()).toMatchObject({ bpm: 87, beatAt: 5_000 });
-    setDanceTempo(128, 7_000);
-    expect(getDanceFloor()).toMatchObject({ bpm: 128, beatAt: 7_000 });
-    setDanceTempo(null, null);
-    expect(getDanceFloor()).toMatchObject({ bpm: DEFAULT_DANCE_BPM, beatAt: 7_000 });
+  it('spins on a mix-in, also when that mix-in is what gets them dancing', () => {
+    stopDancing();
+    danceSpin(6_000);
+    setDanceStart(124, 6_000);
+    expect(getDanceFloor()).toMatchObject({ on: true, beatAt: 6_000, spinAt: 6_000 });
+    expect(danceFrame(getDanceFloor(), 6_100, 12, 12).row).toBe(1);
+    stopDancing();
+    expect(getDanceFloor().spinAt).toBeNull();
+  });
+
+  it('dances to the folded tempo of the song', () => {
+    setDanceStart(174, 7_000);
+    expect(getDanceFloor()).toMatchObject({ bpm: 87, beatAt: 7_000 });
     stopDancing();
   });
 
   it('keeps the same state object when nothing changes', () => {
-    startDancing(5_000);
-    setDanceTempo(128, 7_000);
+    setDanceStart(128, 7_000);
     const before = getDanceFloor();
-    setDanceTempo(128, 7_000);
-    setDanceTempo(128, null);
+    setDanceStart(128, 7_000);
     expect(getDanceFloor()).toBe(before);
     stopDancing();
   });

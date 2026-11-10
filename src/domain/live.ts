@@ -143,15 +143,16 @@ export function restoreLive(graph: GraphData, set: DjSet, raw: unknown): LiveSes
   return ok ? { setId: s.setId, steps: s.steps } : null;
 }
 
-/* ───────────────────────────── bar clock ───────────────────────────── */
+/* ───────────────────────────── getting ready ───────────────────────────── */
 
-/** Bar the song is at (fractional), from the bar it started at and its tempo (4/4). */
-export function barAt(startBar: number, startedAtMs: number, nowMs: number, bpm: number, beatsPerBar = 4): number {
-  const elapsed = Math.max(0, nowMs - startedAtMs) / 1000;
-  return startBar + (elapsed * bpm) / 60 / beatsPerBar;
-}
+/** One phrase (bars) ahead of the mix-out: time to cue the next song, ride the tempo, set the EQs. */
+export const GET_READY_BARS = 16;
 
-/** Seconds until `targetBar` at `bpm` (negative once it has passed). */
-export function secondsUntilBar(currentBar: number, targetBar: number, bpm: number, beatsPerBar = 4): number {
-  return ((targetBar - currentBar) * beatsPerBar * 60) / bpm;
+/**
+ * The bar to start getting ready at, one phrase before `fromBar` (the
+ * mix-out), read off the deck's own bar counter. Bar 1 when the mix-out
+ * comes within the first phrase; null without a mix-out bar.
+ */
+export function getReadyBar(fromBar: number | null): number | null {
+  return fromBar === null ? null : Math.max(1, fromBar - GET_READY_BARS);
 }
