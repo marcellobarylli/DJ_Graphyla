@@ -1,8 +1,9 @@
 import { useEffect, useId, useRef, useState, type ChangeEvent } from 'react';
-import { setLightning, stepPattern, useLightning } from '../state/lightningSetting';
+import { isStill, setLightning, stepPattern, useLightning } from '../state/lightningSetting';
 import { clearLookFont, setLookFontFile, useLookFont } from '../state/lookFont';
 import { THEMES, setTheme, useTheme } from '../state/theme';
 import { PATTERNS } from './lightning';
+import { REDUCED_MOTION, useMedia } from './useMedia';
 
 /**
  * The look switch (issue #9): a slim handle on the right edge of the screen,
@@ -136,11 +137,12 @@ function HeadingFont() {
 /**
  * Y2K Futurism lightning: flashing (random strikes) or still, and in still
  * mode which pattern. The backdrop updates behind the panel as you pick.
+ * Until one is picked it follows the device's reduced-motion preference.
  */
 function LightningControls() {
-  const { still, pattern } = useLightning();
-  const calm = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const showStill = still || calm;
+  const { motion, pattern } = useLightning();
+  const calm = useMedia(REDUCED_MOTION);
+  const showStill = isStill(motion, calm);
   const current = PATTERNS[stepPattern(pattern, 0, PATTERNS.length)]!;
   const step = (by: number) => setLightning({ pattern: stepPattern(pattern, by, PATTERNS.length) });
   return (
@@ -159,8 +161,7 @@ function LightningControls() {
             role="radio"
             aria-checked={showStill === value}
             className={showStill === value ? 'on' : ''}
-            disabled={calm && !value}
-            onClick={() => setLightning({ still: value })}
+            onClick={() => setLightning({ motion: value ? 'still' : 'flashing' })}
           >
             {label}
           </button>
@@ -183,7 +184,9 @@ function LightningControls() {
           </button>
         </div>
       )}
-      {calm && <p className="small muted">Your device asks for less motion, so the lightning stays still.</p>}
+      {calm && motion === 'device' && (
+        <p className="small muted">Your device asks for less motion, so the lightning stays still. Pick Flashing to turn it on.</p>
+      )}
     </div>
   );
 }
