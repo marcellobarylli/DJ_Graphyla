@@ -47,7 +47,9 @@ snapshot with its date stamp). DJ pictures turn into pixelated, overexposed digi
 Y2K only: big stretched italic caps and song titles in Anybody (ExtraExpanded), body text in Anybody,
 numbers and badges in the Silkscreen pixel font, and the crate name in Pirata One blackletter.
 *Y2K Futurism* is dark mode with a rendered liquid-glass orb behind the page, chrome objects, sparkles and flavour text
-at the edges, two full-body chrome DJs (a man and a woman, built from MakeHuman's CC0 assets) beside the page on wide screens, and chrome buttons. Every text element follows its type scheme: headings and big song
+at the edges, two full-body chrome DJs (a man and a woman, built from MakeHuman's CC0 assets) beside the page on wide screens, and chrome buttons.
+The DJs dance while play mode is on (a set or a free walk), to the tempo of the song that is playing and on its beat once
+the bar clock runs, and spin when you mix in the next song; with reduced motion they stand still. Every text element follows its type scheme: headings and big song
 titles in chrome, in your own font file (for example your copy of Xylem, which the app can't ship:
 its licence doesn't allow that; pick it in the look panel) or else Orbitron; buttons, labels,
 badges and numbers in Orbitron; everything else, graph labels included, in Oxanium.
@@ -196,12 +198,13 @@ src/
   storage/   localStorage persistence, one entry per crate (swappable for a sync backend later);
              githubShop: uploads to the record shop through the GitHub API;
              songLookup: Deezer search/BPM through a sandboxed JSONP iframe (domain/onlineSongs reads the answers)
-  state/     React store, tiny hash router, looks (themes)
+  state/     React store, tiny hash router, looks (themes), the chrome DJs' dance floor (dance)
   ui/        screens: library, song page, song/transition cards, graph (Cytoscape, lazy-loaded), sets, data, look switch,
-             edge decorations of the Y2K looks (SwagDecor, Y2KDecor)
+             edge decorations of the Y2K looks (SwagDecor, Y2KDecor; Y2KDancers: the dancing chrome DJs)
   assets/    SW4G 3R4: digital camo, cap logo, flourish, safety pin, snapshot; y2k/ = rendered 3D pictures (Y2K Futurism)
 public/      PWA manifest, service worker, icons
-tools/       y2k-art: three.js scenes that render the Y2K Futurism pictures; swag-art: the digital camo; icon: the app icon
+tools/       y2k-art: three.js scenes that render the Y2K Futurism pictures (pose.js: the DJs' skinning and dance moves);
+             swag-art: the digital camo; icon: the app icon
 record-shop/ crates shared from the app; published with the site by vite.config.ts
 ```
 

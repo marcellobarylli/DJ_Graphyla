@@ -4,7 +4,9 @@
  *    over horizontal light streaks (late-90s CGI wallpaper style), dark;
  *  - torus / blob: chrome objects on a transparent background, for the edges;
  *  - man / woman: full-body chrome figures wearing DJ headphones, on a
- *    transparent background (meshes from bodies.py, see figureScene).
+ *    transparent background (meshes from bodies.py, see figureScene);
+ *  - man-dance / woman-dance: sprite sheets of the same figures dancing
+ *    (src/ui/djSheet.ts has the layout, pose.js the choreography).
  * The orb, torus and blob are procedural (no downloaded textures), and the
  * figures are built from MakeHuman's CC0 assets, so the pictures are ours and
  * ship under the repository's own terms.
@@ -18,15 +20,34 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { DJ_SHEET } from '../../src/ui/djSheet.ts';
+import { dancePose, movePose, posed, readFigure, stillPose } from './pose.js';
 
 const SCENES = {
   'orb-portrait': { width: 900, height: 1600, kind: 'orb', camZ: 6.4, orbX: 0.42, orbY: 0.95 },
   'orb-landscape': { width: 1600, height: 1000, kind: 'orb', camZ: 5.6, orbX: 1.75, orbY: 0.2 },
   torus: { width: 560, height: 560, kind: 'torus' },
   blob: { width: 560, height: 560, kind: 'blob' },
-  man: { width: 560, height: 1300, kind: 'figure', turn: 0.38 },
-  woman: { width: 560, height: 1300, kind: 'figure', turn: -0.38 },
+  man: { kind: 'figure', figure: 'man', turn: 0.38 },
+  woman: { kind: 'figure', figure: 'woman', turn: -0.38 },
+  // The sheets are drawn at 3/4 of the still's size: plenty for a figure in motion, and much lighter.
+  'man-dance': { kind: 'figure', figure: 'man', turn: 0.38, dance: true, scale: 0.75 },
+  'woman-dance': { kind: 'figure', figure: 'woman', turn: -0.38, dance: true, scale: 0.75 },
 };
+
+/**
+ * The frames of a figure scene: one still, or a dance sheet with the loop
+ * on the first row and the spin on the second. Each frame is a pose and an
+ * extra turn (radians) of the whole figure.
+ */
+function figureFrames(cfg) {
+  if (!cfg.dance) return [[{ rotations: stillPose(cfg.figure), spin: 0 }]];
+  const { loopFrames, moveFrames } = DJ_SHEET;
+  return [
+    Array.from({ length: loopFrames }, (_, i) => ({ rotations: dancePose(cfg.figure, i / loopFrames), spin: 0 })),
+    Array.from({ length: moveFrames }, (_, i) => movePose(cfg.figure, (i + 0.5) / moveFrames)),
+  ];
+}
 
 /** Small deterministic PRNG so every run draws the same picture. */
 function rng(seed) {
@@ -199,23 +220,35 @@ function causticsMaterial() {
 
 /**
  * A chrome DJ: a full-body human figure (tools/y2k-art/bodies, built from
- * MakeHuman's CC0 base mesh by bodies.py) in mirror chrome, wearing
- * blue-chrome headphones with dark glossy cushions. The figure is turned a
- * little toward the page. Rendered at twice the size and scaled down.
+ * MakeHuman's CC0 base mesh by bodies.py, posed by pose.js) in mirror chrome,
+ * wearing blue-chrome headphones with dark glossy cushions. The figure is
+ * turned a little toward the page. Every frame is rendered at twice the size
+ * and scaled down, into a grid of DJ_SHEET frames (one row per animation).
+ *
+ * The camera frames the still figure as the first 560 × 1300 pictures did;
+ * the frame adds room above and at the sides (for raised hands) without
+ * changing the projection, so the figure keeps its size and spot.
+ *
+ * `?preview=0.25` renders a small, quick preview (for working on the dance).
  */
-async function figureScene(name, cfg) {
-  const SS = 2;
-  const W = cfg.width * SS;
-  const H = cfg.height * SS;
+async function figureScene(cfg, preview = 0) {
+  const SS = preview ? 1 : 2;
+  const scale = (cfg.scale ?? 1) * (preview || 1);
+  const { frameWidth, frameHeight } = DJ_SHEET;
+  const fw = Math.round(frameWidth * scale);
+  const fh = Math.round(frameHeight * scale);
+  const W = fw * SS;
+  const H = fh * SS;
   const [bin, meta] = await Promise.all([
-    fetch(new URL(`./bodies/${name}.bin`, import.meta.url)).then((r) => r.arrayBuffer()),
-    fetch(new URL(`./bodies/${name}.json`, import.meta.url)).then((r) => r.json()),
+    fetch(new URL(`./bodies/${cfg.figure}.bin`, import.meta.url)).then((r) => r.arrayBuffer()),
+    fetch(new URL(`./bodies/${cfg.figure}.json`, import.meta.url)).then((r) => r.json()),
   ]);
-  const [nVerts, nIdx] = new Uint32Array(bin, 0, 2);
+  const fig = readFigure(bin, meta);
+  const still = posed(fig, stillPose(cfg.figure));
   const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(bin, 8, nVerts * 3), 3));
-  geo.setIndex(new THREE.BufferAttribute(new Uint16Array(bin, 8 + nVerts * 12, nIdx), 1));
-  geo.computeVertexNormals();
+  const position = new THREE.BufferAttribute(new Float32Array(still.positions), 3);
+  geo.setAttribute('position', position);
+  geo.setIndex(new THREE.BufferAttribute(fig.index, 1));
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(1);
@@ -250,8 +283,9 @@ async function figureScene(name, cfg) {
   const figure = new THREE.Group();
   figure.add(new THREE.Mesh(geo, chrome));
 
-  // Headphones in the head's own frame: x right, y up, z forward.
-  const { center, size, axes } = meta.head;
+  // Headphones in the head's own frame: x right, y up, z forward. The skull
+  // is rigid, so its size is the same in every pose; only the frame moves.
+  const { size } = still.head;
   const phones = new THREE.Group();
   const halfW = size[0] / 2;
   const cupR = size[1] * 0.2;
@@ -284,35 +318,54 @@ async function figureScene(name, cfg) {
   band.scale.z = 2.2; // a flat strap, wider front to back
   band.position.z = cupZ - cupZ * 2.2;
   phones.add(band);
-  const frame = new THREE.Matrix4().set(
-    axes[0][0], axes[0][1], axes[0][2], center[0],
-    axes[1][0], axes[1][1], axes[1][2], center[1],
-    axes[2][0], axes[2][1], axes[2][2], center[2],
-    0, 0, 0, 1,
-  );
-  phones.applyMatrix4(frame);
-  figure.add(phones);
-
-  figure.rotation.y = cfg.turn;
+  const holder = new THREE.Group();
+  holder.matrixAutoUpdate = false;
+  holder.add(phones);
+  figure.add(holder);
   scene.add(figure);
 
+  // The first pictures' camera (a 560 × 1300 view of the still figure), widened
+  // to the frame: the same projection, with the extra room above and at the sides.
   const fov = 18;
-  const camera = new THREE.PerspectiveCamera(fov, W / H, 1, 400);
-  const h = meta.height * 1.04;
+  const camera = new THREE.PerspectiveCamera(fov, 560 / 1300, 1, 400);
+  const h = still.height * 1.04;
   const dist = h / 2 / Math.tan(THREE.MathUtils.degToRad(fov / 2));
   camera.position.set(0, h * 0.52, dist);
   camera.lookAt(0, h * 0.49, 0);
+  camera.setViewOffset(560, 1300, -(frameWidth - 560) / 2, -(frameHeight - 1300), frameWidth, frameHeight);
 
-  renderer.render(scene, camera);
+  const rows = figureFrames(cfg);
+  const cols = Math.max(...rows.map((r) => r.length));
   const out = document.createElement('canvas');
-  out.width = cfg.width;
-  out.height = cfg.height;
+  out.width = fw * cols;
+  out.height = fh * rows.length;
   const g = out.getContext('2d');
   g.imageSmoothingQuality = 'high';
-  g.drawImage(renderer.domElement, 0, 0, cfg.width, cfg.height);
+  const frame = new THREE.Matrix4();
+  rows.forEach((row, r) =>
+    row.forEach(({ rotations, spin }, c) => {
+      const p = posed(fig, rotations, still);
+      position.array.set(p.positions);
+      position.needsUpdate = true;
+      geo.computeVertexNormals();
+      const { center, axes } = p.head;
+      frame.set(
+        axes[0][0], axes[0][1], axes[0][2], center[0],
+        axes[1][0], axes[1][1], axes[1][2], center[1],
+        axes[2][0], axes[2][1], axes[2][2], center[2],
+        0, 0, 0, 1,
+      );
+      holder.matrix.copy(frame);
+      holder.matrixWorldNeedsUpdate = true;
+      figure.rotation.y = cfg.turn + spin;
+      renderer.render(scene, camera);
+      g.drawImage(renderer.domElement, c * fw, r * fh, fw, fh);
+    }),
+  );
   document.body.appendChild(out);
   renderer.domElement.remove();
-  return out.toDataURL('image/webp', 0.9);
+  // The dance sheets at a lower quality: no visible difference, about a fifth smaller.
+  return out.toDataURL('image/webp', cfg.dance ? 0.7 : 0.9);
 }
 
 async function render() {
@@ -320,7 +373,8 @@ async function render() {
   const cfg = SCENES[name];
   if (!cfg) throw new Error(`Unknown scene ${name}`);
   if (cfg.kind === 'figure') {
-    window.__art = { name, dataUrl: await figureScene(name, cfg) };
+    const preview = Number(new URLSearchParams(location.search).get('preview') ?? 0);
+    window.__art = { name, dataUrl: await figureScene(cfg, preview) };
     document.getElementById('status').textContent = `${name}: done`;
     return;
   }

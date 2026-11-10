@@ -1198,12 +1198,15 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
   background-image: url('./assets/y2k/torus.webp');
   opacity: 0.9;
 }
-/* Chrome DJs (tools/y2k-art, scenes 'man' and 'woman'), one in each margin beside the page on wide screens. */
+/* Chrome DJs (tools/y2k-art, scenes 'man' and 'woman'), one in each margin beside the page on wide screens.
+   They dance in play mode (ui/Y2KDancers.tsx swaps in the frames of 'man-dance' and 'woman-dance').
+   The figure is min(66vh, 860px) tall; its frame (ui/djSheet.ts, 640 × 1560) has room above and
+   at the sides for raised hands, 1.2 × the figure's height. */
 .y2k-chrome-dj {
   display: none;
   bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 12px);
-  height: min(66vh, 860px);
-  aspect-ratio: 560 / 1300;
+  height: calc(min(66vh, 860px) * 1.2);
+  aspect-ratio: 640 / 1560;
   filter: drop-shadow(0 0 22px rgb(59 158 255 / 0.4));
 }
 /* Lightning from above, over the orb and behind the DJs (ui/Y2KLightning.tsx): white core, ice-blue body, a faint green fringe. */

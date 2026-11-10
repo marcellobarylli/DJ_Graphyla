@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import * as L from '../domain/live';
 import { formatBpm } from '../domain/tempo';
 import type { DjSet, GraphData, SongId } from '../domain/types';
+import { danceSpin, setDanceTempo, startDancing, stopDancing } from '../state/dance';
 import { goBack, linkTo, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
 import { BpmBadge, EmptyState, KeyBadge, SongSearch, TopBar, VariantRow } from './components';
@@ -85,6 +86,19 @@ function useWakeLock() {
       void lock?.release().catch(() => {});
     };
   }, []);
+}
+
+/**
+ * Gets the Y2K Futurism chrome DJs dancing while play mode is open
+ * (state/dance.ts): to the tempo of the song that is on, and on its beat once
+ * the bar clock runs (the clock starts at a bar, so on a downbeat).
+ */
+function useDancers(bpm: number | null, beatAt: number | null) {
+  useEffect(() => {
+    startDancing();
+    return stopDancing;
+  }, []);
+  useEffect(() => setDanceTempo(bpm, beatAt), [bpm, beatAt]);
 }
 
 const mmss = (s: number) => {
@@ -218,6 +232,7 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
   const nextT = upNext?.transition ?? null;
 
   const playingBpm = via?.toBpm ?? song?.bpm ?? null;
+  useDancers(playingBpm, clock?.startedAt ?? null);
   const bar = clock && playingBpm ? L.barAt(clock.startBar, clock.startedAt, now, playingBpm) : null;
   const target = nextT?.fromBar ?? null;
   const toGo = bar !== null && target !== null && playingBpm ? L.secondsUntilBar(bar, target, playingBpm) : null;
@@ -261,8 +276,11 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
 
   const mixIn = () => {
     if (!upNext) return;
-    setLive({ session: L.advance(session, upNext), clock: { startBar: upNext.transition?.toBar ?? 1, startedAt: Date.now() } });
-    setNow(Date.now());
+    const at = Date.now();
+    setLive({ session: L.advance(session, upNext), clock: { startBar: upNext.transition?.toBar ?? 1, startedAt: at } });
+    setNow(at);
+    // The DJs spin for two beats from the same moment, so they land on the new song's beat.
+    danceSpin(at);
     setChosen(null);
     setShowOthers(false);
     setJumping(false);
