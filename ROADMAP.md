@@ -128,11 +128,12 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       boxes: the HUD is now bare glowing text in the corner, so nothing looks like something to tap
 - [x] Lightning in the backdrop: every few seconds one or two forked bolts come down from the
       top of the screen, over the orb and behind the chrome DJs (`ui/Y2KLightning.tsx`, bolts in
-      `ui/lightning.ts`). Under three flashes a second; still bolts with reduced motion; paused
-      in a hidden tab
+      `ui/lightning.ts`). Under three flashes a second; still bolts with reduced motion (until
+      Flashing is picked); paused in a hidden tab
 - [x] Lightning setting in the look panel (Y2K Futurism): *Flashing* or *Still*, and in still
       mode ‹ › through eight patterns (Strike, Twin, Storm, Fork, Crossfire, Flank, Downpour,
-      Glancing). Kept on the device; reduced motion always shows the still pattern
+      Glancing). Kept on the device; until one is picked it follows the device (still with
+      reduced motion), and picking Flashing turns the strikes on even then
 - [x] **Dancing DJs** in play mode (Y2K Futurism, wide screens): once the set gets going (a tap on
       *▶ Get the DJs dancing*, shown only where they are on screen, or the first *Mix in next*), in a
       set or a free walk, the chrome man and woman dance until play mode ends or restarts. The man
@@ -141,8 +142,8 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       time); mixing in the next song makes them spin for two beats, landing on their new beat. Real poses, not a wobble: `tools/y2k-art/pose.js`
       skins the MakeHuman figures (`bodies.py` now exports the skeleton and skin weights) and
       `npm run art:y2k -- man-dance woman-dance` renders two 24-frame sprite sheets, downloaded only
-      the first time they dance on a wide screen. They dance even with reduced motion (the
-      lightning still follows it): dancing is the point of them in play mode
+      the first time they dance on a wide screen. They dance even with reduced motion (which only
+      sets the lightning's default): dancing is the point of them in play mode
 - [x] Y2K Futurism is the default look for a first visit (a look picked before is kept)
 - [x] Headings and flavour text in your own font file (e.g. Xylem, which can't be shipped), picked
       in the look panel and kept on the device; Orbitron otherwise
