@@ -137,7 +137,8 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       beats, landing on the new song's beat. Real poses, not a wobble: `tools/y2k-art/pose.js`
       skins the MakeHuman figures (`bodies.py` now exports the skeleton and skin weights) and
       `npm run art:y2k -- man-dance woman-dance` renders two 24-frame sprite sheets, downloaded only
-      the first time they dance on a wide screen. Reduced motion keeps them still
+      the first time they dance on a wide screen. They dance even with reduced motion (the
+      lightning still follows it): dancing is the point of them in play mode
 - [x] Y2K Futurism is the default look for a first visit (a look picked before is kept)
 - [x] Headings and flavour text in your own font file (e.g. Xylem, which can't be shipped), picked
       in the look panel and kept on the device; Orbitron otherwise

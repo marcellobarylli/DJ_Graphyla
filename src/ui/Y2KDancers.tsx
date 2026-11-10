@@ -6,7 +6,6 @@ import { DJ_SHEET } from './djSheet';
 
 /** Where the chrome DJs are shown (styles.css, .y2k-chrome-dj). */
 const WIDE = '(min-width: 1100px)';
-const CALM = '(prefers-reduced-motion: reduce)';
 
 function useMedia(query: string): boolean {
   const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
@@ -49,16 +48,16 @@ function useSheets(wanted: boolean): boolean {
  * two beats to the tempo of the song that is on, on its beat once the bar
  * clock runs, and a spin when the next song is mixed in. The frames come
  * from two sprite sheets (ui/djSheet.ts), downloaded the first time they
- * dance; until then, on narrow screens, and when reduced motion is asked
- * for, they stand still.
+ * dance; until then, and on narrow screens, they stand still. They dance
+ * even when the device asks for reduced motion: dancing is what they are
+ * there for in play mode (the lightning still follows that setting).
  */
 export function Y2KDancers() {
   const man = useRef<HTMLSpanElement>(null);
   const woman = useRef<HTMLSpanElement>(null);
   const { on } = useDanceFloor();
   const wide = useMedia(WIDE);
-  const calm = useMedia(CALM);
-  const dancing = on && wide && !calm;
+  const dancing = on && wide;
   const ready = useSheets(dancing);
 
   useEffect(() => {
