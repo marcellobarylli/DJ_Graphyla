@@ -36,8 +36,8 @@ title and artist are sent, to Deezer only; no account or key is needed. Turn it 
 **Crates** keep libraries apart, like Obsidian vaults: one per genre or label, each with its
 own songs, transitions and sets. Switch crates from the header.
 
-**Looks**: the slim handle on the right edge of the screen switches between three looks. *Graphyla*
-is the original. *SW4G 3R4* (Swag Era) is the light look: the hypebeast and swag era of the 2000s and
+**Looks**: the slim handle on the right edge of the screen switches between three looks; a first visit opens in *Y2K
+Futurism*, and the look you pick is remembered on the device. *Graphyla* is the original. *SW4G 3R4* (Swag Era) is the light look: the hypebeast and swag era of the 2000s and
 2010s, updated for 2026. An overexposed white page over soft digital camo, black and white with
 box-logo red, square corners with hard black shadows, a checkerboard strip, and tribal flourishes,
 stars, a safety pin and pixel flavour text at the edges (on wide screens also a hang tag and a digicam

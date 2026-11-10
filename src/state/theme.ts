@@ -85,7 +85,8 @@ export const THEMES: readonly ThemeInfo[] = [
   },
 ];
 
-export const DEFAULT_THEME: ThemeId = 'graphyla';
+/** A first visit opens in Y2K Futurism; a look picked before is kept (it is saved under THEME_KEY). */
+export const DEFAULT_THEME: ThemeId = 'futurism';
 export const THEME_KEY = 'dj-graphyla:theme';
 
 /** A known theme id, or the default for anything else (missing, old or garbled values). */

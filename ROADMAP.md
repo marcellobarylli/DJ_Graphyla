@@ -123,6 +123,7 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
 - [x] Lightning setting in the look panel (Y2K Futurism): *Flashing* or *Still*, and in still
       mode ‹ › through eight patterns (Strike, Twin, Storm, Fork, Crossfire, Flank, Downpour,
       Glancing). Kept on the device; reduced motion always shows the still pattern
+- [x] Y2K Futurism is the default look for a first visit (a look picked before is kept)
 - [x] Headings and flavour text in your own font file (e.g. Xylem, which can't be shipped), picked
       in the look panel and kept on the device; Orbitron otherwise
 - [x] v0.6.1: every text element in Y2K Futurism follows the type scheme. Headings and big song
