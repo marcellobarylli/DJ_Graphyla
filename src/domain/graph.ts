@@ -223,6 +223,7 @@ export function addTransition(
     overlapBars: input.overlapBars ?? null,
     rating: input.rating ?? null,
     notes: input.notes ?? '',
+    ...(input.idea ? { idea: true as const } : {}),
     createdAt: now,
     updatedAt: now,
   };
@@ -238,7 +239,7 @@ export function updateTransition(
   const existing = graph.transitions[id];
   if (!existing) throw new GraphError(`Transition ${id} not found`);
   const pick = <K extends keyof TransitionInput>(k: K) => (patch[k] === undefined ? existing[k] : patch[k]);
-  const merged: TransitionInput = {
+  const merged: Omit<TransitionInput, 'idea'> = {
     fromSongId: pick('fromSongId')!,
     toSongId: pick('toSongId')!,
     fromBar: pick('fromBar'),
@@ -253,9 +254,12 @@ export function updateTransition(
   };
   assertValid(validateTransitionInput(graph, merged));
   const endpointsChanged = merged.fromSongId !== existing.fromSongId || merged.toSongId !== existing.toSongId;
+  const { idea: _idea, ...rest } = existing;
+  const idea = patch.idea === undefined ? !!existing.idea : patch.idea;
   const transition: Transition = {
-    ...existing,
+    ...rest,
     ...merged,
+    ...(idea ? { idea: true as const } : {}),
     fromBar: merged.fromBar ?? null,
     toBar: merged.toBar ?? null,
     fromTime: merged.fromTime ?? null,

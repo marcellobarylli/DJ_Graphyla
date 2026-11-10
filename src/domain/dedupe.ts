@@ -161,7 +161,8 @@ const sameMix = (a: Transition, b: Transition) =>
   a.toTime === b.toTime &&
   a.fromBpm === b.fromBpm &&
   a.toBpm === b.toBpm &&
-  a.overlapBars === b.overlapBars;
+  a.overlapBars === b.overlapBars &&
+  !!a.idea === !!b.idea;
 
 /**
  * Re-points every reference to a song in `alias` (old id → kept id) and

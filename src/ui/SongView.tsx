@@ -130,9 +130,20 @@ function TransitionSection({
           {isOut ? 'Mixes into' : 'Comes from'}
           <span className="count">{transitions.length}</span>
         </h3>
-        <a className="btn btn-small" {...linkTo(addPath)}>
-          {isOut ? '+ Mix into…' : '+ Mixed from…'}
-        </a>
+        <span className="row tight">
+          {isOut && (
+            <a
+              className="btn btn-small"
+              title="Save a song that sounds good after this one, before you have found the transition"
+              {...linkTo(paths.transitionNew({ from: song.id, idea: true }))}
+            >
+              + Idea…
+            </a>
+          )}
+          <a className="btn btn-small" {...linkTo(addPath)}>
+            {isOut ? '+ Mix into…' : '+ Mixed from…'}
+          </a>
+        </span>
       </div>
       {groups.length === 0 ? (
         <p className="muted small">

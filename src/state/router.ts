@@ -19,7 +19,7 @@ export type Route =
   | { name: 'song'; id: string }
   | { name: 'song-new' }
   | { name: 'song-edit'; id: string }
-  | { name: 'transition-new'; from?: string; to?: string }
+  | { name: 'transition-new'; from?: string; to?: string; idea?: true }
   | { name: 'transition-edit'; id: string }
   | { name: 'not-found' };
 
@@ -45,7 +45,12 @@ export function parseRoute(hash: string): Route {
   if (a === 'song' && b && parts.length === 2) return { name: 'song', id: b };
   if (a === 'song' && b && c === 'edit') return { name: 'song-edit', id: b };
   if (a === 'transition' && b === 'new') {
-    return { name: 'transition-new', from: params.get('from') ?? undefined, to: params.get('to') ?? undefined };
+    return {
+      name: 'transition-new',
+      from: params.get('from') ?? undefined,
+      to: params.get('to') ?? undefined,
+      ...(params.get('idea') === '1' ? { idea: true as const } : {}),
+    };
   }
   if (a === 'transition' && b && c === 'edit') return { name: 'transition-edit', id: b };
   return { name: 'not-found' };
@@ -66,7 +71,8 @@ export const paths = {
   song: (id: string) => `/song/${encodeURIComponent(id)}`,
   songNew: () => '/song/new',
   songEdit: (id: string) => `/song/${encodeURIComponent(id)}/edit`,
-  transitionNew: (opts: { from?: string; to?: string } = {}) => withQuery('/transition/new', opts),
+  transitionNew: (opts: { from?: string; to?: string; idea?: boolean } = {}) =>
+    withQuery('/transition/new', { from: opts.from, to: opts.to, idea: opts.idea ? '1' : undefined }),
   transitionEdit: (id: string) => `/transition/${encodeURIComponent(id)}/edit`,
 };
 

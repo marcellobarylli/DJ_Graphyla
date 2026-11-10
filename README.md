@@ -6,6 +6,8 @@ A phone-first app for remembering **which songs mix into which**, and exactly ho
 - Every **transition** is a directed edge from the song that is playing to the song you mix in.
   Each edge stores where you mix out, where you mix in, and the tempo of both tracks.
 - The same two songs can have **several edges**, one per mix variant that works.
+- An edge can be an **idea**: the two songs go well together, but the transition isn't found yet.
+  Save it with *+ Idea…* on a song (or tick *Idea* in the transition card) and fill in the mix later.
 - A **DJ set is a walk** through the graph. You can start the walk at any song.
 
 Entering a newly discovered track takes one card. Type the song name, fill in the mix

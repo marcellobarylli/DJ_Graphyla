@@ -57,7 +57,14 @@ function Screen({ route }: { route: Route }) {
     case 'song-edit':
       return <SongForm key={route.id} id={route.id} />;
     case 'transition-new':
-      return <TransitionForm key={`new:${route.from ?? ''}:${route.to ?? ''}`} from={route.from} to={route.to} />;
+      return (
+        <TransitionForm
+          key={`new:${route.from ?? ''}:${route.to ?? ''}:${route.idea ? 'idea' : ''}`}
+          from={route.from}
+          to={route.to}
+          idea={route.idea}
+        />
+      );
     case 'transition-edit':
       return <TransitionForm key={route.id} id={route.id} />;
     case 'not-found':

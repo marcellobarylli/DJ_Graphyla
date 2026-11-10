@@ -566,6 +566,14 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 .presets .chip-btn { min-height: 36px; min-width: 40px; justify-content: center; }
 .chip-btn.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .badge-overlap { color: var(--text); }
+.badge-idea { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); border-style: dashed; }
+
+/* ── idea toggle (transition form) ───────────────────────── */
+.idea-toggle { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+.idea-toggle input { width: 20px; height: 20px; margin: 2px 0 0; flex: none; accent-color: var(--accent); }
+.idea-toggle > span { display: flex; flex-direction: column; gap: 2px; }
+.idea-toggle-title { font-weight: 600; }
+.idea-toggle.on { border-style: dashed; border-color: var(--accent); }
 .hint-lines { flex-direction: column; align-items: flex-start; gap: 2px; }
 
 /* ── play mode ───────────────────────────────────────────── */

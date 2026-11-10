@@ -31,6 +31,7 @@ describe('parseRoute', () => {
   it('round-trips the path builders', () => {
     expect(parseRoute(`#${paths.song('a b/c')}`)).toEqual({ name: 'song', id: 'a b/c' });
     expect(parseRoute(`#${paths.transitionNew({ to: 'x' })}`)).toEqual({ name: 'transition-new', from: undefined, to: 'x' });
+    expect(parseRoute(`#${paths.transitionNew({ from: 'x', idea: true })}`)).toEqual({ name: 'transition-new', from: 'x', to: undefined, idea: true });
     expect(parseRoute(`#${paths.graph({ focus: 'a b' })}`)).toEqual({ name: 'graph', set: undefined, focus: 'a b' });
     expect(paths.graph()).toBe('/graph');
   });

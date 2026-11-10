@@ -59,6 +59,12 @@ export interface Transition {
   /** 1 = doesn't work … 5 = banger. null = not rated yet. */
   rating: number | null;
   notes: string;
+  /**
+   * An idea: the two songs sound good together, but the transition is not
+   * worked out yet. Mix points, tempos and rating may all still be blank.
+   * Absent (not `false`) on worked-out transitions.
+   */
+  idea?: true;
   createdAt: string;
   updatedAt: string;
 }
@@ -97,7 +103,7 @@ export type SongInput = Pick<Song, 'title'> & Partial<Pick<Song, 'artist' | 'bpm
 export type TransitionInput = Pick<Transition, 'fromSongId' | 'toSongId'> &
   Partial<
     Pick<Transition, 'fromBar' | 'toBar' | 'fromTime' | 'toTime' | 'fromBpm' | 'toBpm' | 'overlapBars' | 'rating' | 'notes'>
-  >;
+  > & { idea?: boolean };
 
 export const BAR_MAX = 9999;
 export const OVERLAP_MAX = 256;

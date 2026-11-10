@@ -19,6 +19,13 @@ describe('backup round trip', () => {
     expect(parseBackup(exportJson(g, NOW))).toEqual(g);
   });
 
+  it('round-trips ideas', () => {
+    const g = addTransition(sample(), { fromSongId: 'b', toSongId: 'a', idea: true }, { id: 'idea', now: NOW }).graph;
+    const back = parseBackup(exportJson(g, NOW));
+    expect(back).toEqual(g);
+    expect(back.transitions['idea']!.idea).toBe(true);
+  });
+
   it('round-trips sets', () => {
     let g = sample();
     g = createSet(g, { name: 'Warmup', startSongId: 'a' }, { id: 's', now: NOW }).graph;

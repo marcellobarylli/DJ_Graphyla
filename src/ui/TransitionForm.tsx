@@ -26,6 +26,8 @@ interface Draft {
   overlap: string;
   rating: number | null;
   notes: string;
+  /** Sounds good together, transition not worked out yet. */
+  idea: boolean;
 }
 
 const choiceFor = (graph: GraphData, id: string | undefined): SongChoice =>
@@ -40,7 +42,7 @@ function choiceBpm(graph: GraphData, c: SongChoice): number | null {
   return null;
 }
 
-export function TransitionForm(props: { id?: string; from?: string; to?: string }) {
+export function TransitionForm(props: { id?: string; from?: string; to?: string; idea?: boolean }) {
   const store = useStore();
   const { graph } = store;
   const existing = props.id ? graph.transitions[props.id] : undefined;
@@ -59,6 +61,7 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
           overlap: formatBar(existing.overlapBars),
           rating: existing.rating,
           notes: existing.notes,
+          idea: !!existing.idea,
         }
       : {
           from: choiceFor(graph, props.from),
@@ -72,6 +75,7 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
           overlap: '',
           rating: null,
           notes: '',
+          idea: props.idea ?? false,
         },
   );
   const [errors, setErrors] = useState<G.FieldErrors>({});
@@ -138,7 +142,7 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
     const toBpm = draft.toBpm.trim() === '' ? fromBpm : parseBpm(draft.toBpm);
 
     const overlapBars = parseBar(draft.overlap);
-    const partial = { fromBar, toBar, fromTime, toTime, fromBpm, toBpm, overlapBars, rating: draft.rating, notes: draft.notes };
+    const partial = { fromBar, toBar, fromTime, toTime, fromBpm, toBpm, overlapBars, rating: draft.rating, notes: draft.notes, idea: draft.idea };
     // Song ids are checked above; the domain checks times, tempos and rating.
     const numericErrors = { ...G.validateTransitionFields(partial), ...errs };
 
@@ -202,9 +206,13 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
 
   return (
     <>
-      <TopBar title={existing ? 'Edit transition' : 'New transition'} back={fallbackBack} />
+      <TopBar
+        title={existing ? (draft.idea ? 'Edit idea' : 'Edit transition') : draft.idea ? 'New idea' : 'New transition'}
+        back={fallbackBack}
+      />
       <main className="page">
         <form className="form transition-form" onSubmit={onSubmit} noValidate>
+          <IdeaToggle value={draft.idea} onChange={set('idea')} />
           <fieldset className="card side-card side-card-out">
             <legend className="side-legend">
               <span className="side-dot" /> Playing — mix out of
@@ -294,14 +302,14 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
               label="Notes"
               value={draft.notes}
               onChange={set('notes')}
-              placeholder="Bass swap on the drop, filter out the vocal…"
+              placeholder={draft.idea ? 'Same vocal mood, try the breakdown…' : 'Bass swap on the drop, filter out the vocal…'}
             />
           </div>
 
           {formError && <p className="field-error">{formError}</p>}
           <div className="form-actions">
             <button type="submit" className="btn btn-primary btn-block">
-              {existing ? 'Save changes' : 'Save transition'}
+              {existing ? 'Save changes' : draft.idea ? 'Save idea' : 'Save transition'}
             </button>
             {!existing && (
               <button type="button" className="btn btn-block" onClick={onSaveAndContinue}>
@@ -317,6 +325,23 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string 
         </form>
       </main>
     </>
+  );
+}
+
+/** Marks the pair as an idea: it goes well together, the mix itself is still open. */
+function IdeaToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className={`card idea-toggle${value ? ' on' : ''}`}>
+      <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} />
+      <span>
+        <span className="idea-toggle-title">Idea: transition not found yet</span>
+        <span className="small muted">
+          {value
+            ? 'Saved as a pair that sounds good together. Everything below is optional; untick once you have worked out the mix.'
+            : 'Tick to save that these two go well together, without mix points.'}
+        </span>
+      </span>
+    </label>
   );
 }
 

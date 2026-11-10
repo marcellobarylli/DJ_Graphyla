@@ -131,6 +131,7 @@ function readTransition(raw: unknown, i: number, now: string): Transition {
     })(),
     rating: rating !== null && Number.isInteger(rating) && rating >= 1 && rating <= 5 ? rating : null,
     notes: str(raw.notes),
+    ...(raw.idea === true ? { idea: true as const } : {}),
     createdAt: str(raw.createdAt, now),
     updatedAt: str(raw.updatedAt, now),
   };

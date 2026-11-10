@@ -86,7 +86,7 @@ function buildElements(graph: GraphData): ElementDefinition[] {
   });
   const edges: ElementDefinition[] = Object.values(graph.transitions).map((t) => ({
     group: 'edges',
-    data: { id: t.id, source: t.fromSongId, target: t.toSongId, rating: t.rating ?? 0 },
+    data: { id: t.id, source: t.fromSongId, target: t.toSongId, rating: t.rating ?? 0, idea: t.idea ? 1 : 0 },
   }));
   return [...nodes, ...edges];
 }
@@ -135,6 +135,11 @@ const graphStyle = (theme: ThemeInfo): StylesheetJson => {
       selector: `edge[rating = ${r}]`,
       style: { 'line-color': C.ramp[r], 'target-arrow-color': C.ramp[r], width: WIDTH[r]! },
     })),
+    // Ideas: the pair goes well together, no mix worked out yet. Faint dashes, no arrowhead.
+    {
+      selector: 'edge[idea = 1]',
+      style: { 'line-style': 'dashed', 'line-dash-pattern': [2, 6], 'target-arrow-shape': 'none', opacity: 0.7 },
+    },
     { selector: '.hidden', style: { display: 'none' } },
     { selector: '.dim', style: { opacity: 0.14 } },
     { selector: 'node.in-set', style: { 'border-color': C.set, 'border-width': 3 } },
@@ -180,7 +185,7 @@ export default function GraphView({ setId, focusId }: { setId?: string; focusId?
     () =>
       JSON.stringify([
         Object.values(graph.songs).map((s) => [s.id, s.title]),
-        Object.values(graph.transitions).map((t) => [t.id, t.fromSongId, t.toSongId, t.rating]),
+        Object.values(graph.transitions).map((t) => [t.id, t.fromSongId, t.toSongId, t.rating, !!t.idea]),
       ]),
     [graph.songs, graph.transitions],
   );
