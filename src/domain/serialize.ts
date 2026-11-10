@@ -8,7 +8,7 @@
  */
 import { aliasesFrom, foldSongs } from './dedupe';
 import { createEmptyGraph, removeSetSongAt } from './graph';
-import { OVERLAP_MAX, SCHEMA_VERSION, type DjSet, type GraphData, type Song, type SongId, type Transition } from './types';
+import { FULL_OVERLAP, OVERLAP_MAX, SCHEMA_VERSION, type DjSet, type GraphData, type Song, type SongId, type Transition } from './types';
 
 export const FILE_APP_ID = 'dj-graphyla';
 
@@ -126,11 +126,13 @@ function readTransition(raw: unknown, i: number, now: string): Transition {
     fromBpm: num(raw.fromBpm),
     toBpm: num(raw.toBpm),
     overlapBars: (() => {
+      if (raw.overlapBars === FULL_OVERLAP) return FULL_OVERLAP;
       const o = bar(raw.overlapBars);
       return o !== null && o <= OVERLAP_MAX ? o : null;
     })(),
     rating: rating !== null && Number.isInteger(rating) && rating >= 1 && rating <= 5 ? rating : null,
     notes: str(raw.notes),
+    ...(raw.idea === true ? { idea: true as const } : {}),
     createdAt: str(raw.createdAt, now),
     updatedAt: str(raw.updatedAt, now),
   };

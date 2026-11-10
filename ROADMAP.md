@@ -21,6 +21,10 @@ Goal: enter and remember transitions quickly on a phone.
 - [x] Multiple variants per song pair, with direction (A → B ≠ B → A)
 - [x] Add / edit / delete songs
 - [x] Add / edit / delete transitions
+- [x] **Ideas**: save that two songs go well together before the transition is found (*+ Idea…* on a
+      song, or tick *Idea* in the transition card). Mix points, tempos and rating stay optional; the
+      row reads *Transition not found yet* with an *Idea* badge, the graph draws it as a faint dashed
+      line without arrowhead, and unticking *Idea* turns it into a normal transition
 - [x] Transition card can create new songs inline ("I just found this track, here's where it fits")
 - [x] "Save & continue from next song": enter a whole set as a walk, edge by edge
 - [x] Song page: *Mixes into →* and *← Comes from*, grouped by neighbouring song with all variants
@@ -64,6 +68,8 @@ Goal: explore the graph and build sets from it.
       4 / 8 / 16 / 32 presets. The card shows when the outgoing song is out ("out by bar 145"),
       when the next song plays alone, and the length in seconds at the mix tempo (4/4).
       Variants, cue sheets and setlists show "⇄ 16 bars"
+- [x] **Full song overlap**: a *Full song* preset for mixes where both songs play together the whole
+      way (layered, mashup style). Shown as "⇄ full song"; play mode says "Both playing: full song overlap"
 - [x] **Crates**: separate libraries, like Obsidian vaults, e.g. one per genre or label. Each crate
       has its own songs, transitions and sets; nothing is shared. Switch from the header on
       every main screen. Create, rename and delete crates (the last one can't be deleted)

@@ -221,7 +221,11 @@ export function setToText(graph: GraphData, set: DjSet): string {
     const out = [formatPosition(t.fromBar, t.fromTime), t.fromBpm !== null ? `@ ${formatBpm(t.fromBpm)}` : ''].filter(Boolean).join(' ');
     const inn = [formatPosition(t.toBar, t.toTime), t.toBpm !== null ? `@ ${formatBpm(t.toBpm)}` : ''].filter(Boolean).join(' ');
     const detail = [`out ${out || '?'}`, `in ${inn || '?'}`].join(' → ') + (t.overlapBars ? ` · ${formatOverlap(t.overlapBars)}` : '');
-    lines.push(`   ↳ ${detail}${t.rating ? `  ${stars(t.rating)}` : ''}${t.notes ? `  (${t.notes})` : ''}`);
+    if (t.idea && !out && !inn) {
+      lines.push(`   ↳ idea: sounds good together, transition not worked out yet${t.notes ? `  (${t.notes})` : ''}`);
+      continue;
+    }
+    lines.push(`   ↳ ${t.idea ? 'idea · ' : ''}${detail}${t.rating ? `  ${stars(t.rating)}` : ''}${t.notes ? `  (${t.notes})` : ''}`);
   }
   if (set.notes) lines.push('', set.notes);
   return lines.join('\n');

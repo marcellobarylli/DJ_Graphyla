@@ -222,7 +222,9 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
   const target = nextT?.fromBar ?? null;
   const toGo = bar !== null && target !== null && playingBpm ? L.secondsUntilBar(bar, target, playingBpm) : null;
   const barsToGo = bar !== null && target !== null ? target - bar : null;
-  const overlapEnd = via?.overlapBars ? (via.toBar ?? 1) + via.overlapBars : null;
+  // A full-song overlap has no end bar: both songs keep playing together.
+  const fullOverlap = via?.overlapBars === 'full';
+  const overlapEnd = typeof via?.overlapBars === 'number' ? (via.toBar ?? 1) + via.overlapBars : null;
   const inOverlap = bar !== null && overlapEnd !== null && bar < overlapEnd;
   const ride = nextT?.fromBpm != null && playingBpm !== null ? Math.round((nextT.fromBpm - playingBpm) * 10) / 10 : null;
   const offPlan = !free && L.leftThePlan(plan, session);
@@ -336,6 +338,7 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
                     </button>
                   </span>
                 </div>
+                {fullOverlap && <p className="clock-status overlap">Both playing: full song overlap</p>}
                 {inOverlap && overlapEnd !== null && (
                   <p className="clock-status overlap">Both playing: previous song out in {Math.ceil(overlapEnd - bar)} bars</p>
                 )}

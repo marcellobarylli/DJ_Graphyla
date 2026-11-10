@@ -109,6 +109,8 @@ describe('transitions', () => {
     expect(g.transitions.ac!.overlapBars).toBe(32);
     expect(updateTransition(g, 'ac', { overlapBars: null }).transitions.ac!.overlapBars).toBeNull();
     expect(g.transitions.ab1!.overlapBars).toBeNull();
+    g = updateTransition(g, 'ac', { overlapBars: 'full' });
+    expect(g.transitions.ac!.overlapBars).toBe('full');
   });
 
   it('stores bars and sorts variants by mix-out bar first', () => {
@@ -172,5 +174,22 @@ describe('queries', () => {
 
   it('counts songs, transitions and connected pairs', () => {
     expect(stats(fixture())).toEqual({ songs: 3, transitions: 4, pairs: 3, sets: 0 });
+  });
+});
+
+describe('ideas (pairs that go well together, transition not found yet)', () => {
+  it('saves an idea with no mix points, and leaves the flag off worked-out transitions', () => {
+    const r = addTransition(fixture(), { fromSongId: 'b', toSongId: 'a', idea: true }, { id: 'ba', now: NOW });
+    expect(r.transition).toMatchObject({ idea: true, fromBar: null, toBar: null, rating: null });
+    expect('idea' in r.graph.transitions['ab1']!).toBe(false);
+  });
+
+  it('keeps the flag through edits and drops it once the mix is worked out', () => {
+    let g = addTransition(fixture(), { fromSongId: 'b', toSongId: 'a', idea: true }, { id: 'ba', now: NOW }).graph;
+    g = updateTransition(g, 'ba', { notes: 'try the breakdown' }, LATER);
+    expect(g.transitions['ba']!.idea).toBe(true);
+    g = updateTransition(g, 'ba', { idea: false, fromBar: 97, toBar: 1 }, LATER);
+    expect('idea' in g.transitions['ba']!).toBe(false);
+    expect(g.transitions['ba']!.fromBar).toBe(97);
   });
 });

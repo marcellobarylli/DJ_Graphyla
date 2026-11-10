@@ -378,26 +378,38 @@ function VariantBody({
   toSong: Song | undefined;
   hideNotes?: boolean;
 }) {
+  const t = transition;
+  // An idea with no mix points yet: say so instead of showing empty slots.
+  const blankIdea = t.idea && t.fromBar === null && t.toBar === null && t.fromTime === null && t.toTime === null && t.fromBpm === null && t.toBpm === null;
   return (
     <>
-      <span className="variant-points">
-        <span className="side side-out">
-          <span className="side-label">out</span>
-          <MixPoint bar={transition.fromBar} time={transition.fromTime} bpm={transition.fromBpm} song={fromSong} />
+      {blankIdea ? (
+        <span className="variant-points muted">Transition not found yet</span>
+      ) : (
+        <span className="variant-points">
+          <span className="side side-out">
+            <span className="side-label">out</span>
+            <MixPoint bar={transition.fromBar} time={transition.fromTime} bpm={transition.fromBpm} song={fromSong} />
+          </span>
+          <span className="variant-arrow" aria-hidden="true">→</span>
+          <span className="side side-in">
+            <span className="side-label">in</span>
+            <MixPoint bar={transition.toBar} time={transition.toTime} bpm={transition.toBpm} song={toSong} />
+          </span>
         </span>
-        <span className="variant-arrow" aria-hidden="true">→</span>
-        <span className="side side-in">
-          <span className="side-label">in</span>
-          <MixPoint bar={transition.toBar} time={transition.toTime} bpm={transition.toBpm} song={toSong} />
-        </span>
-      </span>
+      )}
       <span className="variant-meta">
+        {transition.idea && (
+          <span className="badge badge-idea" title="Sounds good together; the transition is not worked out yet">
+            ✧ Idea
+          </span>
+        )}
         {transition.overlapBars !== null && (
           <span className="badge badge-overlap" title="Both songs play together for this long">
             ⇄ {formatOverlap(transition.overlapBars)}
           </span>
         )}
-        <Stars rating={transition.rating} />
+        {!(t.idea && t.rating === null) && <Stars rating={transition.rating} />}
         {transition.notes && !hideNotes && <span className="variant-notes">{transition.notes}</span>}
       </span>
     </>

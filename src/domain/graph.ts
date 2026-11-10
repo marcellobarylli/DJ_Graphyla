@@ -6,6 +6,7 @@ import { GraphError, newId, type FieldErrors } from './common';
 import {
   BAR_MAX,
   BPM_MAX,
+  FULL_OVERLAP,
   OVERLAP_MAX,
   BPM_MIN,
   SCHEMA_VERSION,
@@ -78,8 +79,13 @@ export function validateTransitionFields(input: Omit<TransitionInput, 'fromSongI
   const toBpm = bpmError(input.toBpm);
   if (toBpm) errors.toBpm = toBpm;
   const overlap = input.overlapBars;
-  if (overlap !== null && overlap !== undefined && (!Number.isInteger(overlap) || overlap < 1 || overlap > OVERLAP_MAX)) {
-    errors.overlapBars = `Overlap is a whole number of bars, 1–${OVERLAP_MAX}`;
+  if (
+    overlap !== null &&
+    overlap !== undefined &&
+    overlap !== FULL_OVERLAP &&
+    (!Number.isInteger(overlap) || overlap < 1 || overlap > OVERLAP_MAX)
+  ) {
+    errors.overlapBars = `Overlap is a whole number of bars, 1–${OVERLAP_MAX}, or the full song`;
   }
   if (input.rating !== null && input.rating !== undefined) {
     if (!Number.isInteger(input.rating) || input.rating < 1 || input.rating > 5) errors.rating = 'Rating is 1–5';
@@ -223,6 +229,7 @@ export function addTransition(
     overlapBars: input.overlapBars ?? null,
     rating: input.rating ?? null,
     notes: input.notes ?? '',
+    ...(input.idea ? { idea: true as const } : {}),
     createdAt: now,
     updatedAt: now,
   };
@@ -238,7 +245,7 @@ export function updateTransition(
   const existing = graph.transitions[id];
   if (!existing) throw new GraphError(`Transition ${id} not found`);
   const pick = <K extends keyof TransitionInput>(k: K) => (patch[k] === undefined ? existing[k] : patch[k]);
-  const merged: TransitionInput = {
+  const merged: Omit<TransitionInput, 'idea'> = {
     fromSongId: pick('fromSongId')!,
     toSongId: pick('toSongId')!,
     fromBar: pick('fromBar'),
@@ -253,9 +260,12 @@ export function updateTransition(
   };
   assertValid(validateTransitionInput(graph, merged));
   const endpointsChanged = merged.fromSongId !== existing.fromSongId || merged.toSongId !== existing.toSongId;
+  const { idea: _idea, ...rest } = existing;
+  const idea = patch.idea === undefined ? !!existing.idea : patch.idea;
   const transition: Transition = {
-    ...existing,
+    ...rest,
     ...merged,
+    ...(idea ? { idea: true as const } : {}),
     fromBar: merged.fromBar ?? null,
     toBar: merged.toBar ?? null,
     fromTime: merged.fromTime ?? null,
