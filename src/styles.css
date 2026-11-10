@@ -241,6 +241,9 @@ fieldset { margin: 0; min-width: 0; }
   font-size: 0.85rem;
 }
 .pitch { color: var(--star); font-weight: 600; }
+/* Play mode: the bar to get ready at, one phrase before the mix-out. */
+.get-ready { color: var(--muted); }
+.get-ready strong { color: var(--text); }
 
 .stars { display: flex; align-items: center; gap: 2px; }
 .star {
@@ -1112,7 +1115,7 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 [data-theme='futurism'] :is(
   .btn, .chip-btn, .link-btn, .segmented button, .tab, .suggestion, .picker-new, .badge, .count, .cue-num,
   .stats strong, .stats span, .play-status, .mixpoint-time, .mixpoint-bpm,
-  .pitch, .degree, .tempo-line, .topbar-stat, .app-version, .input-suffix, .stars-label, .gap-count,
+  .pitch, .get-ready, .degree, .tempo-line, .topbar-stat, .app-version, .input-suffix, .stars-label, .gap-count,
   .chart-tick, .chart-label, .chart-tooltip strong, .legend, .side-legend, .side-label, .field-label,
   .play-label, .picker-caption, .chart-axis-note, .theme-font-name, .y2k-hud
 ) {

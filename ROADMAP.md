@@ -91,6 +91,9 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
       planned mix-out and warned 8 bars ahead, with ±1 bar nudges. A tapped clock drifts from the
       decks, which show the real position, so it confused more than it helped and took space. The
       planned mix-out/in bars stay in *up next*. A bar counter only makes sense synced to the audio
+- [x] **Get ready at bar …** in *up next*: the bar one 16-bar phrase before the mix-out (bar 81 for
+      a mix-out at bar 97; bar 1 if the mix-out comes in the first phrase), read off the deck's own
+      counter: the heads-up to cue the next song, ride the tempo and set the EQs in time
 - [x] **Walk off-script**: "Other ways out" lists every other transition from the current song,
       best rated first, marking the ones that lead back into the set ("back to set · song 6")
 - [x] Save what was actually played as a new set; the original set is never changed

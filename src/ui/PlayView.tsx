@@ -227,6 +227,7 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
   // A full-song overlap: both songs keep playing together.
   const fullOverlap = via?.overlapBars === 'full';
   const ride = nextT?.fromBpm != null && playingBpm !== null ? Math.round((nextT.fromBpm - playingBpm) * 10) / 10 : null;
+  const readyAt = L.getReadyBar(nextT?.fromBar ?? null);
   const offPlan = !free && L.leftThePlan(plan, session);
   const position = free
     ? `${session.steps.length} played`
@@ -336,6 +337,11 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
             {nextT ? (
               <>
                 <VariantRow transition={nextT} fromSong={song} toSong={nextSong} hideNotes />
+                {readyAt !== null && (
+                  <p className="get-ready small">
+                    Get ready at bar <strong>{readyAt}</strong> · {L.GET_READY_BARS} bars before the mix-out
+                  </p>
+                )}
                 {ride !== null && ride !== 0 && (
                   <p className="pitch small">
                     Ride the tempo {ride > 0 ? '+' : '−'}

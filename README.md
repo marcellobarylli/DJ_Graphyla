@@ -18,7 +18,8 @@ walk along transitions, and see the tempo across the whole set. The **Graph** ta
 everything and can highlight a set's walk.
 
 **Play mode** is for the gig itself: press *▶ Play this set* and the screen shows the song
-that's on and what comes next and how to mix it (mix-out and mix-in bars, tempo, overlap). Step
+that's on and what comes next and how to mix it (mix-out and mix-in bars, tempo, overlap, and the bar to get
+ready at: one 16-bar phrase before the mix-out, to read off your deck). Step
 through with *Mix in next*, or take another way out of the current song if the crowd wants
 something else. No set? *▶ Free walk* starts at any song and shows every way out at each step.
 

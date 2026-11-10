@@ -142,3 +142,17 @@ export function restoreLive(graph: GraphData, set: DjSet, raw: unknown): LiveSes
   );
   return ok ? { setId: s.setId, steps: s.steps } : null;
 }
+
+/* ───────────────────────────── getting ready ───────────────────────────── */
+
+/** One phrase (bars) ahead of the mix-out: time to cue the next song, ride the tempo, set the EQs. */
+export const GET_READY_BARS = 16;
+
+/**
+ * The bar to start getting ready at, one phrase before `fromBar` (the
+ * mix-out), read off the deck's own bar counter. Bar 1 when the mix-out
+ * comes within the first phrase; null without a mix-out bar.
+ */
+export function getReadyBar(fromBar: number | null): number | null {
+  return fromBar === null ? null : Math.max(1, fromBar - GET_READY_BARS);
+}
