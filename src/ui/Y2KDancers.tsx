@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import manDance from '../assets/y2k/man-dance.webp';
 import womanDance from '../assets/y2k/woman-dance.webp';
 import { danceFrame, getDanceFloor, useDanceFloor } from '../state/dance';
+import { useTheme } from '../state/theme';
 import { DJ_SHEET } from './djSheet';
 
 /** Where the chrome DJs are shown (styles.css, .y2k-chrome-dj). */
@@ -17,6 +18,12 @@ function useMedia(query: string): boolean {
     return () => list.removeEventListener('change', change);
   }, [query]);
   return matches;
+}
+
+/** True where the chrome DJs are on screen: Y2K Futurism on a wide screen. */
+export function useDancersShown(): boolean {
+  const wide = useMedia(WIDE);
+  return useTheme().id === 'futurism' && wide;
 }
 
 /** Downloads and decodes both dance sheets; true once they are ready. */
@@ -44,9 +51,10 @@ function useSheets(wanted: boolean): boolean {
 
 /**
  * The two chrome DJs of the Y2K Futurism look, beside the page on wide
- * screens. In play mode, once the bar clock runs, they dance
- * (state/dance.ts): a loop of two beats to the tempo of the song that is on,
- * on its beat, and a spin when the next song is mixed in. The frames come
+ * screens. In play mode, once the set got going (play mode's "Get the DJs
+ * dancing" button, or the first mix-in), they dance (state/dance.ts): a loop
+ * of two beats to the tempo of the song that is on, and a spin when the next
+ * song is mixed in. The frames come
  * from two sprite sheets (ui/djSheet.ts), downloaded the first time they
  * dance; until then, and on narrow screens, they stand still. They dance
  * even when the device asks for reduced motion: dancing is what they are

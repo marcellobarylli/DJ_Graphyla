@@ -142,16 +142,3 @@ export function restoreLive(graph: GraphData, set: DjSet, raw: unknown): LiveSes
   );
   return ok ? { setId: s.setId, steps: s.steps } : null;
 }
-
-/* ───────────────────────────── bar clock ───────────────────────────── */
-
-/** Bar the song is at (fractional), from the bar it started at and its tempo (4/4). */
-export function barAt(startBar: number, startedAtMs: number, nowMs: number, bpm: number, beatsPerBar = 4): number {
-  const elapsed = Math.max(0, nowMs - startedAtMs) / 1000;
-  return startBar + (elapsed * bpm) / 60 / beatsPerBar;
-}
-
-/** Seconds until `targetBar` at `bpm` (negative once it has passed). */
-export function secondsUntilBar(currentBar: number, targetBar: number, bpm: number, beatsPerBar = 4): number {
-  return ((targetBar - currentBar) * beatsPerBar * 60) / bpm;
-}

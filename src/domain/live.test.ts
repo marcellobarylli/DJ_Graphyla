@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { addSong, addTransition, createEmptyGraph } from './graph';
 import {
   advance,
-  barAt,
   currentStep,
   freePlan,
   jumpTo,
@@ -11,7 +10,6 @@ import {
   plannedNext,
   restoreLive,
   saveLiveAsSet,
-  secondsUntilBar,
   startFreeWalk,
   startLive,
   stepBack,
@@ -126,19 +124,6 @@ describe('play mode', () => {
     expect(restoreLive(g, set, { ...s, setId: 'other' })).toBeNull();
     expect(restoreLive(g, set, { ...s, steps: [{ songId: 'gone', viaTransitionId: null, planIndex: null }] })).toBeNull();
     expect(restoreLive(g, set, null)).toBeNull();
-  });
-});
-
-describe('bar clock', () => {
-  it('counts bars from the tempo (4/4)', () => {
-    // 120 BPM = 2 beats/s = 0.5 bars/s
-    expect(barAt(1, 0, 10_000, 120)).toBe(6);
-    expect(barAt(97, 5_000, 4_000, 128)).toBe(97); // clock never runs backwards
-  });
-
-  it('gives the time until a bar', () => {
-    expect(secondsUntilBar(113, 129, 128)).toBe(30);
-    expect(secondsUntilBar(130, 129, 120)).toBe(-2);
   });
 });
 

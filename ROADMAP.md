@@ -87,9 +87,10 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
 - [x] **▶ Play this set** opens a full-screen view: the song that is on (big), its playing tempo and
       key, and **up next** with the planned transition: mix-out/in bar, BPM, overlap, rating, notes
 - [x] **Mix in next ▶** / **◀ Back** step through the walk; the tab bar is hidden
-- [x] **Bar clock**: estimates the current bar from the tempo (4/4). It restarts at the next song's
-      mix-in bar when you mix in, counts down to the planned mix-out ("in 1:20"), warns 8 bars ahead,
-      says "Mix now" once past it, and shows "both playing" during the overlap. ±1 bar nudges
+- [x] ~~**Bar clock**~~ (removed): estimated the current bar from the tempo (4/4), counted down to the
+      planned mix-out and warned 8 bars ahead, with ±1 bar nudges. A tapped clock drifts from the
+      decks, which show the real position, so it confused more than it helped and took space. The
+      planned mix-out/in bars stay in *up next*. A bar counter only makes sense synced to the audio
 - [x] **Walk off-script**: "Other ways out" lists every other transition from the current song,
       best rated first, marking the ones that lead back into the set ("back to set · song 6")
 - [x] Save what was actually played as a new set; the original set is never changed
@@ -129,12 +130,12 @@ A live companion screen while DJing a set (the app plays no audio; the songs pla
 - [x] Lightning setting in the look panel (Y2K Futurism): *Flashing* or *Still*, and in still
       mode ‹ › through eight patterns (Strike, Twin, Storm, Fork, Crossfire, Flank, Downpour,
       Glancing). Kept on the device; reduced motion always shows the still pattern
-- [x] **Dancing DJs** in play mode (Y2K Futurism, wide screens): once the bar clock is started
-      (in a set or a free walk), the chrome man and woman dance while it runs. The man
+- [x] **Dancing DJs** in play mode (Y2K Futurism, wide screens): once the set gets going (a tap on
+      *▶ Get the DJs dancing*, shown only where they are on screen, or the first *Mix in next*), in a
+      set or a free walk, the chrome man and woman dance until play mode ends or restarts. The man
       bounces on every beat with alternating hand pumps, the woman sways her hips with her hands
       up. They dance to the playing song's tempo (folded into 75–150 BPM, so drum & bass goes half
-      time), on the clock's beat; mixing in the next song (which restarts the clock) makes them spin for two
-      beats, landing on the new song's beat. Real poses, not a wobble: `tools/y2k-art/pose.js`
+      time); mixing in the next song makes them spin for two beats, landing on their new beat. Real poses, not a wobble: `tools/y2k-art/pose.js`
       skins the MakeHuman figures (`bodies.py` now exports the skeleton and skin weights) and
       `npm run art:y2k -- man-dance woman-dance` renders two 24-frame sprite sheets, downloaded only
       the first time they dance on a wide screen. They dance even with reduced motion (the

@@ -18,7 +18,7 @@ walk along transitions, and see the tempo across the whole set. The **Graph** ta
 everything and can highlight a set's walk.
 
 **Play mode** is for the gig itself: press *▶ Play this set* and the screen shows the song
-that's on, a bar clock counting down to the mix-out, and what comes next and how to mix it. Step
+that's on and what comes next and how to mix it (mix-out and mix-in bars, tempo, overlap). Step
 through with *Mix in next*, or take another way out of the current song if the crowd wants
 something else. No set? *▶ Free walk* starts at any song and shows every way out at each step.
 
@@ -48,8 +48,8 @@ Y2K only: big stretched italic caps and song titles in Anybody (ExtraExpanded), 
 numbers and badges in the Silkscreen pixel font, and the crate name in Pirata One blackletter.
 *Y2K Futurism* is dark mode with a rendered liquid-glass orb behind the page, chrome objects, sparkles and flavour text
 at the edges, two full-body chrome DJs (a man and a woman, built from MakeHuman's CC0 assets) beside the page on wide screens, and chrome buttons.
-The DJs dance in play mode (a set or a free walk) once you start the bar clock, to the tempo of the song that is playing
-and on its beat, and spin when you mix in the next song (also with reduced motion, which only calms the lightning). Every text element follows its type scheme: headings and big song
+The DJs dance in play mode (a set or a free walk) once you tap *▶ Get the DJs dancing* (or mix in the first song), to the
+tempo of the song that is playing, and spin when you mix in the next song (also with reduced motion, which only calms the lightning). Every text element follows its type scheme: headings and big song
 titles in chrome, in your own font file (for example your copy of Xylem, which the app can't ship:
 its licence doesn't allow that; pick it in the look panel) or else Orbitron; buttons, labels,
 badges and numbers in Orbitron; everything else, graph labels included, in Oxanium.

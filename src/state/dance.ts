@@ -1,17 +1,18 @@
 /**
  * The dance floor of the Y2K Futurism chrome DJs (ui/Y2KDancers.tsx): in play
- * mode (a set or a free walk) they dance while the bar clock runs, to the
- * tempo of the song that is on and on its beat, and when the next song is
- * mixed in they spin. Runtime state only: nothing is saved.
+ * mode (a set or a free walk) they dance once the set got going (a tap on
+ * "Get the DJs dancing", or the first mix-in), to the tempo of the song that
+ * is on, and when the next song is mixed in they spin. Runtime state only:
+ * nothing is saved here.
  */
 import { useSyncExternalStore } from 'react';
 
 export interface DanceFloor {
-  /** Play mode is open and its bar clock runs. */
+  /** Play mode is open and the set got going. */
   on: boolean;
   /** The tempo they dance to, in the dance range (see danceBpm). */
   bpm: number;
-  /** Epoch ms of a beat (when the bar clock started, on a bar); the dance loop starts on it. */
+  /** Epoch ms of a beat (when the set got going, or the last mix-in); the dance loop starts on it. */
   beatAt: number;
   /** Epoch ms of the last song change, which starts a spin; null for none. */
   spinAt: number | null;
@@ -44,7 +45,7 @@ export interface SheetFrame {
  * The frame of the dance sheets (ui/djSheet.ts) to show at `now`. During a
  * spin (one loop long, from spinAt): its frames in order. Otherwise the loop
  * frame for the beat phase, so frame 0 is on the beat. A spin started at a
- * song change ends on a beat when the bar clock restarted with it.
+ * mix-in ends on the beat, since the mix-in also restarts their beat.
  */
 export function danceFrame(floor: DanceFloor, now: number, loopFrames: number, moveFrames: number): SheetFrame {
   const loop = loopMs(floor.bpm);
@@ -68,10 +69,10 @@ function update(change: Partial<DanceFloor>) {
 export const getDanceFloor = (): DanceFloor => floor;
 
 /**
- * Play mode's bar clock: they dance to `bpm` from `beatAt` (when the clock
- * started) while it runs, and stand still while it is off (`beatAt` null).
+ * They dance to `bpm` (120 when unknown) on the beat from `beatAt`, when the
+ * set got going or the last mix-in; with `beatAt` null they stand still.
  */
-export function setDanceClock(bpm: number | null, beatAt: number | null): void {
+export function setDanceStart(bpm: number | null, beatAt: number | null): void {
   const next = { on: beatAt !== null, bpm: danceBpm(bpm), beatAt: beatAt ?? floor.beatAt };
   if (next.on === floor.on && next.bpm === floor.bpm && next.beatAt === floor.beatAt) return;
   update(next);
@@ -83,8 +84,8 @@ export function stopDancing(): void {
 }
 
 /**
- * The next song was mixed in: they spin. Mixing in also starts the bar
- * clock, so this counts even if they were not dancing yet.
+ * The next song was mixed in: they spin. A mix-in also gets them dancing,
+ * so this counts even if they were not dancing yet.
  */
 export function danceSpin(now = Date.now()): void {
   update({ spinAt: now });

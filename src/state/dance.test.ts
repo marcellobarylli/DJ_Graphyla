@@ -7,7 +7,7 @@ import {
   danceSpin,
   getDanceFloor,
   loopMs,
-  setDanceClock,
+  setDanceStart,
   stopDancing,
 } from './dance';
 
@@ -65,30 +65,30 @@ describe('danceFrame', () => {
 });
 
 describe('the dance floor', () => {
-  it('dances only while the bar clock runs', () => {
+  it('dances once the set got going, not before', () => {
     stopDancing();
     expect(getDanceFloor().on).toBe(false);
-    // Play mode open, clock not started yet: still.
-    setDanceClock(124, null);
+    // Play mode open, the set not going yet: still.
+    setDanceStart(124, null);
     expect(getDanceFloor().on).toBe(false);
 
-    setDanceClock(124, 5_000);
+    setDanceStart(124, 5_000);
     expect(getDanceFloor()).toMatchObject({ on: true, bpm: 124, beatAt: 5_000 });
 
-    // A step back clears the clock: still again, until it is started again.
-    setDanceClock(124, null);
+    // A restart: still again, until it gets going again.
+    setDanceStart(124, null);
     expect(getDanceFloor().on).toBe(false);
-    setDanceClock(124, 8_000);
+    setDanceStart(124, 8_000);
     expect(getDanceFloor()).toMatchObject({ on: true, beatAt: 8_000 });
 
     stopDancing();
     expect(getDanceFloor()).toMatchObject({ on: false, spinAt: null });
   });
 
-  it('spins on a mix-in, also when that mix-in is what starts the clock', () => {
+  it('spins on a mix-in, also when that mix-in is what gets them dancing', () => {
     stopDancing();
     danceSpin(6_000);
-    setDanceClock(124, 6_000);
+    setDanceStart(124, 6_000);
     expect(getDanceFloor()).toMatchObject({ on: true, beatAt: 6_000, spinAt: 6_000 });
     expect(danceFrame(getDanceFloor(), 6_100, 12, 12).row).toBe(1);
     stopDancing();
@@ -96,15 +96,15 @@ describe('the dance floor', () => {
   });
 
   it('dances to the folded tempo of the song', () => {
-    setDanceClock(174, 7_000);
+    setDanceStart(174, 7_000);
     expect(getDanceFloor()).toMatchObject({ bpm: 87, beatAt: 7_000 });
     stopDancing();
   });
 
   it('keeps the same state object when nothing changes', () => {
-    setDanceClock(128, 7_000);
+    setDanceStart(128, 7_000);
     const before = getDanceFloor();
-    setDanceClock(128, 7_000);
+    setDanceStart(128, 7_000);
     expect(getDanceFloor()).toBe(before);
     stopDancing();
   });
