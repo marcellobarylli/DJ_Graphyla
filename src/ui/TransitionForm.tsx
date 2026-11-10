@@ -5,7 +5,7 @@ import { formatBar, formatOverlap, overlapSeconds, parseBar } from '../domain/po
 import { setsUsingTransition } from '../domain/sets';
 import { formatTimestamp, parseTimestamp } from '../domain/time';
 import { formatBpm, parseBpm } from '../domain/tempo';
-import type { GraphData, SongId, TransitionInput } from '../domain/types';
+import { FULL_OVERLAP, type GraphData, type SongId, type TransitionInput } from '../domain/types';
 import { goBack, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
 import { BarField, BpmBadge, BpmField, EmptyState, KeyBadge, StarRating, TextArea, TimeField, TopBar, VariantRow } from './components';
@@ -58,7 +58,7 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string;
           toTime: formatTimestamp(existing.toTime),
           fromBpm: formatBpm(existing.fromBpm),
           toBpm: formatBpm(existing.toBpm),
-          overlap: formatBar(existing.overlapBars),
+          overlap: existing.overlapBars === FULL_OVERLAP ? FULL_OVERLAP : formatBar(existing.overlapBars),
           rating: existing.rating,
           notes: existing.notes,
           idea: !!existing.idea,
@@ -141,7 +141,7 @@ export function TransitionForm(props: { id?: string; from?: string; to?: string;
     // Blank incoming tempo = beatmatched to the outgoing one.
     const toBpm = draft.toBpm.trim() === '' ? fromBpm : parseBpm(draft.toBpm);
 
-    const overlapBars = parseBar(draft.overlap);
+    const overlapBars = draft.overlap === FULL_OVERLAP ? FULL_OVERLAP : parseBar(draft.overlap);
     const partial = { fromBar, toBar, fromTime, toTime, fromBpm, toBpm, overlapBars, rating: draft.rating, notes: draft.notes, idea: draft.idea };
     // Song ids are checked above; the domain checks times, tempos and rating.
     const numericErrors = { ...G.validateTransitionFields(partial), ...errs };
@@ -347,7 +347,7 @@ function IdeaToggle({ value, onChange }: { value: boolean; onChange: (v: boolean
 
 const OVERLAP_PRESETS = [4, 8, 16, 32];
 
-/** How long both songs play together, in bars, with one-tap presets. */
+/** How long both songs play together, in bars or the full song, with one-tap presets. */
 function OverlapField(props: {
   value: string;
   onChange: (v: string) => void;
@@ -356,7 +356,8 @@ function OverlapField(props: {
   toBar: number | null;
   bpm: number | null;
 }) {
-  const bars = parseBar(props.value);
+  const full = props.value === FULL_OVERLAP;
+  const bars = full ? null : parseBar(props.value);
   const valid = bars !== null && Number.isInteger(bars) && bars >= 1;
   const seconds = valid ? overlapSeconds(bars, props.bpm) : null;
   const outBy = valid && props.fromBar !== null && Number.isInteger(props.fromBar) ? props.fromBar + bars : null;
@@ -373,9 +374,10 @@ function OverlapField(props: {
             className="input"
             inputMode="numeric"
             placeholder="—"
-            value={props.value}
+            value={full ? '' : props.value}
             onChange={(e) => props.onChange(e.target.value)}
             autoComplete="off"
+            aria-describedby={full ? 'overlap-full-hint' : undefined}
           />
           <span className="input-suffix">bars</span>
         </span>
@@ -391,10 +393,23 @@ function OverlapField(props: {
               {n}
             </button>
           ))}
+          <button
+            type="button"
+            className={`chip-btn chip-btn-flush${full ? ' on' : ''}`}
+            aria-pressed={full}
+            title="Both songs play together for the whole song"
+            onClick={() => props.onChange(full ? '' : FULL_OVERLAP)}
+          >
+            Full song
+          </button>
         </span>
       </div>
       {props.error ? (
         <p className="field-error">{props.error}</p>
+      ) : full ? (
+        <p className="field-hint" id="overlap-full-hint">
+          Both songs play together for the whole song (layered).
+        </p>
       ) : (
         valid && (
           <ul className="field-hint hint-lines">

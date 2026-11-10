@@ -109,6 +109,8 @@ describe('transitions', () => {
     expect(g.transitions.ac!.overlapBars).toBe(32);
     expect(updateTransition(g, 'ac', { overlapBars: null }).transitions.ac!.overlapBars).toBeNull();
     expect(g.transitions.ab1!.overlapBars).toBeNull();
+    g = updateTransition(g, 'ac', { overlapBars: 'full' });
+    expect(g.transitions.ac!.overlapBars).toBe('full');
   });
 
   it('stores bars and sorts variants by mix-out bar first', () => {

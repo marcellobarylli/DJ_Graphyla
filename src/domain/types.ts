@@ -54,8 +54,11 @@ export interface Transition {
   fromBpm: number | null;
   /** Tempo the incoming song runs at during the mix. */
   toBpm: number | null;
-  /** How many bars both songs play together (e.g. 16). */
-  overlapBars: number | null;
+  /**
+   * How many bars both songs play together (e.g. 16), or `'full'` when the two
+   * play together for the whole song (layered, mashup style).
+   */
+  overlapBars: Overlap | null;
   /** 1 = doesn't work … 5 = banger. null = not rated yet. */
   rating: number | null;
   notes: string;
@@ -104,6 +107,10 @@ export type TransitionInput = Pick<Transition, 'fromSongId' | 'toSongId'> &
   Partial<
     Pick<Transition, 'fromBar' | 'toBar' | 'fromTime' | 'toTime' | 'fromBpm' | 'toBpm' | 'overlapBars' | 'rating' | 'notes'>
   > & { idea?: boolean };
+
+/** A number of bars, or the whole song. */
+export type Overlap = number | 'full';
+export const FULL_OVERLAP = 'full' as const;
 
 export const BAR_MAX = 9999;
 export const OVERLAP_MAX = 256;

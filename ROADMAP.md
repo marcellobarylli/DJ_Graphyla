@@ -68,6 +68,8 @@ Goal: explore the graph and build sets from it.
       4 / 8 / 16 / 32 presets. The card shows when the outgoing song is out ("out by bar 145"),
       when the next song plays alone, and the length in seconds at the mix tempo (4/4).
       Variants, cue sheets and setlists show "⇄ 16 bars"
+- [x] **Full song overlap**: a *Full song* preset for mixes where both songs play together the whole
+      way (layered, mashup style). Shown as "⇄ full song"; play mode says "Both playing: full song overlap"
 - [x] **Crates**: separate libraries, like Obsidian vaults, e.g. one per genre or label. Each crate
       has its own songs, transitions and sets; nothing is shared. Switch from the header on
       every main screen. Create, rename and delete crates (the last one can't be deleted)

@@ -562,7 +562,7 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 .input-with-suffix { position: relative; display: inline-flex; width: 120px; }
 .input-with-suffix .input { padding-right: 46px; }
 .input-suffix { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: var(--muted); pointer-events: none; }
-.presets { display: inline-flex; gap: 6px; }
+.presets { display: inline-flex; flex-wrap: wrap; gap: 6px; }
 .presets .chip-btn { min-height: 36px; min-width: 40px; justify-content: center; }
 .chip-btn.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .badge-overlap { color: var(--text); }

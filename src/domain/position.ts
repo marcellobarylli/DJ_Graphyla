@@ -1,5 +1,6 @@
 /** Mix-point helpers: positions are bars (primary) with an optional timestamp. */
 import { formatTimestamp } from './time';
+import { FULL_OVERLAP, type Overlap } from './types';
 
 /** "97" → 97. Empty → null, anything that is not a positive whole number → NaN. */
 export function parseBar(raw: string): number | null {
@@ -21,9 +22,10 @@ export function formatPosition(bar: number | null, time: number | null): string 
   return parts.join(' · ');
 }
 
-/** 16 → "16 bars", 1 → "1 bar". */
-export function formatOverlap(bars: number | null): string {
+/** 16 → "16 bars", 1 → "1 bar", 'full' → "full song". */
+export function formatOverlap(bars: Overlap | null): string {
   if (bars === null) return '';
+  if (bars === FULL_OVERLAP) return 'full song';
   return `${bars} bar${bars === 1 ? '' : 's'}`;
 }
 

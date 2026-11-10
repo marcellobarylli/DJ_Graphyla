@@ -26,6 +26,11 @@ describe('backup round trip', () => {
     expect(back.transitions['idea']!.idea).toBe(true);
   });
 
+  it('round-trips a full-song overlap', () => {
+    const g = addTransition(sample(), { fromSongId: 'b', toSongId: 'a', overlapBars: 'full' }, { id: 'full', now: NOW }).graph;
+    expect(parseBackup(exportJson(g, NOW)).transitions['full']!.overlapBars).toBe('full');
+  });
+
   it('round-trips sets', () => {
     let g = sample();
     g = createSet(g, { name: 'Warmup', startSongId: 'a' }, { id: 's', now: NOW }).graph;

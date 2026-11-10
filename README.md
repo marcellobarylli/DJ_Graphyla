@@ -143,7 +143,7 @@ tags[]                       fromTime     optional m:ss of the mix-out point cre
 notes                        toTime       optional m:ss of the mix-in point
 mergedIds[]    folded dups   fromBpm      tempo `from` runs at during the mix
 createdAt / updatedAt        toBpm        tempo `to` runs at during the mix
-                             overlapBars  how many bars both songs play together
+                             overlapBars  how many bars both songs play together, or "full" (the whole song)
                              rating       1 (doesn't work) … 5 (banger)
                              notes, createdAt / updatedAt
 ```

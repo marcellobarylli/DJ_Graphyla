@@ -19,6 +19,7 @@ describe('position helpers', () => {
   it('formats overlaps and converts them to seconds (4/4)', () => {
     expect(formatOverlap(16)).toBe('16 bars');
     expect(formatOverlap(1)).toBe('1 bar');
+    expect(formatOverlap('full')).toBe('full song');
     expect(formatOverlap(null)).toBe('');
     expect(overlapSeconds(16, 128)).toBe(30);
     expect(overlapSeconds(32, 124)).toBe(61.9);

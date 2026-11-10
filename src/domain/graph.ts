@@ -6,6 +6,7 @@ import { GraphError, newId, type FieldErrors } from './common';
 import {
   BAR_MAX,
   BPM_MAX,
+  FULL_OVERLAP,
   OVERLAP_MAX,
   BPM_MIN,
   SCHEMA_VERSION,
@@ -78,8 +79,13 @@ export function validateTransitionFields(input: Omit<TransitionInput, 'fromSongI
   const toBpm = bpmError(input.toBpm);
   if (toBpm) errors.toBpm = toBpm;
   const overlap = input.overlapBars;
-  if (overlap !== null && overlap !== undefined && (!Number.isInteger(overlap) || overlap < 1 || overlap > OVERLAP_MAX)) {
-    errors.overlapBars = `Overlap is a whole number of bars, 1–${OVERLAP_MAX}`;
+  if (
+    overlap !== null &&
+    overlap !== undefined &&
+    overlap !== FULL_OVERLAP &&
+    (!Number.isInteger(overlap) || overlap < 1 || overlap > OVERLAP_MAX)
+  ) {
+    errors.overlapBars = `Overlap is a whole number of bars, 1–${OVERLAP_MAX}, or the full song`;
   }
   if (input.rating !== null && input.rating !== undefined) {
     if (!Number.isInteger(input.rating) || input.rating < 1 || input.rating > 5) errors.rating = 'Rating is 1–5';
