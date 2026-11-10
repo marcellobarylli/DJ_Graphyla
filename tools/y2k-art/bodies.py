@@ -1,16 +1,17 @@
 """
 Builds the two chrome DJ figures of the Y2K Futurism look (a man and a woman,
 hairless, full body) from MakeHuman's CC0 assets, and writes them as small
-binary meshes to tools/y2k-art/bodies/ for tools/y2k-art/render.js.
+binary skinned meshes to tools/y2k-art/bodies/ for tools/y2k-art/render.js.
 
 MakeHuman's base mesh, skeleton, skin weights and shape targets were released
 as CC0 1.0 in September 2020 (see LICENSE.md in makehumancommunity/makehuman),
 and so are the meshes made from them. The body shapes are set the way
-MakeHuman's macro sliders set them (gender, muscle, height, proportions); the
-pose (arms down, head slightly turned) is applied with MakeHuman's own
-skeleton and weights by linear blend skinning.
+MakeHuman's macro sliders set them (gender, muscle, height, proportions). The
+figures are written in MakeHuman's rest pose with its skeleton and skin
+weights; the poses (standing still, the dance, the spin) are applied by
+tools/y2k-art/pose.js with linear blend skinning.
 
-You only need this to change the figures; the built meshes are committed.
+You only need this to change the body shapes; the built meshes are committed.
 
     git clone --depth 1 https://github.com/makehumancommunity/makehuman /tmp/mh-git
     pip download --no-deps makehuman==1.3.2 -d /tmp/mh-pip
@@ -22,7 +23,6 @@ compiled targets come from the PyPI package. Needs numpy.
 """
 
 import json
-import math
 import struct
 import sys
 from pathlib import Path
@@ -39,23 +39,12 @@ FIGURES = {
         'muscle': 0.72,
         'height': 0.62,
         'proportions': 1.0,
-        # Bone rotations in degrees around the world axes (x right, y up, z forward).
-        'pose': {
-            'upperarm01.L': (0, 0, -30), 'upperarm01.R': (0, 0, 30),
-            'lowerarm01.L': (34, 0, 0), 'lowerarm01.R': (34, 0, 0),
-            'neck01': (0, 10, 0), 'head': (4, 14, 0),
-        },
     },
     'woman': {
         'gender': 0.0,
         'muscle': 0.55,
         'height': 0.6,
         'proportions': 1.0,
-        'pose': {
-            'upperarm01.L': (0, 0, -32), 'upperarm01.R': (0, 0, 32),
-            'lowerarm01.L': (34, 0, 0), 'lowerarm01.R': (34, 0, 0),
-            'neck01': (0, -10, 0), 'head': (4, -14, 2),
-        },
     },
 }
 
@@ -115,99 +104,86 @@ def shape(base, targets, fig):
     return coords
 
 
-def rotation(deg):
-    """Rotation matrix from (x, y, z) degrees, applied in the order z, y, x."""
-    x, y, z = (math.radians(d) for d in deg)
-    rx = np.array([[1, 0, 0], [0, math.cos(x), -math.sin(x)], [0, math.sin(x), math.cos(x)]])
-    ry = np.array([[math.cos(y), 0, math.sin(y)], [0, 1, 0], [-math.sin(y), 0, math.cos(y)]])
-    rz = np.array([[math.cos(z), -math.sin(z), 0], [math.sin(z), math.cos(z), 0], [0, 0, 1]])
-    return rx @ ry @ rz
-
-
-def pose(coords, rig_dir, bone_rot):
+def rig(coords, faces, rig_dir):
+    """The figure as a skinned mesh: its shaped rest vertices, MakeHuman's
+    bones (head and tail joints, parents first) and the skin weights.
+    tools/y2k-art/pose.js poses it (linear blend skinning)."""
     skel = json.load(open(rig_dir / 'default.mhskel'))
     weights = json.load(open(rig_dir / 'default_weights.mhw'))['weights']
     joints = {name: coords[idx].mean(axis=0) for name, idx in skel['joints'].items()}
     bones = skel['bones']
 
-    # World transform of each bone (4x4), parents first.
-    world = {}
+    # Mesh vertices first (the ones the triangles use), then the skull
+    # vertices of helper geometry that the headphones fit also measures.
+    used = sorted({i for f in faces for i in f})
+    kept = set(used)
+    skull = [i for i, w in weights['head'] if w > 0.9]
+    order = used + [i for i in skull if i not in kept]
+    remap = {old: new for new, old in enumerate(order)}
 
-    def transform(name):
-        if name in world:
-            return world[name]
-        b = bones[name]
-        parent = transform(b['parent']) if b['parent'] else np.eye(4)
-        local = np.eye(4)
-        if name in bone_rot:
-            head = joints[b['head']]
-            r = rotation(bone_rot[name])
-            local[:3, :3] = r
-            local[:3, 3] = head - r @ head
-        world[name] = parent @ local
-        return world[name]
+    # Bones that move any of these vertices, and their ancestors, parents first.
+    needed = set()
+    for name, pairs in weights.items():
+        if any(i in remap for i, _ in pairs):
+            while name and name not in needed:
+                needed.add(name)
+                name = bones[name]['parent']
+    names = []
+
+    def visit(name):
+        if name in names:
+            return
+        parent = bones[name]['parent']
+        if parent:
+            visit(parent)
+        names.append(name)
 
     for name in bones:
-        transform(name)
+        if name in needed:
+            visit(name)
+    index = {name: i for i, name in enumerate(names)}
 
-    homo = np.hstack([coords, np.ones((len(coords), 1))])
-    out = np.zeros_like(coords)
-    total = np.zeros(len(coords))
-    for name, pairs in weights.items():
-        if not pairs:
-            continue
-        idx = np.array([p[0] for p in pairs])
-        w = np.array([p[1] for p in pairs])
-        moved = (homo[idx] @ world[name].T)[:, :3]
-        np.add.at(out, idx, moved * w[:, None])
-        np.add.at(total, idx, w)
-    # Vertices without weights (e.g. the eye helpers) follow the head.
-    unweighted = total < 1e-6
-    out[unweighted] = (homo[unweighted] @ world['head'].T)[:, :3]
-    total[unweighted] = 1
-    posed = out / total[:, None]
-
-    # The head's frame and size, for fitting the headphones: rotation of the
-    # head bone, and the box around the skull vertices in that frame.
-    rot = world['head'][:3, :3]
-    head_idx = np.array([i for i, w in weights['head'] if w > 0.9])
-    local = posed[head_idx] @ rot
-    lo, hi = local.min(axis=0), local.max(axis=0)
-    head = {'axes': rot, 'center': rot @ ((lo + hi) / 2), 'size': hi - lo}
-    return posed, head
-
-
-def write_mesh(path, coords, faces, head):
-    used = sorted({i for f in faces for i in f})
-    remap = {old: new for new, old in enumerate(used)}
+    influences = [(remap[i], index[name], w) for name, pairs in weights.items() for i, w in pairs if i in remap]
     tris = []
     for f in faces:
         f = [remap[i] for i in f]
         tris += [f[0], f[1], f[2]]
         if len(f) == 4:
             tris += [f[0], f[2], f[3]]
-    pos = coords[used].astype(np.float32)
-    # Feet on y = 0, centred on x and z.
-    pos[:, 1] -= pos[:, 1].min()
-    pos[:, 0] -= (pos[:, 0].min() + pos[:, 0].max()) / 2
-    pos[:, 2] -= (pos[:, 2].min() + pos[:, 2].max()) / 2
-    shift = pos[0] - coords[used[0]].astype(np.float32)
-    meta = {
-        'height': float(pos[:, 1].max()),
-        'head': {
-            'center': [round(float(v), 4) for v in head['center'] + shift],
-            'size': [round(float(v), 4) for v in head['size']],
-            # Columns: the head's right, up and forward directions.
-            'axes': [[round(float(v), 5) for v in row] for row in head['axes']],
-        },
+    return {
+        'positions': coords[order],
+        'mesh_count': len(used),
+        'triangles': tris,
+        'influences': influences,
+        'skull': [remap[i] for i in skull],
+        'bones': [
+            {
+                'name': name,
+                'parent': index[bones[name]['parent']] if bones[name]['parent'] else None,
+                'head': [round(float(v), 5) for v in joints[bones[name]['head']]],
+                'tail': [round(float(v), 5) for v in joints[bones[name]['tail']]],
+            }
+            for name in names
+        ],
     }
-    path.with_suffix('.json').write_text(json.dumps(meta, indent=2) + '\n')
-    idx = np.array(tris, dtype=np.uint16 if len(used) < 65536 else np.uint32)
+
+
+def write_rig(path, r):
+    pos = r['positions'].astype(np.float32)
+    inf = r['influences']
+    assert len(pos) < 65536 and len(r['bones']) < 256
     with open(path, 'wb') as fh:
-        fh.write(struct.pack('<II', len(pos), len(idx)))
+        fh.write(struct.pack('<IIIII', len(pos), r['mesh_count'], len(r['triangles']), len(inf), len(r['skull'])))
         fh.write(pos.tobytes())
-        fh.write(idx.astype(np.uint16).tobytes())
-    print(f'{path.name}: {len(pos)} vertices, {len(idx) // 3} triangles, {path.stat().st_size / 1024:.0f} KB')
+        fh.write(np.array([w for _, _, w in inf], dtype=np.float32).tobytes())
+        fh.write(np.array(r['triangles'], dtype=np.uint16).tobytes())
+        fh.write(np.array([v for v, _, _ in inf], dtype=np.uint16).tobytes())
+        fh.write(np.array(r['skull'], dtype=np.uint16).tobytes())
+        fh.write(np.array([b for _, b, _ in inf], dtype=np.uint8).tobytes())
+    lines = ',\n'.join('  ' + json.dumps(b, separators=(',', ':')) for b in r['bones'])
+    path.with_suffix('.json').write_text('{"bones": [\n' + lines + '\n]}\n')
+    print(f'{path.name}: {len(pos)} vertices ({r["mesh_count"]} in the mesh), {len(r["triangles"]) // 3} triangles, '
+          f'{len(r["bones"])} bones, {len(inf)} weights, {path.stat().st_size / 1024:.0f} KB')
 
 
 def main():
@@ -218,9 +194,7 @@ def main():
     targets = Targets(npz)
     OUT.mkdir(exist_ok=True)
     for name, fig in FIGURES.items():
-        coords = shape(base, targets, fig)
-        coords, head = pose(coords, data_dir / 'rigs', fig['pose'])
-        write_mesh(OUT / f'{name}.bin', coords, faces, head)
+        write_rig(OUT / f'{name}.bin', rig(shape(base, targets, fig), faces, data_dir / 'rigs'))
 
 
 if __name__ == '__main__':

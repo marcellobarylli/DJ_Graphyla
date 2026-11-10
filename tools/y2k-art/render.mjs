@@ -4,6 +4,7 @@
  *
  *   npm run art:y2k            (all of them)
  *   npm run art:y2k -- man     (only the named scenes)
+ *   npm run art:y2k -- man man-dance woman woman-dance   (the chrome DJs)
  *
  * Needs Playwright with Chromium on the machine (it is not a project
  * dependency): `npm i -g playwright && npx playwright install chromium`.
@@ -16,7 +17,7 @@ import { createServer } from 'vite';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const outDir = join(root, 'src', 'assets', 'y2k');
-const ALL = ['orb-portrait', 'orb-landscape', 'torus', 'blob', 'man', 'woman'];
+const ALL = ['orb-portrait', 'orb-landscape', 'torus', 'blob', 'man', 'woman', 'man-dance', 'woman-dance'];
 // `npm run art:y2k -- man woman` renders only the named scenes.
 const SCENES = process.argv.length > 2 ? process.argv.slice(2) : ALL;
 
@@ -55,7 +56,8 @@ try {
     page.on('console', (m) => m.type() === 'error' && console.error(`  [${scene}] ${m.text()}`));
     page.on('pageerror', (e) => console.error(`  [${scene}] ${e}`));
     await page.goto(`${base}tools/y2k-art/?scene=${scene}`, { waitUntil: 'commit' });
-    await page.waitForFunction(() => window.__art, null, { timeout: 120_000 });
+    // The dance sheets are 24 frames each: give them time in a software renderer.
+    await page.waitForFunction(() => window.__art, null, { timeout: 900_000, polling: 1000 });
     const art = await page.evaluate(() => window.__art);
     if (art.error) throw new Error(`${scene}: ${art.error}`);
     if (!art.dataUrl.startsWith('data:image/webp')) throw new Error(`${scene}: the browser did not encode WebP`);
