@@ -26,7 +26,7 @@ function memoryStore(initial: Record<string, string> = {}) {
 describe('themes', () => {
   it('offers the original look plus the two Y2K looks', () => {
     expect(THEMES.map((t) => t.id)).toEqual(['graphyla', 'swag', 'futurism']);
-    expect(DEFAULT_THEME).toBe('graphyla');
+    expect(DEFAULT_THEME).toBe('futurism');
   });
 
   it('names the swag look in leet, with a readable spoken name', () => {
