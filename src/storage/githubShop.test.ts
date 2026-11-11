@@ -73,7 +73,7 @@ describe('syncCrateToShop', () => {
       isTree(c) ? tree('README.md', 'record-shop/README.md', 'record-shop/kat-ko/other.json') : c.method === 'PUT' ? [201, { content: { html_url: 'u' } }] : [404, {}],
     );
     const r = await sync(fn, [], seen);
-    expect(r).toEqual({ path: `marcello/${crateId}.json`, created: true, htmlUrl: 'u' });
+    expect(r).toEqual({ path: `marcello/${crateId}.json`, created: true, written: true, htmlUrl: 'u' });
     const put = calls.find((c) => c.method === 'PUT')!;
     expect(put.url).toBe(`${API}/contents/record-shop/marcello/${crateId}.json`);
     expect(put.body).toMatchObject({ message: 'new', branch: 'main' });
@@ -136,6 +136,37 @@ describe('syncCrateToShop', () => {
     const { fn } = fakeGitHub((c) => (isTree(c) ? [500, {}] : c.method === 'PUT' ? [201, { content: {} }] : [404, {}]));
     const r = await sync(fn, [`kat-ko/${crateId}.json`]);
     expect(r).toMatchObject({ path: `marcello/${crateId}.json`, created: true });
+  });
+
+  it('reads a known path directly, without listing the repo', async () => {
+    const { fn, calls } = fakeGitHub((c) =>
+      isRead(c, `marcello/${crateId}.json`) ? file('s1', '{"v":1}') : c.method === 'PUT' ? [200, { content: { html_url: 'u' } }] : [500, {}],
+    );
+    const r = syncCrateToShop(account, { crateId, hints: [], knownPath: `marcello/${crateId}.json`, build: () => 'x', message: () => 'm' }, fn);
+    await expect(r).resolves.toMatchObject({ written: true, created: false });
+    expect(calls.some(isTree)).toBe(false);
+  });
+
+  it('looks the crate up again when the known path has gone', async () => {
+    const { fn, calls } = fakeGitHub((c) =>
+      isTree(c)
+        ? tree(`record-shop/kat-ko/${crateId}.json`)
+        : isRead(c, `kat-ko/${crateId}.json`)
+          ? file('s2', '{"v":2}')
+          : c.method === 'PUT'
+            ? [200, { content: { html_url: 'u' } }]
+            : [404, {}],
+    );
+    const r = await syncCrateToShop(account, { crateId, hints: [], knownPath: `marcello/${crateId}.json`, build: () => 'x', message: () => 'm' }, fn);
+    expect(r.path).toBe(`kat-ko/${crateId}.json`);
+    expect(calls.find((c) => c.method === 'PUT')!.body!.sha).toBe('s2');
+  });
+
+  it('writes nothing when build says the shop copy is up to date', async () => {
+    const { fn, calls } = fakeGitHub((c) => (isRead(c, `marcello/${crateId}.json`) ? file('s1', '{"v":1}') : [500, {}]));
+    const r = await syncCrateToShop(account, { crateId, hints: [], knownPath: `marcello/${crateId}.json`, build: () => null, message: () => 'm' }, fn);
+    expect(r.written).toBe(false);
+    expect(calls.some((c) => c.method === 'PUT')).toBe(false);
   });
 
   it('explains missing access in plain words', async () => {

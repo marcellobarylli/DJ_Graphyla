@@ -34,7 +34,15 @@ export interface ShopAccount {
   avatar?: string | null;
 }
 
-export class ShopError extends Error {}
+export class ShopError extends Error {
+  /** GitHub's HTTP status, when the error is an answer from GitHub (absent: no connection). */
+  constructor(
+    message: string,
+    readonly status?: number,
+  ) {
+    super(message);
+  }
+}
 
 type Store = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 type Fetch = typeof fetch;
@@ -69,6 +77,8 @@ const contentsPath = (path: string) => `${repoPath}/contents/${[SHOP_DIR, ...pat
 async function gh(path: string, token: string, init: RequestInit, fetchFn: Fetch, accept = 'application/vnd.github+json'): Promise<Response> {
   try {
     return await fetchFn(`${API}${path}`, {
+      // Always the current file: a cached answer would carry an old sha and fail the write.
+      cache: 'no-store',
       ...init,
       headers: {
         Accept: accept,
@@ -83,21 +93,24 @@ async function gh(path: string, token: string, init: RequestInit, fetchFn: Fetch
 }
 
 function errorFor(status: number, login: string): ShopError {
+  const e = errorText(status, login);
+  return new ShopError(e, status);
+}
+
+function errorText(status: number, login: string): string {
   const repo = `${SHOP_REPO.owner}/${SHOP_REPO.repo}`;
   switch (status) {
     case 401:
-      return new ShopError('GitHub did not accept this token. Check that it was copied completely and has not expired.');
+      return 'GitHub did not accept this token. Check that it was copied completely and has not expired.';
     case 403:
-      return new ShopError(
-        `This token can't write to ${repo}. A fine-grained token needs “Contents: Read and write” for this repo; a classic token needs the “public_repo” scope.`,
-      );
+      return `This token can't write to ${repo}. A fine-grained token needs “Contents: Read and write” for this repo; a classic token needs the “public_repo” scope.`;
     case 404:
-      return new ShopError(`@${login} has no write access to ${repo} with this token. Collaborators: accept the invitation first, then use a classic token with “public_repo”.`);
+      return `@${login} has no write access to ${repo} with this token. Collaborators: accept the invitation first, then use a classic token with “public_repo”.`;
     case 409:
     case 422:
-      return new ShopError('The record shop changed while uploading. Try again.');
+      return 'The record shop changed while uploading. Try again.';
     default:
-      return new ShopError(`GitHub answered with an error (${status}). Try again later.`);
+      return `GitHub answered with an error (${status}). Try again later.`;
   }
 }
 
@@ -174,19 +187,32 @@ export async function syncCrateToShop(
     crateId: string;
     /** Paths the published index lists for this crate. */
     hints: string[];
-    /** Builds the file to write from the shop's current copy (null if none). */
-    build: (existingText: string | null) => string;
+    /**
+     * Builds the file to write from the shop's current copy (null if none).
+     * Returning null writes nothing: the shop copy is already up to date.
+     */
+    build: (existingText: string | null) => string | null;
     message: (update: boolean) => string;
+    /** Where the crate was found last time: read directly, without listing the repo. */
+    knownPath?: string;
   },
   fetchFn: Fetch = fetch,
-): Promise<{ path: string; created: boolean; htmlUrl: string }> {
+): Promise<{ path: string; created: boolean; written: boolean; htmlUrl: string }> {
   const own = shopFilePath(account.login, opts.crateId);
   for (let attempt = 0; ; attempt++) {
-    let path = (await findCrateFile(account, opts.crateId, opts.hints, fetchFn)) ?? own;
+    let path = opts.knownPath && attempt === 0 ? opts.knownPath : ((await findCrateFile(account, opts.crateId, opts.hints, fetchFn)) ?? own);
     let existing = await readShopFile(account, path, fetchFn);
+    if (!existing && path === opts.knownPath && attempt === 0) {
+      path = (await findCrateFile(account, opts.crateId, opts.hints, fetchFn)) ?? own; // moved or removed since
+      existing = await readShopFile(account, path, fetchFn);
+    }
     if (!existing && path !== own) {
       path = own; // the listed file is gone
       existing = await readShopFile(account, own, fetchFn);
+    }
+    const content = opts.build(existing?.text ?? null);
+    if (content === null) {
+      return { path, created: false, written: false, htmlUrl: `${SHOP_REPO_URL}/blob/${SHOP_REPO.branch}/${SHOP_DIR}/${path}` };
     }
     const res = await gh(
       contentsPath(path),
@@ -195,7 +221,7 @@ export async function syncCrateToShop(
         method: 'PUT',
         body: JSON.stringify({
           message: opts.message(existing !== null),
-          content: toBase64(opts.build(existing?.text ?? null)),
+          content: toBase64(content),
           branch: SHOP_REPO.branch,
           ...(existing ? { sha: existing.sha } : {}),
         }),
@@ -204,7 +230,7 @@ export async function syncCrateToShop(
     );
     if (res.ok) {
       const body = (await res.json()) as { content?: { html_url?: string } };
-      return { path, created: existing === null, htmlUrl: body.content?.html_url ?? `${SHOP_REPO_URL}/tree/${SHOP_REPO.branch}/${SHOP_DIR}` };
+      return { path, created: existing === null, written: true, htmlUrl: body.content?.html_url ?? `${SHOP_REPO_URL}/tree/${SHOP_REPO.branch}/${SHOP_DIR}` };
     }
     // Someone else changed the file between reading and writing: read and merge again.
     if ((res.status === 409 || res.status === 422) && attempt < 2) continue;

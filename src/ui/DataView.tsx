@@ -6,6 +6,7 @@ import { LOOKUP_SOURCE, loadLookupEnabled, saveLookupEnabled } from '../storage/
 import { linkTo, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
 import { useTheme } from '../state/theme';
+import { AutoSyncStatus } from './AutoSyncPanel';
 import { TopBar } from './components';
 import { duplicateGroups } from './DuplicatesView';
 
@@ -191,6 +192,7 @@ export function DataView() {
               The public crate collection in the app’s GitHub repo. Share your crates with its sets for other DJs to download, and
               get theirs.
             </p>
+            <AutoSyncStatus crateId={crate.id} />
             <button type="button" className="btn btn-block" onClick={() => navigate(paths.shop())}>
               Share “{crate.name}” to the record shop…
             </button>

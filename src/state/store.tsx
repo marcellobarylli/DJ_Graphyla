@@ -41,6 +41,13 @@ export interface GraphStore {
   allCrateData(): CrateData[];
   /** Restores a library backup: crates with a known id are merged, others are added. */
   restoreCrates(crates: CrateData[]): { added: number; merged: number; merges: CrateMerge[] };
+  /** Any crate's current data (the open one from memory, others from storage). */
+  crateGraph(id: C.CrateId): GraphData;
+  /**
+   * Changes any crate, computed from its data at this moment (the background
+   * sync uses it, so edits made while it was on its way are kept).
+   */
+  updateCrate(id: C.CrateId, fn: (graph: GraphData) => GraphData): void;
 }
 
 interface State {
@@ -210,6 +217,28 @@ export function GraphProvider({ children }: { children: ReactNode }) {
         });
         set({ index: idx, graph: active });
         return { added, merged, merges };
+      },
+      crateGraph(id) {
+        const { index: idx, graph: active } = ref.current;
+        return id === idx.activeId ? active : storage.loadCrate(id);
+      },
+      updateCrate(id, fn) {
+        const { index: idx } = ref.current;
+        if (!idx.crates.some((c) => c.id === id)) return;
+        if (id === idx.activeId) {
+          const next = fn(ref.current.graph);
+          if (next !== ref.current.graph) commit(next);
+          return;
+        }
+        const before = storage.loadCrate(id);
+        const next = fn(before);
+        if (next === before) return;
+        const nextIndex = C.touchCrate(idx, id, next);
+        persist(() => {
+          storage.saveCrate(id, next);
+          storage.saveIndex(nextIndex);
+        });
+        set({ ...ref.current, index: nextIndex });
       },
     };
   }, [state, commit, saveIndex, set]);
