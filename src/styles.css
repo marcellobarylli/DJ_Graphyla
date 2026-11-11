@@ -1280,3 +1280,95 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 @media (min-width: 720px) {
   .page { padding-top: 20px; }
 }
+
+/* ── song energy (0–100, see domain/energy.ts) ───────────────────────────────
+   Components hand the band's colour over as --energy (it depends on the look's
+   light or dark canvas). These rules come last so they win over each look's
+   card borders: a song with an energy wears its colour on its border. */
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.energy-dot {
+  flex: none;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--energy, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 25%, transparent);
+}
+.energy-dot-none { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
+.badge-energy { gap: 5px; border-color: color-mix(in srgb, var(--energy) 70%, var(--border)); }
+.energy-name { margin-left: 2px; }
+.energy-hint { display: inline-flex; align-items: center; gap: 6px; }
+.energy-hint strong { color: var(--text); }
+.energy-field { display: flex; align-items: center; gap: 12px; }
+.energy-input { flex: none; width: 5.5em; text-align: center; font-variant-numeric: tabular-nums; }
+.energy-range {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+.energy-range::-webkit-slider-runnable-track { height: 10px; border-radius: 999px; background: var(--energy-gradient); }
+.energy-range::-moz-range-track { height: 10px; border-radius: 999px; background: var(--energy-gradient); }
+.energy-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--energy, var(--surface));
+  border: 3px solid var(--text);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.energy-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--energy, var(--surface));
+  border: 3px solid var(--text);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+/* No energy yet: the scale is shown faded, with an empty thumb in the middle. */
+.energy-range.is-empty { opacity: 0.45; }
+.energy-range.is-empty::-webkit-slider-thumb { background: var(--surface); }
+.energy-range.is-empty::-moz-range-thumb { background: var(--surface); }
+
+/* Borders: library rows get a colour stripe; cards and set steps a coloured border. */
+.song-row.has-energy { box-shadow: inset 5px 0 0 var(--energy); padding-left: 18px; }
+:root .has-energy:is(.cue-song, .song-card, .play-now, .up-next) {
+  border-color: var(--energy);
+  border-width: 2px;
+  box-shadow: inset 5px 0 0 var(--energy);
+}
+:root .cue-song.has-energy .cue-num { box-shadow: 0 0 0 2.5px var(--energy); }
+[data-theme='swag'] .has-energy:is(.cue-song, .song-card, .play-now, .up-next) { box-shadow: 3px 3px 0 var(--energy), inset 5px 0 0 var(--energy); }
+[data-theme='futurism'] .has-energy:is(.cue-song, .song-card, .play-now, .up-next) {
+  box-shadow: inset 5px 0 0 var(--energy), 0 0 14px color-mix(in srgb, var(--energy) 35%, transparent);
+}
+.energy-step { margin: 2px 0 4px; }
+
+/* Energy across a set. */
+.energy-bar { stroke: none; }
+.energy-bar.is-active { filter: brightness(1.15); }
+.energy-stub { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 2 2; }
+
+/* The graph's energy colour map (opens to the ten band names). */
+.energy-legend { padding: 0 16px 8px; font-size: 0.72rem; color: var(--muted); }
+.energy-legend summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; }
+.energy-legend summary::-webkit-details-marker { display: none; }
+.energy-legend summary::after { content: '▾'; }
+.energy-legend[open] summary::after { content: '▴'; }
+.energy-scale { display: inline-flex; gap: 1px; }
+.energy-scale span { width: 14px; height: 10px; }
+.energy-scale span:first-child { border-radius: 3px 0 0 3px; }
+.energy-scale span:last-child { border-radius: 0 3px 3px 0; }
+.energy-legend ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 12px; margin: 6px 0 0; padding: 0; list-style: none; }
+.energy-legend li { display: flex; align-items: center; gap: 6px; }
+.energy-legend strong { color: var(--text); font-weight: 600; }
+.energy-legend-range { min-width: 3.6em; font-variant-numeric: tabular-nums; }
+[data-theme='swag'] .energy-legend { background: color-mix(in srgb, var(--bg) 85%, transparent); }
+[data-theme='futurism'] .energy-legend { background: color-mix(in srgb, var(--bg) 80%, transparent); }

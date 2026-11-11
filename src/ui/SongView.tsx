@@ -3,13 +3,14 @@ import { setsUsingSong } from '../domain/sets';
 import type { GraphData, Song, Transition } from '../domain/types';
 import { goBack, linkTo, paths } from '../state/router';
 import { useStore } from '../state/store';
-import { BpmBadge, EmptyState, KeyBadge, TopBar, VariantRow } from './components';
+import { BpmBadge, EmptyState, EnergyBadge, KeyBadge, TopBar, VariantRow, useEnergyStyle } from './components';
 import { createAndOpenSet } from './SetsView';
 
 export function SongView({ id }: { id: string }) {
   const store = useStore();
   const { graph } = store;
   const song = graph.songs[id];
+  const energyStyle = useEnergyStyle(song?.energy);
 
   if (!song) {
     return (
@@ -49,12 +50,13 @@ export function SongView({ id }: { id: string }) {
         }
       />
       <main className="page">
-        <section className="card song-card">
+        <section className={`card song-card${energyStyle ? ' has-energy' : ''}`} style={energyStyle}>
           <h2 className="song-card-title">{song.title}</h2>
           {song.artist && <p className="song-card-artist">{song.artist}</p>}
           <div className="row tight">
             <BpmBadge bpm={song.bpm} />
             <KeyBadge songKey={song.key} />
+            <EnergyBadge energy={song.energy} />
             {song.tags.map((t) => (
               <span key={t} className="badge badge-tag">
                 {t}

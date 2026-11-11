@@ -212,7 +212,7 @@ A public crate collection in the GitHub repo, before real accounts and sync (chu
       stepped darker for better ratings (validated: monotone, visible steps, ≥ 2:1 at the weak end)
 - [x] A black band behind the phone's status bar keeps its white text readable in the installed app
 
-## ✅ Chunk 2.11: Song lookup (this release)
+## ✅ Chunk 2.11: Song lookup
 
 Start typing a title and songs from a public catalogue are suggested, with their BPM.
 
@@ -232,6 +232,29 @@ Start typing a title and songs from a public catalogue are suggested, with their
       after a pause in typing, from 3 letters; cached for the session; offline it stays quiet
 - [ ] Key (Deezer has none): optional GetSongBPM lookup with your own API key
 - [ ] Look up the BPM for songs already in a crate that have none
+
+## ✅ Chunk 2.12: Song energy (this release)
+
+Your own feel for how hard a song goes, to plan how a set builds.
+
+- [x] **Energy** per song: a whole number 0–100, typed or slid in the song card (also the inline card in a
+      transition); blank = not set. Subjective: it correlates with tempo but is not derived from it
+- [x] **Ten named bands** so the number reads as a feeling without remembering anything: Flatline,
+      Snooze Button, Lounge Lizard, Head Nod, Toe Tapper, Hip Swinger, Hands in the Air, Sweat Factory,
+      Rave Goblin, Roof Off. The card shows the band and a one-line description while you type
+- [x] **Colour map**: one colour per band, indigo → violet → magenta → pink → red → orange → amber →
+      yellow, lightness rising with the energy (so the order reads without colour vision too); darker steps
+      on the light look. Name and number always sit next to the colour
+- [x] Shown as a **border** on a song in a set, in play mode (now playing and up next), on the song page,
+      and as a stripe in the library; a badge everywhere a song is listed (library, picker, graph sheet,
+      ways out in play mode)
+- [x] **Graph**: songs are filled with their energy colour; *Song energy* above the canvas opens the map
+- [x] *Energy across the set*: a bar per song under the tempo chart; play mode shows the energy jump to
+      the next song; the setlist text lists each song's energy
+- [x] Library sort by energy (hottest first); search by band name
+- [x] Kept in backups and the record shop (optional field, no schema change); collapsing duplicates keeps
+      the energy or fills it in from the duplicate
+- [ ] Route finder that follows an energy curve (warm-up → peak → cool-down)
 
 ## Chunk 3: Sync & multiple devices
 

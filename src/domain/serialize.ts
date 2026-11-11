@@ -7,6 +7,7 @@
  *  - a library backup (`kind: "library"`): every crate, each with its own data
  */
 import { aliasesFrom, foldSongs } from './dedupe';
+import { isEnergy } from './energy';
 import { createEmptyGraph, removeSetSongAt } from './graph';
 import { FULL_OVERLAP, OVERLAP_MAX, SCHEMA_VERSION, type DjSet, type GraphData, type Song, type SongId, type Transition } from './types';
 
@@ -99,6 +100,7 @@ function readSong(raw: unknown, i: number, now: string): Song {
     artist: str(raw.artist),
     bpm: num(raw.bpm),
     key: str(raw.key),
+    ...(isEnergy(raw.energy) ? { energy: raw.energy } : {}),
     tags: Array.isArray(raw.tags) ? raw.tags.filter((t): t is string => typeof t === 'string') : [],
     notes: str(raw.notes),
     ...(mergedIds.length ? { mergedIds } : {}),

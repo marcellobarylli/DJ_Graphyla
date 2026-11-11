@@ -25,6 +25,11 @@ export interface Song {
   bpm: number | null;
   /** Musical key in any notation the user prefers, e.g. "8A" or "Am". */
   key: string;
+  /**
+   * How hard the song goes, 0–100, as the DJ feels it (see domain/energy.ts).
+   * Absent when not set.
+   */
+  energy?: number;
   tags: string[];
   notes: string;
   /**
@@ -100,7 +105,11 @@ export interface GraphData {
 }
 
 /** Fields a user supplies when creating or editing a song. */
-export type SongInput = Pick<Song, 'title'> & Partial<Pick<Song, 'artist' | 'bpm' | 'key' | 'tags' | 'notes'>>;
+export type SongInput = Pick<Song, 'title'> &
+  Partial<Pick<Song, 'artist' | 'bpm' | 'key' | 'tags' | 'notes'>> & {
+    /** 0–100; null clears it. */
+    energy?: number | null;
+  };
 
 /** Fields a user supplies when creating or editing a transition. */
 export type TransitionInput = Pick<Transition, 'fromSongId' | 'toSongId'> &

@@ -3,17 +3,17 @@ import { degree, searchSongs, stats } from '../domain/graph';
 import type { Song } from '../domain/types';
 import { linkTo, paths } from '../state/router';
 import { useStore } from '../state/store';
-import { BpmBadge, EmptyState, KeyBadge, TopBar } from './components';
+import { BpmBadge, EmptyState, EnergyBadge, KeyBadge, TopBar, useEnergyStyle } from './components';
 import { openSampleCrate } from './CratesView';
 
-type SortKey = 'title' | 'bpm' | 'connected' | 'recent';
+type SortKey = 'title' | 'bpm' | 'energy' | 'connected' | 'recent';
 
 const SORT_KEY_STORAGE = 'dj-graphyla:library-sort';
 
 function readSort(): SortKey {
   try {
     const v = localStorage.getItem(SORT_KEY_STORAGE);
-    if (v === 'title' || v === 'bpm' || v === 'connected' || v === 'recent') return v;
+    if (v === 'title' || v === 'bpm' || v === 'energy' || v === 'connected' || v === 'recent') return v;
   } catch {
     /* ignore */
   }
@@ -32,6 +32,8 @@ export function LibraryView() {
     const cmp: Record<SortKey, (a: (typeof songs)[number], b: (typeof songs)[number]) => number> = {
       title: () => 0, // searchSongs already sorts by title
       bpm: (a, b) => (a.song.bpm ?? Infinity) - (b.song.bpm ?? Infinity),
+      // Hottest first; songs without energy at the end.
+      energy: (a, b) => (b.song.energy ?? -1) - (a.song.energy ?? -1),
       connected: (a, b) => b.deg.out + b.deg.in - (a.deg.out + a.deg.in),
       recent: (a, b) => b.song.updatedAt.localeCompare(a.song.updatedAt),
     };
@@ -75,7 +77,7 @@ export function LibraryView() {
               <input
                 className="input search"
                 type="search"
-                placeholder="Search title, artist, key, tag…"
+                placeholder="Search title, artist, key, tag, energy…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 aria-label="Search songs"
@@ -83,6 +85,7 @@ export function LibraryView() {
               <select className="input select" value={sort} onChange={(e) => changeSort(e.target.value as SortKey)} aria-label="Sort by">
                 <option value="title">A–Z</option>
                 <option value="bpm">BPM</option>
+                <option value="energy">Energy</option>
                 <option value="connected">Most mixed</option>
                 <option value="recent">Recent</option>
               </select>
@@ -108,14 +111,16 @@ export function LibraryView() {
 }
 
 function SongRow({ song, out, inn }: { song: Song; out: number; inn: number }) {
+  const energy = useEnergyStyle(song.energy);
   return (
-    <a className="song-row" {...linkTo(paths.song(song.id))}>
+    <a className={`song-row${energy ? ' has-energy' : ''}`} style={energy} {...linkTo(paths.song(song.id))}>
       <span className="song-row-main">
         <span className="song-title">{song.title}</span>
         {song.artist && <span className="song-artist">{song.artist}</span>}
       </span>
       <span className="song-row-side">
         <span className="row tight">
+          <EnergyBadge energy={song.energy} short />
           <BpmBadge bpm={song.bpm} />
           <KeyBadge songKey={song.key} />
         </span>

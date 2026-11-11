@@ -3,6 +3,7 @@
  * Every mutating function returns a new GraphData and never touches its input.
  */
 import { GraphError, newId, type FieldErrors } from './common';
+import { energyBand, energyError } from './energy';
 import {
   BAR_MAX,
   BPM_MAX,
@@ -53,6 +54,8 @@ export function validateSongInput(input: SongInput): FieldErrors {
   if (!input.title || input.title.trim() === '') errors.title = 'A song needs a title';
   const bpm = bpmError(input.bpm);
   if (bpm) errors.bpm = bpm;
+  const energy = energyError(input.energy);
+  if (energy) errors.energy = energy;
   return errors;
 }
 
@@ -129,6 +132,7 @@ export function addSong(
     artist: (input.artist ?? '').trim(),
     bpm: input.bpm ?? null,
     key: (input.key ?? '').trim(),
+    ...(input.energy !== null && input.energy !== undefined ? { energy: input.energy } : {}),
     tags: normalizeTags(input.tags),
     notes: input.notes ?? '',
     createdAt: now,
@@ -145,12 +149,15 @@ export function updateSong(graph: GraphData, id: SongId, patch: Partial<SongInpu
     artist: patch.artist ?? existing.artist,
     bpm: patch.bpm === undefined ? existing.bpm : patch.bpm,
     key: patch.key ?? existing.key,
+    energy: patch.energy === undefined ? existing.energy : patch.energy,
     tags: patch.tags ?? existing.tags,
     notes: patch.notes ?? existing.notes,
   };
   assertValid(validateSongInput(merged));
+  const { energy: _energy, ...rest } = existing;
   const song: Song = {
-    ...existing,
+    ...rest,
+    ...(merged.energy !== null && merged.energy !== undefined ? { energy: merged.energy } : {}),
     title: merged.title.trim(),
     artist: (merged.artist ?? '').trim(),
     bpm: merged.bpm ?? null,
@@ -363,14 +370,15 @@ export function songLabel(song: Song | undefined): string {
 
 const fold = (s: string) => s.toLocaleLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
 
-/** Case/accent-insensitive search over title, artist, key and tags. Every word must match. */
+/** Case/accent-insensitive search over title, artist, key, energy name and tags. Every word must match. */
 export function searchSongs(graph: GraphData, query: string): Song[] {
   const words = fold(query).split(/\s+/).filter(Boolean);
   const songs = Object.values(graph.songs);
   const hits = words.length === 0
     ? songs
     : songs.filter((s) => {
-        const haystack = fold([s.title, s.artist, s.key, ...s.tags].join(' '));
+        const energy = s.energy === undefined ? '' : energyBand(s.energy).name;
+        const haystack = fold([s.title, s.artist, s.key, energy, ...s.tags].join(' '));
         return words.every((w) => haystack.includes(w));
       });
   return hits.sort(compareSongs);

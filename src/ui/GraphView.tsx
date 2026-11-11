@@ -7,18 +7,21 @@
  * highlighted, numbered walk; everything else is dimmed.
  * The look (theme) changes the canvas, nodes and labels; the edges keep their
  * meaning in every look, stepped for a dark or a light canvas (EDGE_COLORS).
+ * A song's fill shows its energy on the energy colour map (ENERGY_COLORS);
+ * songs without an energy keep the look's plain node colour.
  *
  * Loaded lazily, so Cytoscape only downloads when the Graph tab is opened.
  */
 import cytoscape, { type Core, type ElementDefinition, type StylesheetJson } from 'cytoscape';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { ENERGY_BANDS, ENERGY_COLORS, energyBand } from '../domain/energy';
 import { degree, songLabel } from '../domain/graph';
 import { sortedSets } from '../domain/sets';
 import type { GraphData } from '../domain/types';
 import { linkTo, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
 import { EDGE_COLORS, useTheme, type ThemeInfo } from '../state/theme';
-import { BpmBadge, EmptyState, KeyBadge, TopBar, VariantRow } from './components';
+import { BpmBadge, EmptyState, EnergyBadge, KeyBadge, TopBar, VariantRow } from './components';
 import { createAndOpenSet } from './SetsView';
 
 /** Edge width by rating (the rating is also in the colour, so it never relies on colour alone). */
@@ -80,7 +83,12 @@ function buildElements(graph: GraphData): ElementDefinition[] {
     const pos = positionCache.get(s.id);
     return {
       group: 'nodes',
-      data: { id: s.id, label: s.title, size: 22 + Math.min(d.in + d.out, 10) * 2.5 },
+      data: {
+        id: s.id,
+        label: s.title,
+        size: 22 + Math.min(d.in + d.out, 10) * 2.5,
+        energyBand: s.energy === undefined ? -1 : energyBand(s.energy).index,
+      },
       ...(pos ? { position: { ...pos } } : {}),
     };
   });
@@ -95,6 +103,7 @@ function buildElements(graph: GraphData): ElementDefinition[] {
 const graphStyle = (theme: ThemeInfo): StylesheetJson => {
   const look = theme.graph;
   const C = EDGE_COLORS[theme.scheme];
+  const E = ENERGY_COLORS[theme.scheme];
   return [
     {
       selector: 'node',
@@ -117,6 +126,7 @@ const graphStyle = (theme: ThemeInfo): StylesheetJson => {
         'min-zoomed-font-size': 7,
       },
     },
+    ...E.map((color, band) => ({ selector: `node[energyBand = ${band}]`, style: { 'background-color': color } })),
     {
       selector: 'edge',
       style: {
@@ -184,7 +194,7 @@ export default function GraphView({ setId, focusId }: { setId?: string; focusId?
   const structureKey = useMemo(
     () =>
       JSON.stringify([
-        Object.values(graph.songs).map((s) => [s.id, s.title]),
+        Object.values(graph.songs).map((s) => [s.id, s.title, s.energy ?? null]),
         Object.values(graph.transitions).map((t) => [t.id, t.fromSongId, t.toSongId, t.rating, !!t.idea]),
       ]),
     [graph.songs, graph.transitions],
@@ -353,6 +363,7 @@ export default function GraphView({ setId, focusId }: { setId?: string; focusId?
             </select>
           </div>
           <Legend showSet={!!overlay} />
+          {Object.values(graph.songs).some((s) => s.energy !== undefined) && <EnergyLegend onToggle={() => cyRef.current?.resize()} />}
           <div className="graph-canvas-wrap">
             <div ref={container} className="graph-canvas" aria-label="Song graph" role="application" />
             <div className="graph-controls">
@@ -392,6 +403,40 @@ function Legend({ showSet }: { showSet: boolean }) {
   );
 }
 
+/** The energy colour map: ten bands, each with its name (tap a swatch's title for the range). */
+function EnergyLegend({ onToggle }: { onToggle: () => void }) {
+  const E = ENERGY_COLORS[useTheme().scheme];
+  return (
+    <details className="energy-legend" onToggle={onToggle}>
+      <summary>
+        <span className="energy-legend-label">Song energy</span>
+        <span className="energy-scale" aria-hidden="true">
+          {E.map((c, i) => (
+            <span key={i} style={{ background: c }} />
+          ))}
+        </span>
+        <span className="energy-legend-ends" aria-hidden="true">0 → 100</span>
+      </summary>
+      <ul>
+        {ENERGY_BANDS.map((b) => (
+          <li key={b.index}>
+            <span className="energy-dot" style={{ background: E[b.index] }} aria-hidden="true" />
+            <span className="energy-legend-range">
+              {b.from}–{b.to}
+            </span>
+            <strong>{b.name}</strong>
+          </li>
+        ))}
+        <li>
+          <span className="energy-dot energy-dot-none" aria-hidden="true" />
+          <span className="energy-legend-range">—</span>
+          not set
+        </li>
+      </ul>
+    </details>
+  );
+}
+
 function SelectionSheet({ selection, graph, onClose }: { selection: Selection; graph: GraphData; onClose: () => void }) {
   const store = useStore();
   if (!selection) return null;
@@ -415,6 +460,7 @@ function SelectionSheet({ selection, graph, onClose }: { selection: Selection; g
         <div className="row tight">
           <BpmBadge bpm={song.bpm} />
           <KeyBadge songKey={song.key} />
+          <EnergyBadge energy={song.energy} />
           <span className="degree">
             <span className="deg-in">{d.in} in</span> · <span className="deg-out">{d.out} out</span>
             {inSets > 0 && ` · in ${inSets} set${inSets === 1 ? '' : 's'}`}
