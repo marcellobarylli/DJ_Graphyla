@@ -1,0 +1,28 @@
+{
+  "app": "dj-graphyla",
+  "schemaVersion": 3,
+  "exportedAt": "2026-11-11T06:49:23.254Z",
+  "crate": {
+    "id": "ae27b4e9-9f8b-4b2d-8892-e411425b76c9",
+    "name": "B2acid2B_M"
+  },
+  "songs": [
+    {
+      "id": "d4b4468f-d977-4ddd-90cf-9311f08b9d36",
+      "title": "Culminate",
+      "artist": "Trickfinger",
+      "bpm": null,
+      "key": "",
+      "tags": [],
+      "notes": "Cool part ~2min",
+      "createdAt": "2026-11-11T06:48:44.069Z",
+      "updatedAt": "2026-11-11T06:48:44.069Z"
+    }
+  ],
+  "transitions": [],
+  "sets": [],
+  "shop": {
+    "by": "kokopenny",
+    "uploadedAt": "2026-11-11T06:49:23.254Z"
+  }
+}
