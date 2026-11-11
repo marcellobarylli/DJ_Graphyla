@@ -3,6 +3,7 @@ import { UPDATE_EVENT } from '../updates';
 import { linkTo, paths, useRoute, type Route } from '../state/router';
 import { useTheme } from '../state/theme';
 import { AddView } from './AddView';
+import { AutoSync } from './AutoSync';
 import { CratesView } from './CratesView';
 import { DataView } from './DataView';
 import { DuplicatesView } from './DuplicatesView';
@@ -120,6 +121,7 @@ export function App() {
       {theme.id === 'swag' && <SwagDecor />}
       <Screen route={route} />
       <UpdateBanner />
+      <AutoSync />
       {/* The look switch sits with the tab bar; forms and play mode stay free of it. */}
       {!isForm(route) && <ThemeSwitch />}
       {!isForm(route) && (

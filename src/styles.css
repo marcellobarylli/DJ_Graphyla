@@ -1372,3 +1372,16 @@ button.card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
 .energy-legend-range { min-width: 3.6em; font-variant-numeric: tabular-nums; }
 [data-theme='swag'] .energy-legend { background: color-mix(in srgb, var(--bg) 85%, transparent); }
 [data-theme='futurism'] .energy-legend { background: color-mix(in srgb, var(--bg) 80%, transparent); }
+
+/* ── record shop auto-sync (state/autoSync.ts) ───────────────── */
+.auto-sync { padding-top: 10px; border-top: 1px solid var(--border); }
+.auto-sync-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.auto-sync-head .segmented-inline { grid-template-columns: repeat(2, auto); }
+.auto-sync-status { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.auto-sync-status > span { display: inline-flex; align-items: center; gap: 6px; }
+.auto-sync-status .field-error { margin: 0; }
+.sync-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--in, #2fbf71); }
+.sync-dot.is-running { background: var(--accent); animation: sync-pulse 1.2s ease-in-out infinite; }
+.sync-dot.is-error { background: #d03b3b; }
+@keyframes sync-pulse { 50% { opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) { .sync-dot.is-running { animation: none; } }

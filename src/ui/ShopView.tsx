@@ -25,6 +25,8 @@ import {
   syncCrateToShop,
   type ShopAccount,
 } from '../storage/githubShop';
+import { autoSync, useAutoSync } from '../state/autoSync';
+import { AutoSyncPanel } from './AutoSyncPanel';
 import { EmptyState, Field, TextField, TopBar } from './components';
 import { DjAvatar, pictureToAvatar } from './DjAvatar';
 
@@ -79,6 +81,7 @@ export function ShopView() {
   useEffect(refresh, []);
 
   const inShop = listing.state === 'ready' ? listing.entries.find((e) => e.crateId === crate.id) : undefined;
+  const auto = useAutoSync(crate.id).sync?.on ?? false;
 
   const share = async () => {
     if (!account) return;
@@ -220,9 +223,13 @@ export function ShopView() {
           )}
           {account ? (
             <>
-              <button type="button" className="btn btn-primary btn-block" disabled={busy !== null} onClick={share}>
-                {busy === 'share' ? (inShop ? 'Syncing…' : 'Sharing…') : inShop ? `Sync “${crate.name}” with the record shop` : `Share “${crate.name}” to the record shop`}
-              </button>
+              {/* With auto-sync on, syncing goes through it (it also syncs deletions; the plain sync would bring deleted songs back). */}
+              {!auto && (
+                <button type="button" className="btn btn-primary btn-block" disabled={busy !== null} onClick={share}>
+                  {busy === 'share' ? (inShop ? 'Syncing…' : 'Sharing…') : inShop ? `Sync “${crate.name}” with the record shop` : `Share “${crate.name}” to the record shop`}
+                </button>
+              )}
+              {autoSync() && <AutoSyncPanel crateId={crate.id} crateName={crate.name} inShop={!!inShop} />}
               <p className="small muted dj-line">
                 <DjAvatar name={account.djName} src={account.avatar} size={22} /> Sharing as <strong>{account.djName}</strong>
               </p>

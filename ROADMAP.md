@@ -233,7 +233,7 @@ Start typing a title and songs from a public catalogue are suggested, with their
 - [ ] Key (Deezer has none): optional GetSongBPM lookup with your own API key
 - [ ] Look up the BPM for songs already in a crate that have none
 
-## ✅ Chunk 2.12: Song energy (this release)
+## ✅ Chunk 2.12: Song energy
 
 Your own feel for how hard a song goes, to plan how a set builds.
 
@@ -255,6 +255,25 @@ Your own feel for how hard a song goes, to plan how a set builds.
 - [x] Kept in backups and the record shop (optional field, no schema change); collapsing duplicates keeps
       the energy or fills it in from the duplicate
 - [ ] Route finder that follows an energy curve (warm-up → peak → cool-down)
+
+## ✅ Chunk 2.13: Record shop auto-sync (this release)
+
+Edit on the phone, and the shop copy (and the laptop) keeps up without tapping Sync.
+
+- [x] *Auto-sync* switch per crate (*Record shop*), kept on the device
+- [x] Runs in the background only: when the app opens or comes back to the front, ~90 s after the last
+      edit (one upload per burst of edits), when the app goes to the background with changes waiting, and
+      when the connection returns. No screen, spinner or dialog; entering a song never waits for it
+- [x] Changes from the shop are merged into the crate as it is at that moment, so a song entered while
+      a sync is on its way is kept (and uploaded next time)
+- [x] Cheap when idle: no upload unless the crate changed since the last sync (fingerprint), no commit
+      when the shop copy already matches, the shop file read directly by its known path
+- [x] **Deletions sync** (three-way merge with what the crate held at the last sync): deleted here →
+      removed from the shop copy; deleted on another auto-syncing device → removed here, unless edited
+      here since. A sync that would delete a large part of the crate waits for a tap
+- [x] Status line in *Data* and *Record shop* (“Synced 3 min ago”, errors such as an expired token, with
+      *Sync now*); errors never retry in a loop
+- [ ] Sync while the app is closed (Periodic Background Sync: Chrome on Android only, and needs IndexedDB)
 
 ## Chunk 3: Sync & multiple devices
 

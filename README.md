@@ -119,6 +119,16 @@ The record shop is a public collection of crates (with their sets) in this repo'
   crate gets anything new from the shop copy. The entry keeps who shared it first and shows who
   synced it last. A crate imported as *New crate* from a file gets a new id, so it counts as a
   different crate.
+- **Auto-sync:** switch *Auto-sync* on in *Record shop* and the open crate keeps itself in sync in the
+  background on that device: when you open the app (or come back to it), about a minute and a half after
+  your last edit (so a few songs in a row make one upload), and when you leave the app with changes still
+  waiting. Nothing waits for it: no screen, no spinner, and a song you enter while it runs is kept. It only
+  uploads when the crate changed, and writes nothing when the shop copy already matches. Unlike the manual
+  sync, deletions sync too: auto-sync remembers what the crate held at the last sync, so a song you deleted
+  is removed from the shop copy instead of coming back, and a song deleted on your other device (with
+  auto-sync on there too) is removed here, unless you edited it since. A sync that would delete a large part
+  of the crate waits for a tap on *Sync now*. Its status (“Synced 3 min ago”, or what went wrong, e.g. an
+  expired token) shows under *Record shop* in the *Data* tab. The setting is per device and not in backups.
 - **Who can share:** anyone with write access to the repo, using their own GitHub token. The token
   is stored on their device only and sent only to `api.github.com`.
 - **DJ profiles:** every GitHub account that shares has a profile, `record-shop/<github-login>/profile.json`:
@@ -210,7 +220,8 @@ src/
   domain/    pure, tested logic: graph (songs/transitions), sets (walks, tempo track), energy (bands, colour map), crates, positions, tempo, backup format,
              digicam (the overexposed picture treatment of SW4G 3R4)
   storage/   localStorage persistence, one entry per crate (swappable for a sync backend later);
-             githubShop: uploads to the record shop through the GitHub API;
+             githubShop: uploads to the record shop through the GitHub API (state/autoSync runs it in the background,
+             domain/shopSync plans each sync, deletions included);
              songLookup: Deezer search/BPM through a sandboxed JSONP iframe (domain/onlineSongs reads the answers)
   state/     React store, tiny hash router, looks (themes), the chrome DJs' dance floor (dance)
   ui/        screens: library, song page, song/transition cards, graph (Cytoscape, lazy-loaded), sets, data, look switch,

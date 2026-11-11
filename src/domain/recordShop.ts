@@ -153,6 +153,32 @@ export interface ShopUpload {
   sharedBy: string;
 }
 
+/** The `shop` block for a file that is already in the shop: who shared it first stays, this sync is recorded. */
+function updatedShopInfo(existingText: string, djName: string, now: string): ShopInfo {
+  let prev: Partial<ShopInfo> = {};
+  try {
+    prev = (JSON.parse(existingText) as { shop?: Partial<ShopInfo> }).shop ?? {};
+  } catch {
+    /* unreadable: start a new block */
+  }
+  return {
+    by: typeof prev.by === 'string' && prev.by.trim() ? prev.by : djLabel(djName),
+    uploadedAt: typeof prev.uploadedAt === 'string' ? prev.uploadedAt : now,
+    updatedAt: now,
+    updatedBy: djLabel(djName),
+  };
+}
+
+/**
+ * The file for `graph` as the shop's new copy of the crate (already merged by
+ * the caller, see domain/shopSync.ts). Keeps who shared it first when the shop
+ * has the crate (`existingText`).
+ */
+export function shopFileFor(graph: GraphData, crate: CrateLabel, djName: string, existingText: string | null, now = new Date().toISOString()): string {
+  if (existingText === null) return buildShopFile(graph, crate, djName, now);
+  return JSON.stringify({ ...toBackup(graph, now, crate), shop: updatedShopInfo(existingText, djName, now) }, null, 2);
+}
+
 /**
  * Prepares sharing `local`: as a new file, or, when the shop already has the
  * crate (`existingText`), as a sync. A sync merges both copies by id (newer
@@ -171,13 +197,7 @@ export function prepareShopUpload(
       const parsed = parseBackupFile(existingText);
       if (parsed.kind === 'crate') {
         const merged = mergeGraphs(local, parsed.graph);
-        const prev = (JSON.parse(existingText) as { shop?: Partial<ShopInfo> }).shop ?? {};
-        const shop: ShopInfo = {
-          by: typeof prev.by === 'string' && prev.by.trim() ? prev.by : djLabel(djName),
-          uploadedAt: typeof prev.uploadedAt === 'string' ? prev.uploadedAt : now,
-          updatedAt: now,
-          updatedBy: djLabel(djName),
-        };
+        const shop = updatedShopInfo(existingText, djName, now);
         return {
           content: JSON.stringify({ ...toBackup(merged.graph, now, crate), shop }, null, 2),
           remote: parsed.graph,
