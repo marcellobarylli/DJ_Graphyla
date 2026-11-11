@@ -15,16 +15,16 @@ type SongKey =
 
 // All titles and artists are invented.
 const SONGS: Record<SongKey, SongInput> = {
-  neon: { title: 'Neon Tide', artist: 'Kaia Lumen', bpm: 122, key: '8A', tags: ['deep', 'warmup'] },
-  velvet: { title: 'Velvet Static', artist: 'The Night Assembly', bpm: 123, key: '9A', tags: ['deep', 'vocal'] },
-  glass: { title: 'Glasshouse', artist: 'Oren Vale', bpm: 124, key: '9A', tags: ['melodic'] },
-  lowlight: { title: 'Lowlight Parade', artist: 'Mira Okoro', bpm: 124, key: '10A', tags: ['groovy'] },
-  afterburner: { title: 'Afterburner Drive', artist: 'Sola & Kemp', bpm: 125, key: '10A', tags: ['peak'] },
-  copper: { title: 'Copper Moon', artist: 'Duskwalker', bpm: 126, key: '11A', tags: ['peak', 'vocal'] },
-  signal: { title: 'Signal Lost', artist: 'Iris Montego', bpm: 126, key: '11B', tags: ['breakdown'] },
-  paper: { title: 'Paper Satellites', artist: 'Hollow Arcade', bpm: 127, key: '12A', tags: ['peak'] },
-  saltwater: { title: 'Saltwater Radio', artist: 'Tamsin Reyes', bpm: 120, key: '7A', tags: ['closing'] },
-  ghost: { title: 'Ghost Frequency', artist: 'Ventura Haze', bpm: 128, key: '1A', tags: ['peak', 'dark'] },
+  neon: { title: 'Neon Tide', artist: 'Kaia Lumen', bpm: 122, key: '8A', energy: 24, tags: ['deep', 'warmup'] },
+  velvet: { title: 'Velvet Static', artist: 'The Night Assembly', bpm: 123, key: '9A', energy: 33, tags: ['deep', 'vocal'] },
+  glass: { title: 'Glasshouse', artist: 'Oren Vale', bpm: 124, key: '9A', energy: 45, tags: ['melodic'] },
+  lowlight: { title: 'Lowlight Parade', artist: 'Mira Okoro', bpm: 124, key: '10A', energy: 52, tags: ['groovy'] },
+  afterburner: { title: 'Afterburner Drive', artist: 'Sola & Kemp', bpm: 125, key: '10A', energy: 71, tags: ['peak'] },
+  copper: { title: 'Copper Moon', artist: 'Duskwalker', bpm: 126, key: '11A', energy: 78, tags: ['peak', 'vocal'] },
+  signal: { title: 'Signal Lost', artist: 'Iris Montego', bpm: 126, key: '11B', energy: 63, tags: ['breakdown'] },
+  paper: { title: 'Paper Satellites', artist: 'Hollow Arcade', bpm: 127, key: '12A', energy: 86, tags: ['peak'] },
+  saltwater: { title: 'Saltwater Radio', artist: 'Tamsin Reyes', bpm: 120, key: '7A', energy: 17, tags: ['closing'] },
+  ghost: { title: 'Ghost Frequency', artist: 'Ventura Haze', bpm: 128, key: '1A', energy: 96, tags: ['peak', 'dark'] },
 };
 
 type Edge = [from: SongKey, to: SongKey, fields: Omit<TransitionInput, 'fromSongId' | 'toSongId'>];

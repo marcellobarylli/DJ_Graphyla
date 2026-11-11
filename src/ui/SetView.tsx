@@ -5,7 +5,8 @@ import { formatBpm } from '../domain/tempo';
 import type { DjSet, GraphData } from '../domain/types';
 import { goBack, linkTo, paths } from '../state/router';
 import { useStore } from '../state/store';
-import { EmptyState, SongSearch, TextArea, TextField, TopBar, VariantRow } from './components';
+import { EmptyState, EnergyBadge, SongSearch, TextArea, TextField, TopBar, VariantRow, useEnergyStyle } from './components';
+import { EnergyFlow } from './EnergyFlow';
 import { liveProgress } from './PlayView';
 import { TempoChart } from './TempoChart';
 
@@ -96,6 +97,7 @@ export function SetView({ id }: { id: string }) {
         </section>
 
         {hasTempo && <TempoChart points={track} />}
+        <EnergyFlow songs={walk.steps.map((step) => step.song)} />
 
         {walk.steps.length > 0 && (
           <ol className="cue">
@@ -169,10 +171,11 @@ function CueStep({
 }) {
   const { song, link } = step;
   const nextSong = link ? graph.songs[set.songIds[step.index + 1]!] : undefined;
+  const energy = useEnergyStyle(song?.energy);
 
   return (
     <li className="cue-item">
-      <div className="cue-song">
+      <div className={`cue-song${energy ? ' has-energy' : ''}`} style={energy}>
         <span className="cue-num">{step.index + 1}</span>
         <span className="cue-main">
           {song ? (
@@ -186,6 +189,7 @@ function CueStep({
           <TempoLine step={step} />
         </span>
         <span className="cue-side">
+          <EnergyBadge energy={song?.energy} short />
           {step.repeat && <span className="badge badge-tag">again</span>}
           <button type="button" className="icon-btn icon-btn-small" aria-label={`Remove ${song?.title ?? 'song'} from set`} onClick={onRemove}>
             ✕

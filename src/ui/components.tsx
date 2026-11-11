@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { ENERGY_MAX, ENERGY_MIN, energyBand, energyColor, energyGradient, isEnergy, parseEnergy } from '../domain/energy';
 import { searchSongs } from '../domain/graph';
 import { formatOverlap, formatPosition } from '../domain/position';
 import { formatTimestamp, parseTimestamp } from '../domain/time';
@@ -6,6 +7,7 @@ import { formatBpm, formatPitch, pitchPercent } from '../domain/tempo';
 import { RATING_LABELS, type GraphData, type Song, type SongId, type Transition } from '../domain/types';
 import { goBack, linkTo, paths } from '../state/router';
 import { useStore } from '../state/store';
+import { useTheme } from '../state/theme';
 
 /**
  * Screen header. Top-level tabs pass `crate` instead of a title: the header then
@@ -314,6 +316,85 @@ export function KeyBadge({ songKey }: { songKey: string }) {
   return <span className="badge badge-key">{songKey}</span>;
 }
 
+/**
+ * Inline style that hands a song's energy colour to CSS as `--energy` (the
+ * colour depends on the look's light or dark canvas). Undefined when the song
+ * has no energy, so callers can add the `has-energy` class only then.
+ */
+export function useEnergyStyle(energy: number | undefined | null): CSSProperties | undefined {
+  const { scheme } = useTheme();
+  if (energy === undefined || energy === null) return undefined;
+  return { '--energy': energyColor(energy, scheme) } as CSSProperties;
+}
+
+/** "● 72 Sweat Factory" (or just "● 72" with `short`; the name is then the tooltip). */
+export function EnergyBadge({ energy, short = false }: { energy: number | undefined | null; short?: boolean }) {
+  const style = useEnergyStyle(energy);
+  if (energy === undefined || energy === null || !style) return null;
+  const band = energyBand(energy);
+  return (
+    <span className="badge badge-energy" style={style} title={`Energy ${energy}: ${band.name} (${band.blurb})`}>
+      <span className="energy-dot" aria-hidden="true" />
+      <span className="visually-hidden">Energy </span>
+      {energy}
+      {!short && <span className="energy-name">{band.name}</span>}
+    </span>
+  );
+}
+
+/**
+ * Energy input: type a number 0–100 (or slide). The band name and its colour
+ * show next to it, so there is nothing to remember.
+ */
+export function EnergyField({ value, onChange, error }: { value: string; onChange: (v: string) => void; error?: string }) {
+  const id = useId();
+  const { scheme } = useTheme();
+  const parsed = parseEnergy(value);
+  const valid = parsed !== null && isEnergy(parsed);
+  const band = valid ? energyBand(parsed) : null;
+  const style = useEnergyStyle(valid ? parsed : null);
+  return (
+    <Field
+      label="Energy"
+      htmlFor={id}
+      error={error}
+      hint={
+        band ? (
+          <span className="energy-hint" style={style}>
+            <span className="energy-dot" aria-hidden="true" />
+            <strong>{band.name}</strong> · {band.blurb}
+          </span>
+        ) : (
+          'Your own feel, 0 (flatline) to 100 (roof off)'
+        )
+      }
+    >
+      <div className="energy-field">
+        <input
+          id={id}
+          className="input energy-input"
+          value={value}
+          inputMode="numeric"
+          placeholder="0–100"
+          autoComplete="off"
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <input
+          type="range"
+          className={`energy-range${valid ? '' : ' is-empty'}`}
+          min={ENERGY_MIN}
+          max={ENERGY_MAX}
+          step={1}
+          value={valid ? parsed : 50}
+          style={{ '--energy-gradient': energyGradient(scheme), ...style } as CSSProperties}
+          aria-label="Energy slider"
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </div>
+    </Field>
+  );
+}
+
 /** One side of a mix: "bar 97 @ 124". */
 function MixPoint({ bar, time, bpm, song }: { bar: number | null; time: number | null; bpm: number | null; song: Song | undefined }) {
   const pitch = pitchPercent(song?.bpm ?? null, bpm);
@@ -448,7 +529,10 @@ export function SongSearch({ graph, onPick, placeholder = 'Search your songs…'
                   <span className="song-title">{s.title}</span>
                   {s.artist && <span className="song-artist"> — {s.artist}</span>}
                 </span>
-                <BpmBadge bpm={s.bpm} />
+                <span className="row tight">
+                  <EnergyBadge energy={s.energy} short />
+                  <BpmBadge bpm={s.bpm} />
+                </span>
               </button>
             </li>
           ))}

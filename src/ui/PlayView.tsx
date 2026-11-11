@@ -14,7 +14,7 @@ import type { DjSet, GraphData, SongId } from '../domain/types';
 import { danceSpin, setDanceStart, stopDancing } from '../state/dance';
 import { goBack, linkTo, navigate, paths } from '../state/router';
 import { useStore } from '../state/store';
-import { BpmBadge, EmptyState, KeyBadge, SongSearch, TopBar, VariantRow } from './components';
+import { BpmBadge, EmptyState, EnergyBadge, KeyBadge, SongSearch, TopBar, VariantRow, useEnergyStyle } from './components';
 import { useDancersShown } from './Y2KDancers';
 
 /**
@@ -221,6 +221,8 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
   const upNext = chosen ?? suggested;
   const nextSong = upNext ? graph.songs[upNext.toSongId] : undefined;
   const nextT = upNext?.transition ?? null;
+  const nowEnergy = useEnergyStyle(song?.energy);
+  const nextEnergy = useEnergyStyle(nextSong?.energy);
 
   const playingBpm = via?.toBpm ?? song?.bpm ?? null;
   useDancers(playingBpm, clock?.startedAt ?? null);
@@ -308,7 +310,7 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
     <>
       <TopBar title={mode.title} back={mode.backPath} actions={<span className="topbar-stat">{position}</span>} />
       <main className="page play">
-        <section className="card play-now" aria-live="polite">
+        <section className={`card play-now${nowEnergy ? ' has-energy' : ''}`} style={nowEnergy} aria-live="polite">
           <p className="play-label">Now playing</p>
           <h2 className="play-title">{song?.title ?? 'Unknown song'}</h2>
           {song?.artist && <p className="play-artist">{song.artist}</p>}
@@ -316,6 +318,7 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
             {playingBpm !== null && <span className="badge">playing @ {formatBpm(playingBpm)}</span>}
             {song?.bpm != null && song.bpm !== playingBpm && <BpmBadge bpm={song.bpm} />}
             <KeyBadge songKey={song?.key ?? ''} />
+            <EnergyBadge energy={song?.energy} />
             {offPlan && <span className="badge badge-tag">off plan</span>}
           </div>
 
@@ -330,10 +333,21 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
         </section>
 
         {upNext ? (
-          <section className={`card up-next${upNext.planned ? '' : ' is-off'}`}>
+          <section className={`card up-next${upNext.planned ? '' : ' is-off'}${nextEnergy ? ' has-energy' : ''}`} style={nextEnergy}>
             <p className="play-label">Up next · {upNextLabel}</p>
             <h3 className="up-next-title">{nextSong?.title ?? 'Unknown song'}</h3>
             {nextSong?.artist && <p className="play-artist">{nextSong.artist}</p>}
+            {nextSong?.energy !== undefined && (
+              <p className="row tight energy-step">
+                <EnergyBadge energy={nextSong.energy} />
+                {song?.energy !== undefined && nextSong.energy !== song.energy && (
+                  <span className="small muted">
+                    {nextSong.energy > song.energy ? '▲ +' : '▼ −'}
+                    {Math.abs(nextSong.energy - song.energy)} energy
+                  </span>
+                )}
+              </p>
+            )}
             {nextT ? (
               <>
                 <VariantRow transition={nextT} fromSong={song} toSong={nextSong} hideNotes />
@@ -399,6 +413,7 @@ function Player({ mode, graph, initial }: { mode: Mode; graph: GraphData; initia
                           <span className="group-arrow" aria-hidden="true">→</span>
                           <span className="song-title">{to?.title ?? '?'}</span>
                         </span>
+                        <EnergyBadge energy={to?.energy} short />
                         {o.rejoinsAt !== null && <span className="badge badge-active">back to set · song {o.rejoinsAt + 1}</span>}
                         {free && session.steps.some((s) => s.songId === o.toSongId) && <span className="badge badge-tag">played</span>}
                       </div>

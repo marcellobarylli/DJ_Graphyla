@@ -23,6 +23,16 @@ ready at: one 16-bar phrase before the mix-out, to read off your deck). Step
 through with *Mix in next*, or take another way out of the current song if the crowd wants
 something else. No set? *▶ Free walk* starts at any song and shows every way out at each step.
 
+**Energy** is your own feel for how hard a song goes: a number from 0 to 100 on each song (*Energy* in the
+song card; type it or slide). It correlates with tempo, but it is yours to judge. The scale is cut into ten
+bands with names, so you don't have to remember anything: *Flatline* (0–9), *Snooze Button*, *Lounge Lizard*,
+*Head Nod*, *Toe Tapper*, *Hip Swinger*, *Hands in the Air*, *Sweat Factory*, *Rave Goblin* and *Roof Off*
+(90–100). Each band has a colour on one colour map (indigo → magenta → orange → yellow, getting brighter
+as the energy rises). A song wears its colour on its border in a set, in play mode, on its page and in the
+library; on the graph each song is filled with it (*Song energy* above the graph opens the map). A set shows
+*Energy across the set* as bars under the tempo chart, play mode shows the jump to the next song
+(“▲ +9 energy”), the library sorts by *Energy*, and searching a band name (“rave goblin”) finds its songs.
+
 **Duplicate songs** are caught when they'd slip in. Typing a new song suggests *Did you mean …?*
 for look-alikes (typos, capitals, spacing, accents, word order). After a merge (import, record shop
 download or sync), songs that came in looking like ones you already had are offered for review:
@@ -142,6 +152,7 @@ title          (required)    fromSongId   song that is playing (mixed out)   nam
 artist                       toSongId     song that is mixed in              songIds[]        n songs in order
 bpm            original      fromBar      bar of `from` where the mix starts transitionIds[]  n−1 edges between them
 key            e.g. 8A / Am  toBar        bar of `to` where it enters                         (null = gap)
+energy         0–100, opt.
 tags[]                       fromTime     optional m:ss of the mix-out point createdAt / updatedAt
 notes                        toTime       optional m:ss of the mix-in point
 mergedIds[]    folded dups   fromBpm      tempo `from` runs at during the mix
@@ -151,6 +162,8 @@ createdAt / updatedAt        toBpm        tempo `to` runs at during the mix
                              notes, createdAt / updatedAt
 ```
 
+- `energy` is left out of a song that has none, so older backups import unchanged (no schema change).
+  Bands are tens (0–9 … 90–100); names and colours live in `src/domain/energy.ts`.
 - Collapsing duplicates keeps one song and lists the folded songs' ids in its `mergedIds`. Every
   merge folds those ids into the kept song on both sides first, so a collapsed duplicate can't
   return from a backup or the record shop. Look-alikes: titles equal after ignoring case, accents,
@@ -194,7 +207,7 @@ Code layout:
 
 ```text
 src/
-  domain/    pure, tested logic: graph (songs/transitions), sets (walks, tempo track), crates, positions, tempo, backup format,
+  domain/    pure, tested logic: graph (songs/transitions), sets (walks, tempo track), energy (bands, colour map), crates, positions, tempo, backup format,
              digicam (the overexposed picture treatment of SW4G 3R4)
   storage/   localStorage persistence, one entry per crate (swappable for a sync backend later);
              githubShop: uploads to the record shop through the GitHub API;

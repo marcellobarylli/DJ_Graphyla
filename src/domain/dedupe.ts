@@ -238,8 +238,8 @@ export function foldSongs(graph: GraphData, alias: ReadonlyMap<SongId, SongId>, 
 
 /**
  * Collapses `dropIds` into `keepId`. The kept song keeps its title and artist
- * (the spelling the person chose) and fills its gaps from the others: BPM and
- * key if missing, all tags, all notes. It remembers the folded ids, so later
+ * (the spelling the person chose) and fills its gaps from the others: BPM,
+ * key and energy if missing, all tags, all notes. It remembers the folded ids, so later
  * merges and syncs fold them in again.
  */
 export function collapseSongs(graph: GraphData, keepId: SongId, dropIds: SongId[], now = new Date().toISOString()): GraphData {
@@ -262,6 +262,10 @@ export function collapseSongs(graph: GraphData, keepId: SongId, dropIds: SongId[
     ...keep,
     bpm: keep.bpm ?? drops.find((s) => s.bpm !== null)?.bpm ?? null,
     key: keep.key || drops.find((s) => s.key)?.key || '',
+    ...(() => {
+      const energy = keep.energy ?? drops.find((s) => s.energy !== undefined)?.energy;
+      return energy === undefined ? {} : { energy };
+    })(),
     tags,
     notes,
     mergedIds,

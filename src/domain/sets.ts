@@ -3,6 +3,7 @@
  * A set only references songs and transitions; the graph stays the source of truth.
  */
 import { GraphError, newId } from './common';
+import { energyLabel } from './energy';
 import { removeSetSongAt, songLabel, transitionsBetween } from './graph';
 import { formatOverlap, formatPosition } from './position';
 import { formatBpm } from './tempo';
@@ -211,7 +212,8 @@ export function setToText(graph: GraphData, set: DjSet): string {
   if (walk.startBpm !== null) lines.push(`Starts at ${formatBpm(walk.startBpm)} BPM`);
   lines.push('');
   for (const step of walk.steps) {
-    lines.push(`${step.index + 1}. ${songLabel(step.song)}`);
+    const energy = step.song?.energy;
+    lines.push(`${step.index + 1}. ${songLabel(step.song)}${energy === undefined ? '' : `  [energy ${energyLabel(energy)}]`}`);
     if (!step.link) continue;
     const t = step.link.transition;
     if (!t) {

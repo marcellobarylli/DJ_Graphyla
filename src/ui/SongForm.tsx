@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { findSimilarSong } from '../domain/dedupe';
 import { GraphError, findDuplicateSong, validateSongInput, type FieldErrors } from '../domain/graph';
+import { formatEnergy, parseEnergy } from '../domain/energy';
 import { formatBpm, parseBpm } from '../domain/tempo';
 import type { Song, SongInput } from '../domain/types';
 import { goBack, linkTo, navigate, paths } from '../state/router';
@@ -8,7 +9,7 @@ import { useStore } from '../state/store';
 import { artistSuggestions, currentTag, keySuggestions, replaceCurrentTag, tagSuggestions } from '../domain/suggest';
 import { LOOKUP_SOURCE, songLookup } from '../storage/songLookup';
 import type { OnlineSong } from '../domain/onlineSongs';
-import { EmptyState, Field, SuggestField, TextArea, TextField, TopBar } from './components';
+import { EmptyState, EnergyField, Field, SuggestField, TextArea, TextField, TopBar } from './components';
 import { OnlineSongList, useSuggestedOnlineSongs } from './OnlineSongs';
 
 export interface SongDraft {
@@ -16,13 +17,15 @@ export interface SongDraft {
   artist: string;
   bpm: string;
   key: string;
+  /** 0–100 as typed; blank = not set. */
+  energy: string;
   tags: string;
   notes: string;
   /** Set when the song was picked from the online catalogue: its BPM is looked up once, then this is cleared. */
   onlineId?: string;
 }
 
-export const emptySongDraft = (title = ''): SongDraft => ({ title, artist: '', bpm: '', key: '', tags: '', notes: '' });
+export const emptySongDraft = (title = ''): SongDraft => ({ title, artist: '', bpm: '', key: '', energy: '', tags: '', notes: '' });
 
 /** A new draft from a catalogue hit; the BPM follows (see SongFields). */
 export const draftFromOnline = (song: OnlineSong, base: SongDraft = emptySongDraft()): SongDraft => ({
@@ -130,6 +133,7 @@ export function songToDraft(song: Song): SongDraft {
     artist: song.artist,
     bpm: formatBpm(song.bpm),
     key: song.key,
+    energy: formatEnergy(song.energy),
     tags: song.tags.join(', '),
     notes: song.notes,
   };
@@ -142,12 +146,13 @@ export function draftToSongInput(d: SongDraft): SongInput {
     artist: d.artist,
     bpm: parseBpm(d.bpm),
     key: d.key,
+    energy: parseEnergy(d.energy),
     tags: d.tags.split(','),
     notes: d.notes,
   };
 }
 
-/** The song "card": title, artist, BPM, key, tags, notes. Used standalone and inline. */
+/** The song "card": title, artist, BPM, key, energy, tags, notes. Used standalone and inline. */
 export function SongFields({
   draft,
   onChange,
@@ -193,6 +198,7 @@ export function SongFields({
           placeholder="e.g. 8A / Am"
         />
       </div>
+      <EnergyField value={draft.energy} onChange={set('energy')} error={errors.energy} />
       {!compact && (
         <>
           <SuggestField
