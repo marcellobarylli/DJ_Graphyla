@@ -1,7 +1,7 @@
 {
   "app": "dj-graphyla",
   "schemaVersion": 3,
-  "exportedAt": "2026-11-11T06:49:23.254Z",
+  "exportedAt": "2026-11-11T06:57:43.155Z",
   "crate": {
     "id": "ae27b4e9-9f8b-4b2d-8892-e411425b76c9",
     "name": "B2acid2B_M"
@@ -17,12 +17,25 @@
       "notes": "Cool part ~2min",
       "createdAt": "2026-11-11T06:48:44.069Z",
       "updatedAt": "2026-11-11T06:48:44.069Z"
+    },
+    {
+      "id": "ed638c07-762a-4520-9d9b-bc703ddb608e",
+      "title": "Gurn",
+      "artist": "Patricia",
+      "bpm": null,
+      "key": "",
+      "tags": [],
+      "notes": "",
+      "createdAt": "2026-11-11T06:52:02.510Z",
+      "updatedAt": "2026-11-11T06:52:02.510Z"
     }
   ],
   "transitions": [],
   "sets": [],
   "shop": {
     "by": "kokopenny",
-    "uploadedAt": "2026-11-11T06:49:23.254Z"
+    "uploadedAt": "2026-11-11T06:49:23.254Z",
+    "updatedAt": "2026-11-11T06:57:43.155Z",
+    "updatedBy": "kokopenny"
   }
 }
