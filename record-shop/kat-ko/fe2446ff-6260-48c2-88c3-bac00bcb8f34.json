@@ -1,7 +1,7 @@
 {
   "app": "dj-graphyla",
   "schemaVersion": 3,
-  "exportedAt": "2026-11-21T22:07:57.748Z",
+  "exportedAt": "2026-11-21T22:20:21.331Z",
   "crate": {
     "id": "fe2446ff-6260-48c2-88c3-bac00bcb8f34",
     "name": "FotzigAtzigMausig"
@@ -54,6 +54,30 @@
       "notes": "",
       "createdAt": "2026-11-21T21:33:30.286Z",
       "updatedAt": "2026-11-21T21:33:30.286Z"
+    },
+    {
+      "id": "7e56371e-62d4-45d6-82cb-33c0a4b9b841",
+      "title": "iluv",
+      "artist": "Effy",
+      "bpm": 138,
+      "key": "",
+      "energy": 40,
+      "tags": [],
+      "notes": "",
+      "createdAt": "2026-11-21T22:19:01.163Z",
+      "updatedAt": "2026-11-21T22:19:01.163Z"
+    },
+    {
+      "id": "0fb437a4-242f-4052-a1eb-a395f246cc45",
+      "title": "Baby G (Victoria Remix)",
+      "artist": "Brutalismus 3000",
+      "bpm": 150,
+      "key": "",
+      "energy": 85,
+      "tags": [],
+      "notes": "",
+      "createdAt": "2026-11-21T22:19:46.111Z",
+      "updatedAt": "2026-11-21T22:19:46.111Z"
     }
   ],
   "transitions": [
@@ -140,13 +164,30 @@
       "notes": "",
       "createdAt": "2026-11-21T22:06:43.219Z",
       "updatedAt": "2026-11-21T22:06:43.219Z"
+    },
+    {
+      "id": "e90c08df-e1f2-47ef-a801-0a9e5ef7172d",
+      "fromSongId": "7e56371e-62d4-45d6-82cb-33c0a4b9b841",
+      "toSongId": "0fb437a4-242f-4052-a1eb-a395f246cc45",
+      "fromBar": null,
+      "toBar": null,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 165,
+      "toBpm": 165,
+      "overlapBars": null,
+      "rating": null,
+      "notes": "",
+      "idea": true,
+      "createdAt": "2026-11-21T22:19:46.112Z",
+      "updatedAt": "2026-11-21T22:19:46.112Z"
     }
   ],
   "sets": [],
   "shop": {
     "by": "djane-doe",
     "uploadedAt": "2026-11-21T22:07:00.708Z",
-    "updatedAt": "2026-11-21T22:07:57.748Z",
+    "updatedAt": "2026-11-21T22:20:21.331Z",
     "updatedBy": "djane-doe"
   }
 }
