@@ -1,0 +1,150 @@
+{
+  "app": "dj-graphyla",
+  "schemaVersion": 3,
+  "exportedAt": "2026-11-21T22:07:00.708Z",
+  "crate": {
+    "id": "fe2446ff-6260-48c2-88c3-bac00bcb8f34",
+    "name": "FotzigAtzigMausig"
+  },
+  "songs": [
+    {
+      "id": "899b6ffe-b82c-4e0f-9f73-2a9273c71e66",
+      "title": "Ratata",
+      "artist": "Victoria",
+      "bpm": 144,
+      "key": "",
+      "energy": 76,
+      "tags": [],
+      "notes": "",
+      "createdAt": "2026-11-21T19:46:20.192Z",
+      "updatedAt": "2026-11-21T19:46:20.192Z"
+    },
+    {
+      "id": "e9b2c9ee-52b1-4138-bb68-576100769620",
+      "title": "Some Minds",
+      "artist": "Flume",
+      "bpm": 82.5,
+      "key": "",
+      "energy": 53,
+      "tags": [],
+      "notes": "",
+      "createdAt": "2026-11-21T19:47:45.254Z",
+      "updatedAt": "2026-11-21T19:47:45.254Z"
+    },
+    {
+      "id": "e7730b42-c176-4a89-95fd-daddc05f2a56",
+      "title": "9mm",
+      "artist": "Brutalismus 3000",
+      "bpm": 157,
+      "key": "",
+      "energy": 84,
+      "tags": [],
+      "notes": "",
+      "createdAt": "2026-11-21T19:48:46.736Z",
+      "updatedAt": "2026-11-21T19:48:46.736Z"
+    },
+    {
+      "id": "2c725f36-c052-46c9-9e8c-a38bee83c6d8",
+      "title": "Inside Your Mind",
+      "artist": "Innellea",
+      "bpm": 124,
+      "key": "",
+      "energy": 62,
+      "tags": [],
+      "notes": "",
+      "createdAt": "2026-11-21T21:33:30.286Z",
+      "updatedAt": "2026-11-21T21:33:30.286Z"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "f6d34982-259a-484d-970e-502fde5bd151",
+      "fromSongId": "899b6ffe-b82c-4e0f-9f73-2a9273c71e66",
+      "toSongId": "e9b2c9ee-52b1-4138-bb68-576100769620",
+      "fromBar": null,
+      "toBar": null,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 165,
+      "toBpm": 165,
+      "overlapBars": null,
+      "rating": null,
+      "notes": "",
+      "createdAt": "2026-11-21T19:47:45.255Z",
+      "updatedAt": "2026-11-21T19:50:28.026Z",
+      "idea": true
+    },
+    {
+      "id": "c6308555-1683-4710-ab25-3d1b3b6c41cd",
+      "fromSongId": "e9b2c9ee-52b1-4138-bb68-576100769620",
+      "toSongId": "899b6ffe-b82c-4e0f-9f73-2a9273c71e66",
+      "fromBar": null,
+      "toBar": null,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 165,
+      "toBpm": 165,
+      "overlapBars": null,
+      "rating": null,
+      "notes": "",
+      "createdAt": "2026-11-21T19:47:53.438Z",
+      "updatedAt": "2026-11-21T19:50:46.057Z",
+      "idea": true
+    },
+    {
+      "id": "a7477223-53c5-43b6-8d67-33f4ab1f3d31",
+      "fromSongId": "2c725f36-c052-46c9-9e8c-a38bee83c6d8",
+      "toSongId": "e7730b42-c176-4a89-95fd-daddc05f2a56",
+      "fromBar": null,
+      "toBar": null,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": null,
+      "toBpm": null,
+      "overlapBars": null,
+      "rating": null,
+      "notes": "",
+      "idea": true,
+      "createdAt": "2026-11-21T21:33:46.411Z",
+      "updatedAt": "2026-11-21T21:33:46.411Z"
+    },
+    {
+      "id": "dedbb13c-b6b9-4655-b003-ffdfaae079f5",
+      "fromSongId": "e7730b42-c176-4a89-95fd-daddc05f2a56",
+      "toSongId": "2c725f36-c052-46c9-9e8c-a38bee83c6d8",
+      "fromBar": null,
+      "toBar": null,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": null,
+      "toBpm": null,
+      "overlapBars": null,
+      "rating": null,
+      "notes": "",
+      "idea": true,
+      "createdAt": "2026-11-21T21:34:03.396Z",
+      "updatedAt": "2026-11-21T21:34:03.396Z"
+    },
+    {
+      "id": "ddaed2ef-d928-49d0-b911-4a510d0c0539",
+      "fromSongId": "e7730b42-c176-4a89-95fd-daddc05f2a56",
+      "toSongId": "899b6ffe-b82c-4e0f-9f73-2a9273c71e66",
+      "fromBar": 65,
+      "toBar": 67,
+      "fromTime": null,
+      "toTime": null,
+      "fromBpm": 165,
+      "toBpm": 165,
+      "overlapBars": null,
+      "rating": null,
+      "notes": "",
+      "createdAt": "2026-11-21T22:06:43.219Z",
+      "updatedAt": "2026-11-21T22:06:43.219Z"
+    }
+  ],
+  "sets": [],
+  "shop": {
+    "by": "djane-doe",
+    "uploadedAt": "2026-11-21T22:07:00.708Z"
+  }
+}
