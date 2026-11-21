@@ -1,7 +1,7 @@
 {
   "app": "dj-graphyla",
   "schemaVersion": 3,
-  "exportedAt": "2026-11-21T22:07:00.708Z",
+  "exportedAt": "2026-11-21T22:07:23.444Z",
   "crate": {
     "id": "fe2446ff-6260-48c2-88c3-bac00bcb8f34",
     "name": "FotzigAtzigMausig"
@@ -145,6 +145,8 @@
   "sets": [],
   "shop": {
     "by": "djane-doe",
-    "uploadedAt": "2026-11-21T22:07:00.708Z"
+    "uploadedAt": "2026-11-21T22:07:00.708Z",
+    "updatedAt": "2026-11-21T22:07:23.444Z",
+    "updatedBy": "djane-doe"
   }
 }
